@@ -45,7 +45,6 @@ const Index = () => {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500">Modelos Exclusivas</h1>
         </header>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
