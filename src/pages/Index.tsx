@@ -51,6 +51,7 @@ const Index = () => {
           {models.map((model) => (
             <ModelCard
               key={model.id}
+              id={model.id}
               name={model.name}
               age={model.age}
               image={model.image}
