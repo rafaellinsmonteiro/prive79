@@ -6,7 +6,7 @@ const models = [
     id: 1,
     name: "Ana Silva",
     age: 23,
-    image: "/lovable-uploads/57baecde-285f-4cbc-9e48-d743c2a3953c.png",
+    image: "https://lh3.google.com/u/0/d/1ULpzb1-Lx8WvExz09r3itB9MCGJbyT0B=w1440-h676-iv2?auditContext=prefetch",
   },
   {
     id: 2,
