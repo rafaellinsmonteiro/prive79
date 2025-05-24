@@ -103,7 +103,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
               {/* About section */}
               <div className="flex items-center gap-2 text-lg">
                 <span className="text-zinc-400">👤</span>
-                <span>Sobre a acompanhante</span>
+                <span>Sobre a modelo</span>
               </div>
 
               {/* Phone button */}
@@ -112,7 +112,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                 onClick={() => window.open(whatsappLink, '_blank')}
               >
                 <Phone className="h-5 w-5 mr-2" />
-                Ver telefone
+                Chamar no WhatsApp
               </Button>
 
               {/* Information grid */}
