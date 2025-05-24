@@ -8,11 +8,12 @@ interface ModelCardProps {
   name: string;
   age: number;
   image: string;
+  whatsappNumber?: string | null;
   onClick: () => void;
 }
 
-const ModelCard = ({ name, age, image, onClick }: ModelCardProps) => {
-  const whatsappLink = `https://wa.me/5511999999999?text=Ol%C3%A1%20${encodeURIComponent(name)},%20gostaria%20de%20conversar`;
+const ModelCard = ({ name, age, image, whatsappNumber, onClick }: ModelCardProps) => {
+  const whatsappLink = `https://wa.me/${whatsappNumber || '5511999999999'}?text=Ol%C3%A1%20${encodeURIComponent(name)},%20gostaria%20de%20conversar`;
 
   return (
     <Card 

@@ -2,56 +2,41 @@
 import { useState } from "react";
 import ModelCard from "@/components/ModelCard";
 import ModelProfile from "@/components/ModelProfile";
-
-const models = [
-  {
-    id: 1,
-    name: "Ana Silva",
-    age: 23,
-    image: "https://lh3.google.com/u/0/d/1ULpzb1-Lx8WvExz09r3itB9MCGJbyT0B=w1440-h676-iv2?auditContext=prefetch",
-  },
-  {
-    id: 2,
-    name: "Beatriz Costa",
-    age: 25,
-    image: "/lovable-uploads/b9bd7d45-b917-4290-a1aa-bee5b931dc68.png",
-  },
-  {
-    id: 3,
-    name: "Carolina Santos",
-    age: 22,
-    image: "/lovable-uploads/6e0363be-2338-4902-9942-2b48013527c7.png",
-  },
-  {
-    id: 4,
-    name: "Diana Lima",
-    age: 24,
-    image: "/lovable-uploads/aa64fd07-f6e9-44dc-9884-31df43791242.png",
-  },
-  {
-    id: 5,
-    name: "Elena Martins",
-    age: 26,
-    image: "/lovable-uploads/b79999d0-f8f1-48f6-aa79-16285eb7104d.png",
-  },
-  {
-    id: 6,
-    name: "Fernanda Oliveira",
-    age: 21,
-    image: "/lovable-uploads/4fc5af21-d6b9-4ec2-8548-3712319ddf5e.png",
-  }
-];
+import { useModels, Model } from "@/hooks/useModels";
 
 const Index = () => {
-  const [selectedModel, setSelectedModel] = useState<typeof models[0] | null>(null);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+  const { data: models = [], isLoading, error } = useModels();
 
-  const handleModelClick = (model: typeof models[0]) => {
+  const handleModelClick = (model: Model) => {
     setSelectedModel(model);
   };
 
   const handleCloseProfile = () => {
     setSelectedModel(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500 mx-auto"></div>
+          <p className="mt-4 text-zinc-400">Carregando modelos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400">Erro ao carregar modelos</p>
+          <p className="text-zinc-400 mt-2">Tente recarregar a página</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -66,7 +51,8 @@ const Index = () => {
                 key={model.id}
                 name={model.name}
                 age={model.age}
-                image={model.image}
+                image={model.photos.find(photo => photo.is_primary)?.photo_url || model.photos[0]?.photo_url || ''}
+                whatsappNumber={model.whatsapp_number}
                 onClick={() => handleModelClick(model)}
               />
             ))}

@@ -9,7 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      model_photos: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          is_primary: boolean | null
+          model_id: string
+          photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_primary?: boolean | null
+          model_id: string
+          photo_url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_primary?: boolean | null
+          model_id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_photos_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      models: {
+        Row: {
+          age: number
+          appearance: string | null
+          body_type: string | null
+          bust: string | null
+          created_at: string
+          description: string | null
+          eyes: string | null
+          height: string | null
+          hip: string | null
+          id: string
+          is_active: boolean | null
+          languages: string | null
+          location: string | null
+          name: string
+          shoe_size: string | null
+          silicone: boolean | null
+          updated_at: string
+          waist: string | null
+          weight: string | null
+          whatsapp_number: string | null
+        }
+        Insert: {
+          age: number
+          appearance?: string | null
+          body_type?: string | null
+          bust?: string | null
+          created_at?: string
+          description?: string | null
+          eyes?: string | null
+          height?: string | null
+          hip?: string | null
+          id?: string
+          is_active?: boolean | null
+          languages?: string | null
+          location?: string | null
+          name: string
+          shoe_size?: string | null
+          silicone?: boolean | null
+          updated_at?: string
+          waist?: string | null
+          weight?: string | null
+          whatsapp_number?: string | null
+        }
+        Update: {
+          age?: number
+          appearance?: string | null
+          body_type?: string | null
+          bust?: string | null
+          created_at?: string
+          description?: string | null
+          eyes?: string | null
+          height?: string | null
+          hip?: string | null
+          id?: string
+          is_active?: boolean | null
+          languages?: string | null
+          location?: string | null
+          name?: string
+          shoe_size?: string | null
+          silicone?: boolean | null
+          updated_at?: string
+          waist?: string | null
+          weight?: string | null
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
