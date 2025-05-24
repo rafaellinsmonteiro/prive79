@@ -1,5 +1,7 @@
 
+import { useState } from "react";
 import ModelCard from "@/components/ModelCard";
+import ModelProfile from "@/components/ModelProfile";
 
 const models = [
   {
@@ -41,24 +43,44 @@ const models = [
 ];
 
 const Index = () => {
+  const [selectedModel, setSelectedModel] = useState<typeof models[0] | null>(null);
+
+  const handleModelClick = (model: typeof models[0]) => {
+    setSelectedModel(model);
+  };
+
+  const handleCloseProfile = () => {
+    setSelectedModel(null);
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="container mx-auto px-4 py-8">
-        <header className="mb-8">
-        </header>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {models.map((model) => (
-            <ModelCard
-              key={model.id}
-              name={model.name}
-              age={model.age}
-              image={model.image}
-            />
-          ))}
+    <>
+      <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <div className="container mx-auto px-4 py-8">
+          <header className="mb-8">
+          </header>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {models.map((model) => (
+              <ModelCard
+                key={model.id}
+                name={model.name}
+                age={model.age}
+                image={model.image}
+                onClick={() => handleModelClick(model)}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {selectedModel && (
+        <ModelProfile
+          model={selectedModel}
+          onClose={handleCloseProfile}
+        />
+      )}
+    </>
   );
 };
 

@@ -8,13 +8,17 @@ interface ModelCardProps {
   name: string;
   age: number;
   image: string;
+  onClick: () => void;
 }
 
-const ModelCard = ({ name, age, image }: ModelCardProps) => {
+const ModelCard = ({ name, age, image, onClick }: ModelCardProps) => {
   const whatsappLink = `https://wa.me/5511999999999?text=Ol%C3%A1%20${encodeURIComponent(name)},%20gostaria%20de%20conversar`;
 
   return (
-    <Card className="group overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border-zinc-800/50 bg-zinc-900/50 relative">
+    <Card 
+      className="group overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border-zinc-800/50 bg-zinc-900/50 relative"
+      onClick={onClick}
+    >
       <AspectRatio ratio={3/4}>
         <img 
           src={image} 
