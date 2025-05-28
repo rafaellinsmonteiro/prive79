@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -135,6 +134,19 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
                 id="whatsapp_number"
                 {...register('whatsapp_number')}
                 placeholder="5511999999999"
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="display_order" className="text-white">Ordem de Exibição</Label>
+              <Input
+                id="display_order"
+                type="number"
+                {...register('display_order', { 
+                  valueAsNumber: true,
+                  min: { value: 0, message: 'Ordem deve ser maior ou igual a 0' }
+                })}
                 className="bg-zinc-800 border-zinc-700 text-white"
               />
             </div>
