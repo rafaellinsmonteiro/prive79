@@ -12,6 +12,7 @@ export interface ModelMedia {
   is_primary: boolean;
   display_order: number;
   created_at: string;
+  thumbnail_url?: string;
 }
 
 export const useModelMedia = (modelId?: string) => {
@@ -20,7 +21,7 @@ export const useModelMedia = (modelId?: string) => {
     queryFn: async (): Promise<ModelMedia[]> => {
       if (!modelId) return [];
       
-      // Por enquanto, vamos usar a tabela model_photos existente e simular vídeos
+      // Buscar fotos
       const { data: photosData, error: photosError } = await supabase
         .from('model_photos')
         .select('*')
@@ -28,12 +29,25 @@ export const useModelMedia = (modelId?: string) => {
         .order('display_order');
 
       if (photosError) {
-        console.error('Erro ao buscar mídias da modelo:', photosError);
+        console.error('Erro ao buscar fotos da modelo:', photosError);
         throw photosError;
       }
 
-      // Converter fotos para o formato ModelMedia e adicionar alguns vídeos simulados
-      const mediaItems: ModelMedia[] = photosData.map(photo => ({
+      // Buscar vídeos
+      const { data: videosData, error: videosError } = await supabase
+        .from('model_videos')
+        .select('*')
+        .eq('model_id', modelId)
+        .eq('is_active', true)
+        .order('display_order');
+
+      if (videosError) {
+        console.error('Erro ao buscar vídeos da modelo:', videosError);
+        throw videosError;
+      }
+
+      // Converter fotos para o formato ModelMedia
+      const photoItems: ModelMedia[] = photosData.map(photo => ({
         id: photo.id,
         model_id: photo.model_id,
         media_url: photo.photo_url,
@@ -43,20 +57,24 @@ export const useModelMedia = (modelId?: string) => {
         created_at: photo.created_at
       }));
 
-      // Adicionar alguns vídeos simulados para demonstração
-      if (mediaItems.length > 0) {
-        mediaItems.push({
-          id: `video-${modelId}-1`,
-          model_id: modelId,
-          media_url: '#',
-          media_type: 'video' as MediaType,
-          is_primary: false,
-          display_order: mediaItems.length,
-          created_at: new Date().toISOString()
-        });
-      }
+      // Converter vídeos para o formato ModelMedia
+      const videoItems: ModelMedia[] = videosData.map(video => ({
+        id: video.id,
+        model_id: video.model_id,
+        media_url: video.video_url,
+        media_type: 'video' as MediaType,
+        is_primary: false,
+        display_order: video.display_order || 0,
+        created_at: video.created_at,
+        thumbnail_url: video.thumbnail_url || undefined
+      }));
 
-      return mediaItems;
+      // Combinar e ordenar por display_order
+      const allMedia = [...photoItems, ...videoItems].sort(
+        (a, b) => a.display_order - b.display_order
+      );
+
+      return allMedia;
     },
     enabled: !!modelId,
   });

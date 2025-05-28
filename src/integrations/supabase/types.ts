@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       model_photos: {
         Row: {
           created_at: string
@@ -44,6 +71,53 @@ export type Database = {
           },
         ]
       }
+      model_videos: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          duration: number | null
+          id: string
+          is_active: boolean | null
+          model_id: string
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          duration?: number | null
+          id?: string
+          is_active?: boolean | null
+          model_id: string
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          duration?: number | null
+          id?: string
+          is_active?: boolean | null
+          model_id?: string
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_videos_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       models: {
         Row: {
           age: number
@@ -52,6 +126,7 @@ export type Database = {
           bust: string | null
           created_at: string
           description: string | null
+          display_order: number | null
           eyes: string | null
           height: string | null
           hip: string | null
@@ -74,6 +149,7 @@ export type Database = {
           bust?: string | null
           created_at?: string
           description?: string | null
+          display_order?: number | null
           eyes?: string | null
           height?: string | null
           hip?: string | null
@@ -96,6 +172,7 @@ export type Database = {
           bust?: string | null
           created_at?: string
           description?: string | null
+          display_order?: number | null
           eyes?: string | null
           height?: string | null
           hip?: string | null
