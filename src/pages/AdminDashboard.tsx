@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminModels } from '@/hooks/useAdminModels';
 import { Button } from '@/components/ui/button';
@@ -11,11 +12,24 @@ import ModelForm from '@/components/admin/ModelForm';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
-  const { user, signOut, isAdmin, loading } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { data: models = [], isLoading } = useAdminModels();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModel, setEditingModel] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Verificar se está autenticado (simulação simples)
+    const adminAuth = localStorage.getItem('adminAuth');
+    if (adminAuth === 'true') {
+      setIsAuthenticated(true);
+    } else {
+      navigate('/login');
+    }
+    setLoading(false);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -25,35 +39,17 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!user || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acesso Negado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-zinc-600 mb-4">
-              Você não tem permissão para acessar o dashboard administrativo.
-            </p>
-            <Button onClick={() => window.location.href = '/'} className="w-full">
-              Voltar ao início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleSignOut = () => {
+    localStorage.removeItem('adminAuth');
+    navigate('/login');
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso",
+    });
   };
 
   return (
@@ -64,7 +60,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Dashboard Administrativo</h1>
             <div className="flex items-center gap-4">
-              <span className="text-zinc-400">Olá, {user.email}</span>
+              <span className="text-zinc-400">Olá, Administrador</span>
               <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-5 w-5" />
               </Button>

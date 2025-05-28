@@ -7,7 +7,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, User, LogIn, UserPlus } from "lucide-react";
+import { Menu, MapPin, User, LogIn } from "lucide-react";
 
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("São Paulo - SP");
@@ -95,24 +95,16 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Login/Cadastro */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Cadastro
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Login Admin */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-zinc-400 hover:text-zinc-100"
+              onClick={() => window.location.href = '/login'}
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Admin
+            </Button>
           </div>
         </div>
       </div>
