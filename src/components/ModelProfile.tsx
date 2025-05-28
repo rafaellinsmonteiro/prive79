@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowLeft, ArrowRight, X, Video } from "lucide-react";
 import { Model } from "@/hooks/useModels";
+import { useModelMedia } from "@/hooks/useModelMedia";
 
 interface ModelProfileProps {
   model: Model;
@@ -11,19 +12,8 @@ interface ModelProfileProps {
 
 const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { data: mediaItems = [] } = useModelMedia(model.id);
   
-  // Simulando dados de mídia (fotos e vídeos) - em produção viria do hook useModelMedia
-  const mediaItems = [
-    ...model.photos.map(photo => ({ 
-      url: photo.photo_url, 
-      type: 'photo' as const,
-      id: photo.id || Math.random().toString()
-    })),
-    // Adicionando alguns vídeos de exemplo
-    { url: '#', type: 'video' as const, id: 'video1' },
-    { url: '#', type: 'video' as const, id: 'video2' }
-  ];
-
   const whatsappLink = `https://wa.me/${model.whatsapp_number}?text=Ol%C3%A1%20${encodeURIComponent(model.name)},%20gostaria%20de%20conversar`;
 
   const nextImage = () => {
@@ -53,9 +43,9 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
             <div className="space-y-4">
               {/* Main media with navigation */}
               <div className="relative aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden">
-                {currentMedia?.type === 'photo' ? (
+                {currentMedia?.media_type === 'photo' ? (
                   <img 
-                    src={currentMedia.url} 
+                    src={currentMedia.media_url} 
                     alt={model.name} 
                     className="w-full h-full object-cover" 
                   />
@@ -103,9 +93,9 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                           : "border-zinc-700 hover:border-zinc-600"
                       }`}
                     >
-                      {media.type === 'photo' ? (
+                      {media.media_type === 'photo' ? (
                         <img 
-                          src={media.url} 
+                          src={media.media_url} 
                           alt={`${model.name} ${index + 1}`} 
                           className="w-full h-full object-cover" 
                         />
@@ -116,7 +106,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                       )}
                       
                       {/* Video icon overlay */}
-                      {media.type === 'video' && (
+                      {media.media_type === 'video' && (
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                           <Video className="h-6 w-6 text-white" />
                         </div>
