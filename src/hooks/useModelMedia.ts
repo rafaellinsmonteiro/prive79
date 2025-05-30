@@ -13,6 +13,7 @@ export interface ModelMedia {
   display_order: number;
   created_at: string;
   thumbnail_url?: string;
+  title?: string;
 }
 
 export const useModelMedia = (modelId?: string) => {
