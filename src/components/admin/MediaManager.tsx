@@ -7,8 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useModelMedia } from '@/hooks/useModelMedia';
-import { Plus, Trash2, Star, Image, Video } from 'lucide-react';
+import { Plus, Trash2, Star, Image, Video, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  useCreatePhoto,
+  useCreateVideo,
+  useDeletePhoto,
+  useDeleteVideo,
+  useSetPrimaryPhoto,
+  useUploadFile
+} from '@/hooks/useMediaMutations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +41,17 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
   const [newVideoThumbnail, setNewVideoThumbnail] = useState('');
   const { toast } = useToast();
 
+  const createPhotoMutation = useCreatePhoto();
+  const createVideoMutation = useCreateVideo();
+  const deletePhotoMutation = useDeletePhoto();
+  const deleteVideoMutation = useDeleteVideo();
+  const setPrimaryPhotoMutation = useSetPrimaryPhoto();
+  const uploadFileMutation = useUploadFile();
+
   const photos = mediaItems.filter(item => item.media_type === 'photo');
   const videos = mediaItems.filter(item => item.media_type === 'video');
 
-  const handleAddPhoto = () => {
+  const handleAddPhoto = async () => {
     if (!newPhotoUrl.trim()) {
       toast({
         title: "Erro",
@@ -46,17 +61,28 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
-    // Aqui você adicionaria a lógica para salvar no banco
-    console.log('Adicionando foto:', newPhotoUrl);
-    setNewPhotoUrl('');
-    
-    toast({
-      title: "Sucesso",
-      description: "Foto adicionada com sucesso!",
-    });
+    try {
+      await createPhotoMutation.mutateAsync({
+        modelId,
+        photoUrl: newPhotoUrl,
+        isPrimary: photos.length === 0 // Primeira foto será primária
+      });
+      
+      setNewPhotoUrl('');
+      toast({
+        title: "Sucesso",
+        description: "Foto adicionada com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar foto. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAddVideo = () => {
+  const handleAddVideo = async () => {
     if (!newVideoUrl.trim()) {
       toast({
         title: "Erro",
@@ -66,41 +92,109 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
-    // Aqui você adicionaria a lógica para salvar no banco
-    console.log('Adicionando vídeo:', { url: newVideoUrl, title: newVideoTitle, thumbnail: newVideoThumbnail });
-    setNewVideoUrl('');
-    setNewVideoTitle('');
-    setNewVideoThumbnail('');
-    
-    toast({
-      title: "Sucesso",
-      description: "Vídeo adicionado com sucesso!",
-    });
+    try {
+      await createVideoMutation.mutateAsync({
+        modelId,
+        videoUrl: newVideoUrl,
+        title: newVideoTitle || undefined,
+        thumbnailUrl: newVideoThumbnail || undefined
+      });
+      
+      setNewVideoUrl('');
+      setNewVideoTitle('');
+      setNewVideoThumbnail('');
+      toast({
+        title: "Sucesso",
+        description: "Vídeo adicionado com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar vídeo. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteMedia = (mediaId: string, type: 'photo' | 'video') => {
-    // Aqui você adicionaria a lógica para deletar do banco
-    console.log('Deletando mídia:', mediaId, type);
-    
-    toast({
-      title: "Sucesso",
-      description: `${type === 'photo' ? 'Foto' : 'Vídeo'} deletada com sucesso!`,
-    });
+  const handleDeleteMedia = async (mediaId: string, type: 'photo' | 'video') => {
+    try {
+      if (type === 'photo') {
+        await deletePhotoMutation.mutateAsync({ photoId: mediaId, modelId });
+      } else {
+        await deleteVideoMutation.mutateAsync({ videoId: mediaId, modelId });
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: `${type === 'photo' ? 'Foto' : 'Vídeo'} deletada com sucesso!`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: `Erro ao deletar ${type === 'photo' ? 'foto' : 'vídeo'}. Tente novamente.`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSetPrimary = (mediaId: string) => {
-    // Aqui você adicionaria a lógica para definir como principal
-    console.log('Definindo como principal:', mediaId);
-    
-    toast({
-      title: "Sucesso",
-      description: "Foto principal definida com sucesso!",
-    });
+  const handleSetPrimary = async (photoId: string) => {
+    try {
+      await setPrimaryPhotoMutation.mutateAsync({ photoId, modelId });
+      
+      toast({
+        title: "Sucesso",
+        description: "Foto principal definida com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao definir foto principal. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileUpload = async (file: File, type: 'photo' | 'video') => {
+    try {
+      const publicUrl = await uploadFileMutation.mutateAsync({ file, modelId, type });
+      
+      if (type === 'photo') {
+        await createPhotoMutation.mutateAsync({
+          modelId,
+          photoUrl: publicUrl,
+          isPrimary: photos.length === 0
+        });
+      } else {
+        await createVideoMutation.mutateAsync({
+          modelId,
+          videoUrl: publicUrl,
+          title: file.name.split('.')[0]
+        });
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: `${type === 'photo' ? 'Foto' : 'Vídeo'} enviado e adicionado com sucesso!`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: `Erro ao enviar ${type === 'photo' ? 'foto' : 'vídeo'}. Tente novamente.`,
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
     return <div className="text-center py-8">Carregando mídias...</div>;
   }
+
+  const isProcessing = createPhotoMutation.isPending || 
+                     createVideoMutation.isPending || 
+                     deletePhotoMutation.isPending || 
+                     deleteVideoMutation.isPending || 
+                     setPrimaryPhotoMutation.isPending ||
+                     uploadFileMutation.isPending;
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -115,9 +209,30 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
           </TabsList>
 
           <TabsContent value="photos" className="space-y-4">
-            {/* Adicionar nova foto */}
+            {/* Upload de arquivo */}
             <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
-              <h4 className="text-white font-medium">Adicionar Nova Foto</h4>
+              <h4 className="text-white font-medium">Upload de Foto</h4>
+              <div className="space-y-2">
+                <Label htmlFor="photo-file" className="text-white">Selecionar Arquivo</Label>
+                <Input
+                  id="photo-file"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, 'photo');
+                    }
+                  }}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div className="text-center text-zinc-400">ou</div>
+            </div>
+
+            {/* Adicionar nova foto por URL */}
+            <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
+              <h4 className="text-white font-medium">Adicionar por URL</h4>
               <div className="space-y-2">
                 <Label htmlFor="photo-url" className="text-white">URL da Foto</Label>
                 <Input
@@ -128,9 +243,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </div>
-              <Button onClick={handleAddPhoto} className="w-full">
+              <Button 
+                onClick={handleAddPhoto} 
+                className="w-full"
+                disabled={isProcessing}
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar Foto
+                {createPhotoMutation.isPending ? 'Adicionando...' : 'Adicionar Foto'}
               </Button>
             </div>
 
@@ -155,13 +274,14 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                         size="sm"
                         variant="secondary"
                         onClick={() => handleSetPrimary(photo.id)}
+                        disabled={isProcessing}
                       >
                         <Star className="h-3 w-3" />
                       </Button>
                     )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive">
+                        <Button size="sm" variant="destructive" disabled={isProcessing}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </AlertDialogTrigger>
@@ -197,9 +317,30 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-4">
-            {/* Adicionar novo vídeo */}
+            {/* Upload de arquivo */}
             <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
-              <h4 className="text-white font-medium">Adicionar Novo Vídeo</h4>
+              <h4 className="text-white font-medium">Upload de Vídeo</h4>
+              <div className="space-y-2">
+                <Label htmlFor="video-file" className="text-white">Selecionar Arquivo</Label>
+                <Input
+                  id="video-file"
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, 'video');
+                    }
+                  }}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div className="text-center text-zinc-400">ou</div>
+            </div>
+
+            {/* Adicionar novo vídeo por URL */}
+            <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
+              <h4 className="text-white font-medium">Adicionar por URL</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="video-url" className="text-white">URL do Vídeo</Label>
@@ -232,9 +373,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </div>
-              <Button onClick={handleAddVideo} className="w-full">
+              <Button 
+                onClick={handleAddVideo} 
+                className="w-full"
+                disabled={isProcessing}
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar Vídeo
+                {createVideoMutation.isPending ? 'Adicionando...' : 'Adicionar Vídeo'}
               </Button>
             </div>
 
@@ -261,7 +406,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive">
+                      <Button size="sm" variant="destructive" disabled={isProcessing}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
