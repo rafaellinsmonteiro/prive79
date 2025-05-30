@@ -40,17 +40,25 @@ export const useCreateModel = () => {
 
   return useMutation({
     mutationFn: async (modelData: Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos'>) => {
+      console.log('Creating model with data:', modelData);
+      
       const { data, error } = await supabase
         .from('models')
         .insert(modelData)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating model:', error);
+        throw error;
+      }
+      
+      console.log('Model created successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 };
@@ -60,18 +68,26 @@ export const useUpdateModel = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Model> & { id: string }) => {
+      console.log('Updating model with id:', id, 'and data:', updates);
+      
       const { data, error } = await supabase
         .from('models')
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating model:', error);
+        throw error;
+      }
+      
+      console.log('Model updated successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 };
@@ -81,15 +97,23 @@ export const useDeleteModel = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting model with id:', id);
+      
       const { error } = await supabase
         .from('models')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting model:', error);
+        throw error;
+      }
+      
+      console.log('Model deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 };
@@ -99,6 +123,8 @@ export const useUpdateModelOrder = () => {
 
   return useMutation({
     mutationFn: async (models: { id: string; display_order: number }[]) => {
+      console.log('Updating model order:', models);
+      
       const updates = models.map(model => 
         supabase
           .from('models')
@@ -106,10 +132,21 @@ export const useUpdateModelOrder = () => {
           .eq('id', model.id)
       );
 
-      await Promise.all(updates);
+      const results = await Promise.all(updates);
+      
+      // Check for errors in any of the updates
+      for (const result of results) {
+        if (result.error) {
+          console.error('Error updating model order:', result.error);
+          throw result.error;
+        }
+      }
+      
+      console.log('Model order updated successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 };

@@ -75,15 +75,22 @@ export const useModel = (id: string) => {
     queryFn: async (): Promise<Model | null> => {
       if (!id) return null;
 
+      console.log('Fetching model with id:', id);
+
       const { data: modelData, error: modelError } = await supabase
         .from('models')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (modelError) {
         console.error('Error fetching model:', modelError);
         throw modelError;
+      }
+
+      if (!modelData) {
+        console.log('No model found with id:', id);
+        return null;
       }
 
       const { data: photosData, error: photosError } = await supabase
@@ -97,6 +104,7 @@ export const useModel = (id: string) => {
         throw photosError;
       }
 
+      console.log('Model fetched successfully:', modelData);
       return {
         ...modelData,
         photos: photosData || []
