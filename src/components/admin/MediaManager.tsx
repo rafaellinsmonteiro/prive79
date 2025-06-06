@@ -61,6 +61,18 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
+    // Basic URL validation
+    try {
+      new URL(newPhotoUrl);
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira uma URL válida (deve começar com http:// ou https://)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await createPhotoMutation.mutateAsync({
         modelId,
@@ -74,6 +86,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
         description: "Foto adicionada com sucesso!",
       });
     } catch (error) {
+      console.error('Error adding photo:', error);
       toast({
         title: "Erro",
         description: "Erro ao adicionar foto. Tente novamente.",
@@ -87,6 +100,18 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       toast({
         title: "Erro",
         description: "Por favor, insira uma URL válida para o vídeo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(newVideoUrl);
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira uma URL válida (deve começar com http:// ou https://)",
         variant: "destructive",
       });
       return;
@@ -108,6 +133,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
         description: "Vídeo adicionado com sucesso!",
       });
     } catch (error) {
+      console.error('Error adding video:', error);
       toast({
         title: "Erro",
         description: "Erro ao adicionar vídeo. Tente novamente.",
@@ -129,6 +155,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
         description: `${type === 'photo' ? 'Foto' : 'Vídeo'} deletada com sucesso!`,
       });
     } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
       toast({
         title: "Erro",
         description: `Erro ao deletar ${type === 'photo' ? 'foto' : 'vídeo'}. Tente novamente.`,
@@ -146,6 +173,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
         description: "Foto principal definida com sucesso!",
       });
     } catch (error) {
+      console.error('Error setting primary photo:', error);
       toast({
         title: "Erro",
         description: "Erro ao definir foto principal. Tente novamente.",
@@ -155,6 +183,39 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
   };
 
   const handleFileUpload = async (file: File, type: 'photo' | 'video') => {
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Erro",
+        description: "Arquivo muito grande. O tamanho máximo é 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const validPhotoTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    
+    if (type === 'photo' && !validPhotoTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Tipo de arquivo inválido. Use apenas: JPEG, PNG, GIF ou WebP.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (type === 'video' && !validVideoTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Tipo de arquivo inválido. Use apenas: MP4, WebM ou OGG.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const publicUrl = await uploadFileMutation.mutateAsync({ file, modelId, type });
       
@@ -177,6 +238,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
         description: `${type === 'photo' ? 'Foto' : 'Vídeo'} enviado e adicionado com sucesso!`,
       });
     } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
       toast({
         title: "Erro",
         description: `Erro ao enviar ${type === 'photo' ? 'foto' : 'vídeo'}. Tente novamente.`,
@@ -213,18 +275,20 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
             <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
               <h4 className="text-white font-medium">Upload de Foto</h4>
               <div className="space-y-2">
-                <Label htmlFor="photo-file" className="text-white">Selecionar Arquivo</Label>
+                <Label htmlFor="photo-file" className="text-white">Selecionar Arquivo (máx. 10MB)</Label>
                 <Input
                   id="photo-file"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       handleFileUpload(file, 'photo');
+                      e.target.value = ''; // Reset input
                     }
                   }}
                   className="bg-zinc-800 border-zinc-700 text-white"
+                  disabled={isProcessing}
                 />
               </div>
               <div className="text-center text-zinc-400">ou</div>
@@ -241,12 +305,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                   onChange={(e) => setNewPhotoUrl(e.target.value)}
                   placeholder="https://exemplo.com/foto.jpg"
                   className="bg-zinc-800 border-zinc-700 text-white"
+                  disabled={isProcessing}
                 />
               </div>
               <Button 
                 onClick={handleAddPhoto} 
                 className="w-full"
-                disabled={isProcessing}
+                disabled={isProcessing || !newPhotoUrl.trim()}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {createPhotoMutation.isPending ? 'Adicionando...' : 'Adicionar Foto'}
@@ -261,6 +326,10 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     src={photo.media_url}
                     alt={`Foto ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://placeholder.com/400x600';
+                    }}
                   />
                   {photo.is_primary && (
                     <Badge className="absolute top-2 left-2 bg-yellow-600">
@@ -321,18 +390,20 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
             <div className="space-y-4 p-4 border border-zinc-700 rounded-lg">
               <h4 className="text-white font-medium">Upload de Vídeo</h4>
               <div className="space-y-2">
-                <Label htmlFor="video-file" className="text-white">Selecionar Arquivo</Label>
+                <Label htmlFor="video-file" className="text-white">Selecionar Arquivo (máx. 10MB)</Label>
                 <Input
                   id="video-file"
                   type="file"
-                  accept="video/*"
+                  accept="video/mp4,video/webm,video/ogg"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       handleFileUpload(file, 'video');
+                      e.target.value = ''; // Reset input
                     }
                   }}
                   className="bg-zinc-800 border-zinc-700 text-white"
+                  disabled={isProcessing}
                 />
               </div>
               <div className="text-center text-zinc-400">ou</div>
@@ -350,6 +421,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     onChange={(e) => setNewVideoUrl(e.target.value)}
                     placeholder="https://exemplo.com/video.mp4"
                     className="bg-zinc-800 border-zinc-700 text-white"
+                    disabled={isProcessing}
                   />
                 </div>
                 <div className="space-y-2">
@@ -360,6 +432,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     onChange={(e) => setNewVideoTitle(e.target.value)}
                     placeholder="Título do vídeo"
                     className="bg-zinc-800 border-zinc-700 text-white"
+                    disabled={isProcessing}
                   />
                 </div>
               </div>
@@ -371,12 +444,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                   onChange={(e) => setNewVideoThumbnail(e.target.value)}
                   placeholder="https://exemplo.com/thumbnail.jpg"
                   className="bg-zinc-800 border-zinc-700 text-white"
+                  disabled={isProcessing}
                 />
               </div>
               <Button 
                 onClick={handleAddVideo} 
                 className="w-full"
-                disabled={isProcessing}
+                disabled={isProcessing || !newVideoUrl.trim()}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {createVideoMutation.isPending ? 'Adicionando...' : 'Adicionar Vídeo'}
@@ -392,12 +466,16 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                       src={video.thumbnail_url}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-20 h-16 object-cover rounded"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.setAttribute('style', 'display: flex');
+                      }}
                     />
-                  ) : (
-                    <div className="w-20 h-16 bg-zinc-800 rounded flex items-center justify-center">
-                      <Video className="h-6 w-6 text-zinc-500" />
-                    </div>
-                  )}
+                  ) : null}
+                  <div className="w-20 h-16 bg-zinc-800 rounded flex items-center justify-center" style={{ display: video.thumbnail_url ? 'none' : 'flex' }}>
+                    <Video className="h-6 w-6 text-zinc-500" />
+                  </div>
                   <div className="flex-1">
                     <p className="text-white font-medium">
                       {video.title || `Vídeo ${index + 1}`}

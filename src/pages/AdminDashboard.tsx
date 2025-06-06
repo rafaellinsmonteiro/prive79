@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminModels } from '@/hooks/useAdminModels';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Users, LogOut, Image, Settings } from 'lucide-react';
@@ -11,8 +12,7 @@ import MediaManager from '@/components/admin/MediaManager';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const { data: models = [], isLoading } = useAdminModels();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModel, setEditingModel] = useState<string | null>(null);
@@ -21,35 +21,38 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar se está autenticado (simulação simples)
-    const adminAuth = localStorage.getItem('adminAuth');
-    if (adminAuth === 'true') {
-      setIsAuthenticated(true);
-    } else {
+    if (!authLoading && (!user || !isAdmin)) {
       navigate('/login');
     }
-    setLoading(false);
-  }, [navigate]);
+  }, [user, isAdmin, authLoading, navigate]);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-white">Carregando...</div>
+        <div className="text-white">Verificando autenticação...</div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user || !isAdmin) {
     return null;
   }
 
-  const handleSignOut = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/login');
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso",
-    });
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Erro no logout",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      navigate('/login');
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso",
+      });
+    }
   };
 
   return (
@@ -60,7 +63,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Dashboard Administrativo</h1>
             <div className="flex items-center gap-4">
-              <span className="text-zinc-400">Olá, Administrador</span>
+              <span className="text-zinc-400">Olá, {user.email}</span>
               <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-5 w-5" />
               </Button>

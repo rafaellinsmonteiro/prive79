@@ -1,39 +1,73 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signIn, signUp, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Redirect authenticated admin users
+  if (user && isAdmin) {
+    navigate('/admin');
+    return null;
+  }
+
+  // Redirect authenticated non-admin users
+  if (user && !isAdmin) {
+    navigate('/');
+    return null;
+  }
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Verificar se são as credenciais do admin
-    if (email === 'admin' && password === 'admin') {
-      // Salvar estado de autenticação
-      localStorage.setItem('adminAuth', 'true');
-      
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao dashboard administrativo",
-      });
-      navigate('/admin');
-    } else {
+    const { error } = await signIn(email, password);
+    
+    if (error) {
       toast({
         title: "Erro no login",
-        description: "Usuário ou senha inválidos",
+        description: error.message,
         variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Verificando permissões...",
+      });
+    }
+
+    setLoading(false);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const { error } = await signUp(email, password);
+    
+    if (error) {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Cadastro realizado",
+        description: "Verifique seu email para confirmar a conta",
       });
     }
 
@@ -49,58 +83,114 @@ const Login = () => {
               Privé<span className="text-zinc-100">79</span>
             </h1>
           </div>
-          <CardTitle className="text-zinc-100">Login Administrativo</CardTitle>
+          <CardTitle className="text-zinc-100">Acesso ao Sistema</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-300">
-                Usuário
-              </Label>
-              <Input
-                id="email"
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Digite seu usuário"
-                required
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">
-                Senha
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Digite sua senha"
-                required
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-            >
-              {loading ? (
-                "Entrando..."
-              ) : (
-                <>
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Entrar
-                </>
-              )}
-            </Button>
-          </form>
+          <Tabs defaultValue="signin" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Login</TabsTrigger>
+              <TabsTrigger value="signup">Cadastro</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="signin">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-zinc-300">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Digite seu email"
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-zinc-300">
+                    Senha
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                >
+                  {loading ? (
+                    "Entrando..."
+                  ) : (
+                    <>
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Entrar
+                    </>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email" className="text-zinc-300">
+                    Email
+                  </Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Digite seu email"
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password" className="text-zinc-300">
+                    Senha
+                  </Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    required
+                    minLength={6}
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {loading ? (
+                    "Cadastrando..."
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Cadastrar
+                    </>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+          
           <div className="mt-6 p-4 bg-zinc-800 rounded-md">
             <p className="text-zinc-400 text-sm text-center">
-              <strong>Credenciais de acesso:</strong><br />
-              Usuário: admin<br />
-              Senha: admin
+              <strong>Nota:</strong> Apenas administradores autorizados podem acessar o painel administrativo.
             </p>
           </div>
         </CardContent>

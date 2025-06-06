@@ -22,19 +22,24 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setState(prev => ({ ...prev, session, user: session?.user ?? null }));
         
         if (session?.user) {
-          // Check if user is admin
+          // Check if user is admin using the security definer function
           setTimeout(async () => {
-            const { data } = await supabase
-              .from('admin_users')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .eq('is_active', true)
-              .single();
-            
-            setState(prev => ({ ...prev, isAdmin: !!data, loading: false }));
+            try {
+              const { data, error } = await supabase.rpc('is_admin');
+              if (error) {
+                console.error('Error checking admin status:', error);
+                setState(prev => ({ ...prev, isAdmin: false, loading: false }));
+              } else {
+                setState(prev => ({ ...prev, isAdmin: !!data, loading: false }));
+              }
+            } catch (error) {
+              console.error('Error calling is_admin function:', error);
+              setState(prev => ({ ...prev, isAdmin: false, loading: false }));
+            }
           }, 0);
         } else {
           setState(prev => ({ ...prev, isAdmin: false, loading: false }));
@@ -58,6 +63,18 @@ export const useAuth = () => {
     return { data, error };
   };
 
+  const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    return { data, error };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     return { error };
@@ -66,6 +83,7 @@ export const useAuth = () => {
   return {
     ...state,
     signIn,
+    signUp,
     signOut,
   };
 };
