@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import ModelCard from "@/components/ModelCard";
 import ModelProfile from "@/components/ModelProfile";
@@ -44,7 +45,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
             {models.map((model) => (
               <ModelCard
                 key={model.id}
