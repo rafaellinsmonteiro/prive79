@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -14,19 +14,37 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user, isAdmin } = useAuth();
+  const { signIn, signUp, user, isAdmin, authComplete, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect authenticated admin users
-  if (user && isAdmin) {
-    navigate('/admin');
-    return null;
+  // Only redirect when authentication is complete
+  useEffect(() => {
+    if (authComplete && user) {
+      console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin);
+      if (isAdmin) {
+        console.log('Redirecting admin to /admin');
+        navigate('/admin');
+      } else {
+        console.log('Redirecting regular user to /');
+        navigate('/');
+      }
+    }
+  }, [authComplete, user, isAdmin, navigate]);
+
+  // Show loading while auth is being checked
+  if (authLoading || (user && !authComplete)) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-white">
+          {user ? 'Verificando permissões...' : 'Verificando autenticação...'}
+        </div>
+      </div>
+    );
   }
 
-  // Redirect authenticated non-admin users
-  if (user && !isAdmin) {
-    navigate('/');
+  // Don't render the form if user is authenticated and auth is complete
+  if (user && authComplete) {
     return null;
   }
 
@@ -42,14 +60,14 @@ const Login = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
     } else {
       toast({
         title: "Login realizado com sucesso",
         description: "Verificando permissões...",
       });
+      // Don't set loading to false here - let useEffect handle the redirect
     }
-
-    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {

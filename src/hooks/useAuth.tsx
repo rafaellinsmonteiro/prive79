@@ -8,6 +8,7 @@ export interface AuthState {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  authComplete: boolean;
 }
 
 export const useAuth = () => {
@@ -16,6 +17,7 @@ export const useAuth = () => {
     session: null,
     loading: true,
     isAdmin: false,
+    authComplete: false,
   });
 
   useEffect(() => {
@@ -23,7 +25,12 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
-        setState(prev => ({ ...prev, session, user: session?.user ?? null }));
+        setState(prev => ({ 
+          ...prev, 
+          session, 
+          user: session?.user ?? null,
+          authComplete: false // Reset authComplete when auth state changes
+        }));
         
         if (session?.user) {
           // Check if user is admin using the security definer function
@@ -32,17 +39,37 @@ export const useAuth = () => {
               const { data, error } = await supabase.rpc('is_admin');
               if (error) {
                 console.error('Error checking admin status:', error);
-                setState(prev => ({ ...prev, isAdmin: false, loading: false }));
+                setState(prev => ({ 
+                  ...prev, 
+                  isAdmin: false, 
+                  loading: false, 
+                  authComplete: true 
+                }));
               } else {
-                setState(prev => ({ ...prev, isAdmin: !!data, loading: false }));
+                setState(prev => ({ 
+                  ...prev, 
+                  isAdmin: !!data, 
+                  loading: false, 
+                  authComplete: true 
+                }));
               }
             } catch (error) {
               console.error('Error calling is_admin function:', error);
-              setState(prev => ({ ...prev, isAdmin: false, loading: false }));
+              setState(prev => ({ 
+                ...prev, 
+                isAdmin: false, 
+                loading: false, 
+                authComplete: true 
+              }));
             }
           }, 0);
         } else {
-          setState(prev => ({ ...prev, isAdmin: false, loading: false }));
+          setState(prev => ({ 
+            ...prev, 
+            isAdmin: false, 
+            loading: false, 
+            authComplete: true 
+          }));
         }
       }
     );

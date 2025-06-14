@@ -12,7 +12,7 @@ import MediaManager from '@/components/admin/MediaManager';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
-  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
+  const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
   const { data: models = [], isLoading } = useAdminModels();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModel, setEditingModel] = useState<string | null>(null);
@@ -21,12 +21,15 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
+    // Only redirect when auth is complete
+    if (authComplete && (!user || !isAdmin)) {
+      console.log('Admin dashboard: redirecting to login', { user: !!user, isAdmin });
       navigate('/login');
     }
-  }, [user, isAdmin, authLoading, navigate]);
+  }, [user, isAdmin, authComplete, navigate]);
 
-  if (authLoading) {
+  // Show loading while auth is being checked
+  if (authLoading || !authComplete) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-white">Verificando autenticação...</div>
@@ -34,6 +37,7 @@ const AdminDashboard = () => {
     );
   }
 
+  // Don't render if user is not admin (will be redirected by useEffect)
   if (!user || !isAdmin) {
     return null;
   }
