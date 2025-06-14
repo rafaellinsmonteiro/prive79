@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,7 +14,8 @@ export interface Model {
   id: string;
   name: string;
   age: number;
-  location?: string;
+  city_id?: string | null;
+  neighborhood?: string | null;
   appearance?: string;
   height?: string;
   weight?: string;

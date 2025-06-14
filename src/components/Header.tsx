@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -7,23 +6,12 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, User, LogIn } from "lucide-react";
+import { Menu, MapPin, LogIn } from "lucide-react";
+import { useCities } from "@/hooks/useCities";
 
 const Header = () => {
-  const [selectedCity, setSelectedCity] = useState("São Paulo - SP");
-
-  const cities = [
-    "São Paulo - SP",
-    "Rio de Janeiro - RJ",
-    "Belo Horizonte - MG",
-    "Brasília - DF",
-    "Salvador - BA",
-    "Fortaleza - CE",
-    "Recife - PE",
-    "Porto Alegre - RS",
-    "Curitiba - PR",
-    "Goiânia - GO"
-  ];
+  const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
+  const { data: cities = [] } = useCities();
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -79,19 +67,22 @@ const Header = () => {
                 <Button variant="outline" className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
                   <MapPin className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">{selectedCity}</span>
-                  <span className="sm:hidden">SP</span>
+                  <span className="sm:hidden">{selectedCity ? selectedCity.split(' - ')[1] : ''}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
-                {cities.map((city) => (
-                  <DropdownMenuItem 
-                    key={city}
-                    onClick={() => setSelectedCity(city)}
-                    className="text-zinc-300 hover:text-zinc-100"
-                  >
-                    {city}
-                  </DropdownMenuItem>
-                ))}
+                {cities.map((city) => {
+                  const cityName = `${city.name} - ${city.state}`;
+                  return (
+                    <DropdownMenuItem 
+                      key={city.id}
+                      onClick={() => setSelectedCity(cityName)}
+                      className="text-zinc-300 hover:text-zinc-100"
+                    >
+                      {cityName}
+                    </DropdownMenuItem>
+                  )
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
 

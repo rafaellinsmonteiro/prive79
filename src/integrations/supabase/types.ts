@@ -36,6 +36,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cities: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          state: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          state?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          state?: string | null
+        }
+        Relationships: []
+      }
       model_photos: {
         Row: {
           created_at: string
@@ -124,6 +148,7 @@ export type Database = {
           appearance: string | null
           body_type: string | null
           bust: string | null
+          city_id: string | null
           created_at: string
           description: string | null
           display_order: number | null
@@ -133,8 +158,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           languages: string | null
-          location: string | null
           name: string
+          neighborhood: string | null
           shoe_size: string | null
           silicone: boolean | null
           updated_at: string
@@ -147,6 +172,7 @@ export type Database = {
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -156,8 +182,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           languages?: string | null
-          location?: string | null
           name: string
+          neighborhood?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           updated_at?: string
@@ -170,6 +196,7 @@ export type Database = {
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -179,8 +206,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           languages?: string | null
-          location?: string | null
           name?: string
+          neighborhood?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           updated_at?: string
@@ -188,7 +215,15 @@ export type Database = {
           weight?: string | null
           whatsapp_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "models_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
