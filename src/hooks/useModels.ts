@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,6 +35,8 @@ export interface Model {
   created_at: string;
   updated_at: string;
   photos: ModelPhoto[];
+  location?: string; // For backwards compatibility
+  cities?: { name: string } | null;
 }
 
 export const useModels = () => {
@@ -42,7 +45,7 @@ export const useModels = () => {
     queryFn: async (): Promise<Model[]> => {
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
-        .select('*')
+        .select('*, cities(name)')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
@@ -61,10 +64,22 @@ export const useModels = () => {
         throw photosError;
       }
 
-      return modelsData.map(model => ({
-        ...model,
-        photos: photosData.filter(photo => photo.model_id === model.id)
-      }));
+      return modelsData.map(model => {
+        const modelWithCity = model as unknown as { neighborhood?: string | null, cities: { name: string } | null };
+        const locationParts = [];
+        if (modelWithCity.cities?.name) {
+          locationParts.push(modelWithCity.cities.name);
+        }
+        if (modelWithCity.neighborhood) {
+          locationParts.push(modelWithCity.neighborhood);
+        }
+        
+        return {
+          ...model,
+          photos: photosData.filter(photo => photo.model_id === model.id),
+          location: locationParts.join(', ')
+        } as Model;
+      });
     },
   });
 };
@@ -79,7 +94,7 @@ export const useModel = (id: string) => {
 
       const { data: modelData, error: modelError } = await supabase
         .from('models')
-        .select('*')
+        .select('*, cities(name)')
         .eq('id', id)
         .maybeSingle();
 
@@ -105,10 +120,21 @@ export const useModel = (id: string) => {
       }
 
       console.log('Model fetched successfully:', modelData);
+
+      const modelWithCity = modelData as unknown as { neighborhood?: string | null, cities: { name: string } | null };
+      const locationParts = [];
+      if (modelWithCity.cities?.name) {
+        locationParts.push(modelWithCity.cities.name);
+      }
+      if (modelWithCity.neighborhood) {
+        locationParts.push(modelWithCity.neighborhood);
+      }
+
       return {
         ...modelData,
-        photos: photosData || []
-      };
+        photos: photosData || [],
+        location: locationParts.join(', ')
+      } as Model;
     },
     enabled: !!id,
   });

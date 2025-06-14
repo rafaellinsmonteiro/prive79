@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import ModelCard from "@/components/ModelCard";
 import ModelProfile from "@/components/ModelProfile";
-import FilterSection from "@/components/FilterSection";
 import Header from "@/components/Header";
 import { useModels } from "@/hooks/useModels";
 
@@ -45,8 +43,6 @@ const Index = () => {
               Encontre as melhores acompanhantes da sua cidade
             </p>
           </div>
-
-          <FilterSection />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
             {models.map((model) => (
