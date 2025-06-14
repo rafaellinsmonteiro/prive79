@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -97,9 +96,9 @@ const Login = () => {
       <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <h1 className="text-2xl font-bold text-pink-500">
-              Privé<span className="text-zinc-100">79</span>
-            </h1>
+            <a href="/">
+              <img src="/lovable-uploads/97e61247-cb21-4158-8ebe-519e4fbec3e1.png" alt="Privé79 Logo" className="h-10" />
+            </a>
           </div>
           <CardTitle className="text-zinc-100">Acesso ao Sistema</CardTitle>
         </CardHeader>
@@ -143,7 +142,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                  className="w-full"
                 >
                   {loading ? (
                     "Entrando..."
@@ -191,7 +190,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full"
                 >
                   {loading ? (
                     "Cadastrando..."

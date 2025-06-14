@@ -53,9 +53,9 @@ const Header = () => {
 
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-pink-500">
-              Privé<span className="text-zinc-100">79</span>
-            </h1>
+            <a href="/">
+              <img src="/lovable-uploads/97e61247-cb21-4158-8ebe-519e4fbec3e1.png" alt="Privé79 Logo" className="h-8" />
+            </a>
           </div>
 
           {/* Menu Desktop */}

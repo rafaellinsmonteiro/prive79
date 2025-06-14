@@ -39,7 +39,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4">
-              Acompanhantes de <span className="text-pink-500">Luxo</span>
+              Acompanhantes de <span className="text-primary">Luxo</span>
             </h1>
             <p className="text-zinc-400 text-lg">
               Encontre as melhores acompanhantes da sua cidade
