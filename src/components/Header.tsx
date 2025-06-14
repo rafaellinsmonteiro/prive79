@@ -1,17 +1,32 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin } from "lucide-react";
+import { Menu, MapPin, ChevronDown } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
+
+  const tipos = [
+    "Loiras",
+    "Morenas",
+    "Ruivas",
+    "Massagistas",
+    "Sugar Baby",
+    "Duplas",
+    "Todas"
+  ];
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -26,13 +41,30 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-800">
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100">
+                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
                   Início
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100">
-                  Acompanhantes
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
+                    Tipos
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
+                      {tipos.map((tipo) => (
+                        <DropdownMenuItem key={tipo} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                          {tipo}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                  Virtual
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100">
+                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                  Filtros
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
                   Contato
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -47,12 +79,30 @@ const Header = () => {
           </div>
 
           {/* Menu Desktop */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
               Início
             </a>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-950 data-[state=open]:bg-zinc-950">
+                  Tipos
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
+                {tipos.map((tipo) => (
+                  <DropdownMenuItem key={tipo} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                    {tipo}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
-              Acompanhantes
+              Virtual
+            </a>
+            <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
+              Filtros
             </a>
             <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
               Contato
@@ -77,7 +127,7 @@ const Header = () => {
                     <DropdownMenuItem 
                       key={city.id}
                       onClick={() => setSelectedCity(cityName)}
-                      className="text-zinc-300 hover:text-zinc-100"
+                      className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
                     >
                       {cityName}
                     </DropdownMenuItem>
