@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminModels } from '@/hooks/useAdminModels';
@@ -41,17 +42,23 @@ const AdminDashboard = () => {
 
   const handleSignOut = async () => {
     const { error } = await signOut();
-    if (error) {
+
+    // The user is effectively logged out if the session is missing.
+    // In this case, or on successful logout, redirect them to the main page.
+    if (!error || (error && error.message === 'Auth session missing!')) {
+      navigate('/'); // Redirect to the main site
+      if (!error) {
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado com sucesso.",
+        });
+      }
+    } else {
+      // For other errors (e.g., network issues), show an error toast and stay on the page.
       toast({
         title: "Erro no logout",
         description: error.message,
         variant: "destructive",
-      });
-    } else {
-      navigate('/login');
-      toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso",
       });
     }
   };
