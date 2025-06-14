@@ -1,14 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminModels } from '@/hooks/useAdminModels';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, LogOut, Image, Settings } from 'lucide-react';
+import { Plus, Users, LogOut, Settings } from 'lucide-react';
 import ModelsList from '@/components/admin/ModelsList';
 import ModelForm from '@/components/admin/ModelForm';
-import MediaManager from '@/components/admin/MediaManager';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -16,7 +14,6 @@ const AdminDashboard = () => {
   const { data: models = [], isLoading } = useAdminModels();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModel, setEditingModel] = useState<string | null>(null);
-  const [selectedModelForMedia, setSelectedModelForMedia] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -78,9 +75,8 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="models" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-1 lg:w-auto lg:grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1 lg:w-auto lg:grid-cols-2">
             <TabsTrigger value="models">Modelos</TabsTrigger>
-            <TabsTrigger value="media">Mídia</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -90,20 +86,28 @@ const AdminDashboard = () => {
                 <Users className="h-6 w-6" />
                 <h2 className="text-xl font-semibold">Gerenciar Modelos</h2>
               </div>
-              <Button onClick={() => setShowCreateForm(true)}>
+              <Button onClick={() => { setShowCreateForm(true); setEditingModel(null); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Modelo
               </Button>
             </div>
 
-            {showCreateForm && (
+            {showCreateForm && !editingModel && (
               <ModelForm
-                onSuccess={() => {
+                onSuccess={(newModel) => {
                   setShowCreateForm(false);
-                  toast({
-                    title: "Sucesso",
-                    description: "Modelo criada com sucesso!",
-                  });
+                  if (newModel?.id) {
+                    setEditingModel(newModel.id);
+                    toast({
+                      title: "Modelo criada com sucesso!",
+                      description: "Agora você pode adicionar fotos e vídeos.",
+                    });
+                  } else {
+                     toast({
+                      title: "Sucesso",
+                      description: "Modelo criada com sucesso!",
+                    });
+                  }
                 }}
                 onCancel={() => setShowCreateForm(false)}
               />
@@ -126,75 +130,11 @@ const AdminDashboard = () => {
             <ModelsList
               models={models}
               loading={isLoading}
-              onEdit={(id) => setEditingModel(id)}
+              onEdit={(id) => {
+                setShowCreateForm(false);
+                setEditingModel(id);
+              }}
             />
-          </TabsContent>
-
-          <TabsContent value="media" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Image className="h-6 w-6" />
-                <h2 className="text-xl font-semibold">Gerenciar Mídia</h2>
-              </div>
-            </div>
-
-            {models.length === 0 ? (
-              <div className="text-center py-12">
-                <h3 className="text-lg font-medium mb-2">Nenhuma modelo cadastrada</h3>
-                <p className="text-zinc-400 mb-4">
-                  Você precisa cadastrar pelo menos uma modelo antes de gerenciar mídias.
-                </p>
-                <Button onClick={() => setShowCreateForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Cadastrar Primeira Modelo
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Seletor de modelo */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Selecione uma modelo para gerenciar mídia:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {models.map((model) => (
-                      <div
-                        key={model.id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          selectedModelForMedia === model.id
-                            ? 'border-pink-500 bg-pink-500/10'
-                            : 'border-zinc-700 hover:border-zinc-600'
-                        }`}
-                        onClick={() => setSelectedModelForMedia(model.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          {model.photos[0] ? (
-                            <img
-                              src={model.photos[0].photo_url}
-                              alt={model.name}
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-zinc-800 rounded flex items-center justify-center">
-                              <Users className="h-6 w-6 text-zinc-500" />
-                            </div>
-                          )}
-                          <div>
-                            <h4 className="font-medium text-white">{model.name}</h4>
-                            <p className="text-sm text-zinc-400">
-                              {model.age} anos • {model.photos.length} foto(s)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Gerenciador de mídia */}
-                {selectedModelForMedia && (
-                  <MediaManager modelId={selectedModelForMedia} />
-                )}
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="settings">

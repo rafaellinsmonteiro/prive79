@@ -11,10 +11,11 @@ import { useCreateModel, useUpdateModel } from '@/hooks/useAdminModels';
 import { useModel } from '@/hooks/useModels';
 import { Model } from '@/hooks/useModels';
 import { useToast } from '@/hooks/use-toast';
+import MediaManager from '@/components/admin/MediaManager';
 
 interface ModelFormProps {
   modelId?: string;
-  onSuccess: () => void;
+  onSuccess: (newModel?: any) => void;
   onCancel: () => void;
 }
 
@@ -74,18 +75,11 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     try {
       if (modelId) {
         await updateModel.mutateAsync({ id: modelId, ...data });
-        toast({
-          title: "Sucesso",
-          description: "Modelo atualizada com sucesso!",
-        });
+        onSuccess();
       } else {
-        await createModel.mutateAsync(data);
-        toast({
-          title: "Sucesso",
-          description: "Modelo criada com sucesso!",
-        });
+        const newModel = await createModel.mutateAsync(data);
+        onSuccess(newModel);
       }
-      onSuccess();
     } catch (error) {
       console.error('Error saving model:', error);
       toast({
@@ -338,12 +332,28 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             </div>
           </div>
 
+          {/* Gerenciar Mídia */}
+          {modelId && (
+            <div className="space-y-4 pt-6 border-t border-zinc-700">
+              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                Gerenciar Mídia
+              </h3>
+              <MediaManager modelId={modelId} />
+            </div>
+          )}
+
+          {!modelId && (
+            <div className="p-4 border border-dashed border-zinc-700 rounded-lg text-center text-zinc-400 bg-zinc-900/50">
+              <p>Salve a modelo para poder adicionar fotos e vídeos.</p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-4 pt-6 border-t border-zinc-700">
             <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : (modelId ? 'Atualizar Modelo' : 'Criar Modelo')}
+              {loading ? 'Salvando...' : (modelId ? 'Atualizar Modelo' : 'Criar e Continuar')}
             </Button>
           </div>
         </form>
