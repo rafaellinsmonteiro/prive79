@@ -86,7 +86,7 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-950 data-[state=open]:bg-zinc-950">
-                  Tipos
+                  Categorias
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
