@@ -6,7 +6,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, LogIn } from "lucide-react";
+import { Menu, MapPin } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 
 const Header = () => {
@@ -59,7 +59,7 @@ const Header = () => {
             </a>
           </nav>
 
-          {/* Seletor de Cidades e Login */}
+          {/* Seletor de Cidades */}
           <div className="flex items-center space-x-4">
             {/* Seletor de Cidades */}
             <DropdownMenu>
@@ -85,17 +85,6 @@ const Header = () => {
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Login Admin */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-zinc-400 hover:text-zinc-100"
-              onClick={() => window.location.href = '/login'}
-            >
-              <LogIn className="h-4 w-4 mr-2" />
-              Admin
-            </Button>
           </div>
         </div>
       </div>
