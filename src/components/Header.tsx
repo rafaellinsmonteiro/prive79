@@ -46,7 +46,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
-                  Especiais
+                    Especiais do Privê
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
