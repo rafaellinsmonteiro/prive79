@@ -5,10 +5,12 @@ import { useAdminModels } from '@/hooks/useAdminModels';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, LogOut, Settings } from 'lucide-react';
+import { Plus, Users, LogOut, Settings, Building, Tags } from 'lucide-react';
 import ModelsList from '@/components/admin/ModelsList';
 import ModelForm from '@/components/admin/ModelForm';
 import { useToast } from '@/hooks/use-toast';
+import CitiesManager from '@/components/admin/CitiesManager';
+import CategoriesManager from '@/components/admin/CategoriesManager';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
@@ -144,15 +146,30 @@ const AdminDashboard = () => {
             />
           </TabsContent>
 
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="space-y-6">
             <div className="flex items-center gap-2 mb-6">
               <Settings className="h-6 w-6" />
-              <h2 className="text-xl font-semibold">Configurações</h2>
+              <h2 className="text-xl font-semibold">Configurações Gerais</h2>
             </div>
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">Configurações do Sistema</h3>
-              <p className="text-zinc-400">Em desenvolvimento...</p>
-            </div>
+            
+            <Tabs defaultValue="cities" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="cities">
+                  <Building className="h-4 w-4 mr-2" />
+                  Cidades
+                </TabsTrigger>
+                <TabsTrigger value="categories">
+                  <Tags className="h-4 w-4 mr-2" />
+                  Categorias
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="cities" className="mt-6">
+                <CitiesManager />
+              </TabsContent>
+              <TabsContent value="categories" className="mt-6">
+                <CategoriesManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>

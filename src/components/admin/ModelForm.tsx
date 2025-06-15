@@ -13,6 +13,9 @@ import MediaManager from '@/components/admin/MediaManager';
 import { useCities } from '@/hooks/useCities';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAdminCategories } from '@/hooks/useAdminCategories';
+import { Checkbox } from '@/components/ui/checkbox';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ModelFormProps {
   modelId?: string;
@@ -20,7 +23,9 @@ interface ModelFormProps {
   onCancel: () => void;
 }
 
-type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos'>;
+type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos' | 'categories'> & {
+  category_ids: string[];
+};
 
 const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const [loading, setLoading] = useState(false);
@@ -28,6 +33,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const updateModel = useUpdateModel();
   const { data: existingModel } = useModel(modelId || '');
   const { data: cities = [] } = useCities();
+  const { data: categories = [] } = useAdminCategories();
   const { toast } = useToast();
 
   const form = useForm<ModelFormData>({
@@ -36,7 +42,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       age: 18,
       city_id: undefined,
       neighborhood: '',
-      appearance: '',
       height: '',
       weight: '',
       silicone: false,
@@ -50,7 +55,8 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       description: '',
       whatsapp_number: '',
       is_active: true,
-      display_order: 0
+      display_order: 0,
+      category_ids: [],
     }
   });
 
@@ -65,25 +71,55 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
 
   useEffect(() => {
     if (existingModel) {
-      Object.keys(existingModel).forEach((key) => {
-        if (key !== 'id' && key !== 'created_at' && key !== 'updated_at' && key !== 'photos') {
+      const modelKeys = Object.keys(form.getValues());
+      modelKeys.forEach((key) => {
+        if (key !== 'id' && key !== 'created_at' && key !== 'updated_at' && key !== 'photos' && key !== 'categories' && key !== 'category_ids') {
           const value = existingModel[key as keyof Model];
-          setValue(key as keyof ModelFormData, value as any);
+          if (value !== undefined && value !== null) {
+            setValue(key as keyof ModelFormData, value as any);
+          }
         }
       });
+      if (existingModel.categories) {
+        setValue('category_ids', existingModel.categories.map(c => c.id));
+      }
     }
-  }, [existingModel, setValue]);
+  }, [existingModel, setValue, form]);
 
   const onSubmit = async (data: ModelFormData) => {
     setLoading(true);
     try {
+      const { category_ids, ...modelData } = data;
+      let modelResult;
+      
       if (modelId) {
-        await updateModel.mutateAsync({ id: modelId, ...data });
-        onSuccess();
+        await updateModel.mutateAsync({ id: modelId, ...modelData });
+        modelResult = { id: modelId };
+        toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
       } else {
-        const newModel = await createModel.mutateAsync(data);
-        onSuccess(newModel);
+        modelResult = await createModel.mutateAsync(modelData);
+        toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
+      
+      const newModelId = modelResult.id;
+
+      if (newModelId) {
+        // Clear existing categories for the model
+        const { error: deleteError } = await supabase.from('model_categories').delete().eq('model_id', newModelId);
+        if (deleteError) throw deleteError;
+        
+        // Insert new categories if any are selected
+        if (category_ids && category_ids.length > 0) {
+          const newJoins = category_ids.map(catId => ({
+            model_id: newModelId,
+            category_id: catId
+          }));
+          const { error: insertError } = await supabase.from('model_categories').insert(newJoins);
+          if (insertError) throw insertError;
+        }
+      }
+
+      onSuccess(modelResult);
     } catch (error) {
       console.error('Error saving model:', error);
       toast({
@@ -189,6 +225,57 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
               </div>
             </div>
 
+            {/* Categorias */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                Categorias
+              </h3>
+              <FormField
+                control={form.control}
+                name="category_ids"
+                render={() => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {categories?.map((item) => (
+                        <FormField
+                          key={item.id}
+                          control={form.control}
+                          name="category_ids"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, item.id])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== item.id
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal text-white">
+                                  {item.name}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Características Físicas */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
@@ -214,17 +301,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="appearance" className="text-white">Aparência</Label>
-                  <Input
-                    id="appearance"
-                    {...form.register('appearance')}
-                    placeholder="Morena, Loira, etc."
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
+                
                 <div className="space-y-2">
                   <Label htmlFor="eyes" className="text-white">Olhos</Label>
                   <Input

@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Category } from "./useCategories";
 
 export interface ModelPhoto {
   id: string;
@@ -17,7 +18,6 @@ export interface Model {
   age: number;
   city_id?: string | null;
   neighborhood?: string | null;
-  appearance?: string;
   height?: string;
   weight?: string;
   silicone?: boolean;
@@ -35,7 +35,8 @@ export interface Model {
   created_at: string;
   updated_at: string;
   photos: ModelPhoto[];
-  location?: string; // For backwards compatibility
+  categories: Category[];
+  location?: string;
   cities?: { name: string } | null;
 }
 
@@ -45,7 +46,7 @@ export const useModels = () => {
     queryFn: async (): Promise<Model[]> => {
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
-        .select('*, cities(name)')
+        .select('*, cities(name), model_categories(categories(*))')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
@@ -65,7 +66,7 @@ export const useModels = () => {
       }
 
       return modelsData.map(model => {
-        const modelWithCity = model as unknown as { neighborhood?: string | null, cities: { name: string } | null };
+        const modelWithCity = model as any;
         const locationParts = [];
         if (modelWithCity.cities?.name) {
           locationParts.push(modelWithCity.cities.name);
@@ -74,10 +75,13 @@ export const useModels = () => {
           locationParts.push(modelWithCity.neighborhood);
         }
         
+        const categories = modelWithCity.model_categories.map((mc: any) => mc.categories).filter(Boolean);
+        
         return {
           ...model,
           photos: photosData.filter(photo => photo.model_id === model.id),
-          location: locationParts.join(', ')
+          location: locationParts.join(', '),
+          categories,
         } as Model;
       });
     },
@@ -90,11 +94,9 @@ export const useModel = (id: string) => {
     queryFn: async (): Promise<Model | null> => {
       if (!id) return null;
 
-      console.log('Fetching model with id:', id);
-
       const { data: modelData, error: modelError } = await supabase
         .from('models')
-        .select('*, cities(name)')
+        .select('*, cities(name), model_categories(categories(*))')
         .eq('id', id)
         .maybeSingle();
 
@@ -104,7 +106,6 @@ export const useModel = (id: string) => {
       }
 
       if (!modelData) {
-        console.log('No model found with id:', id);
         return null;
       }
 
@@ -119,9 +120,7 @@ export const useModel = (id: string) => {
         throw photosError;
       }
 
-      console.log('Model fetched successfully:', modelData);
-
-      const modelWithCity = modelData as unknown as { neighborhood?: string | null, cities: { name: string } | null };
+      const modelWithCity = modelData as any;
       const locationParts = [];
       if (modelWithCity.cities?.name) {
         locationParts.push(modelWithCity.cities.name);
@@ -129,11 +128,14 @@ export const useModel = (id: string) => {
       if (modelWithCity.neighborhood) {
         locationParts.push(modelWithCity.neighborhood);
       }
+      
+      const categories = modelWithCity.model_categories.map((mc: any) => mc.categories).filter(Boolean);
 
       return {
         ...modelData,
         photos: photosData || [],
-        location: locationParts.join(', ')
+        location: locationParts.join(', '),
+        categories,
       } as Model;
     },
     enabled: !!id,

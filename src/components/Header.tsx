@@ -13,19 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, MapPin, ChevronDown } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
+import { useCategories } from "@/hooks/useCategories";
 
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
+  const { data: categories = [] } = useCategories();
 
-  const tipos = [
-    "Loiras",
-    "Morenas",
-    "Ruivas",
-    "Massagistas",
-    "Sugar Baby",
-    "Duplas",
-    "Todas"
+  const menuItems = [
+    { name: "Início", href: "#", special: false },
+    { name: "Virtual", href: "#", special: false },
+    { name: "Filtros", href: "#", special: false },
+    { name: "Contato", href: "#", special: false }
   ];
 
   return (
@@ -46,13 +45,13 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
-                    Especiais do Privê
+                    Tipos
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
-                      {tipos.map((tipo) => (
-                        <DropdownMenuItem key={tipo} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                          {tipo}
+                      {categories.map((category) => (
+                        <DropdownMenuItem key={category.id} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                          {category.name}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuSubContent>
@@ -86,14 +85,14 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-950 data-[state=open]:bg-zinc-950">
-                  Categorias
+                  Tipos
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
-                {tipos.map((tipo) => (
-                  <DropdownMenuItem key={tipo} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                    {tipo}
+                {categories.map((category) => (
+                  <DropdownMenuItem key={category.id} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
+                    {category.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -111,7 +110,6 @@ const Header = () => {
 
           {/* Seletor de Cidades */}
           <div className="flex items-center space-x-4">
-            {/* Seletor de Cidades */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
