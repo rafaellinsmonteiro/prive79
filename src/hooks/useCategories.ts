@@ -14,7 +14,7 @@ export const useCategories = () => {
     queryKey: ['categories'],
     queryFn: async (): Promise<Category[]> => {
       const { data, error } = await supabase
-        .from('categories')
+        .from('categories' as any)
         .select('*')
         .order('display_order', { ascending: true });
 

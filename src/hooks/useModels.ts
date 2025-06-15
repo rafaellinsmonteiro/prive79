@@ -45,7 +45,7 @@ export const useModels = () => {
     queryFn: async (): Promise<Model[]> => {
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
-        .select('*, cities(name), model_categories(categories(*))')
+        .select('*, cities(name)')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
@@ -53,10 +53,27 @@ export const useModels = () => {
         console.error('Error fetching models:', modelsError);
         throw modelsError;
       }
+      
+      const modelIds = modelsData.map(m => m.id);
+      
+      if (modelIds.length === 0) {
+        return [];
+      }
+
+      const { data: modelCategoriesData, error: mcError } = await supabase
+        .from('model_categories')
+        .select('model_id, categories(*)')
+        .in('model_id', modelIds);
+      
+      if (mcError) {
+          console.error('Error fetching model categories:', mcError);
+          throw mcError;
+      }
 
       const { data: photosData, error: photosError } = await supabase
         .from('model_photos')
         .select('*')
+        .in('model_id', modelIds)
         .order('display_order', { ascending: true });
 
       if (photosError) {
@@ -74,7 +91,10 @@ export const useModels = () => {
           locationParts.push(modelWithCity.neighborhood);
         }
         
-        const categories = modelWithCity.model_categories?.map((mc: any) => mc.categories).filter(Boolean) || [];
+        const categories = modelCategoriesData
+            .filter(mc => mc.model_id === model.id)
+            .map((mc: any) => mc.categories)
+            .filter(Boolean);
         
         return {
           ...model,
@@ -95,7 +115,7 @@ export const useModel = (id: string) => {
 
       const { data: modelData, error: modelError } = await supabase
         .from('models')
-        .select('*, cities(name), model_categories(categories(*))')
+        .select('*, cities(name)')
         .eq('id', id)
         .maybeSingle();
 
@@ -106,6 +126,16 @@ export const useModel = (id: string) => {
 
       if (!modelData) {
         return null;
+      }
+      
+      const { data: modelCategoriesData, error: mcError } = await supabase
+        .from('model_categories')
+        .select('model_id, categories(*)')
+        .eq('model_id', id);
+
+      if (mcError) {
+          console.error('Error fetching model categories for single model:', mcError);
+          throw mcError;
       }
 
       const { data: photosData, error: photosError } = await supabase
@@ -128,7 +158,7 @@ export const useModel = (id: string) => {
         locationParts.push(modelWithCity.neighborhood);
       }
       
-      const categories = modelWithCity.model_categories?.map((mc: any) => mc.categories).filter(Boolean) || [];
+      const categories = modelCategoriesData?.map((mc: any) => mc.categories).filter(Boolean) || [];
 
       return {
         ...modelData,

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Model } from "./useModels";
@@ -9,7 +8,7 @@ export const useAdminModels = () => {
     queryFn: async (): Promise<Model[]> => {
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
-        .select('*')
+        .select('*, model_categories(categories(*))')
         .order('display_order', { ascending: true });
 
       if (modelsError) {
@@ -27,10 +26,16 @@ export const useAdminModels = () => {
         throw photosError;
       }
 
-      return modelsData.map(model => ({
-        ...model,
-        photos: photosData.filter(photo => photo.model_id === model.id)
-      }));
+      return modelsData.map(model => {
+        const modelWithCategories = model as any;
+        const categories = modelWithCategories.model_categories?.map((mc: any) => mc.categories).filter(Boolean) || [];
+        
+        return {
+          ...model,
+          photos: photosData.filter(photo => photo.model_id === model.id),
+          categories,
+        } as Model;
+      });
     },
   });
 };
