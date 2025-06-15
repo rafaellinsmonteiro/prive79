@@ -1,21 +1,21 @@
+
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { useCreateModel, useUpdateModel } from '@/hooks/useAdminModels';
 import { useModel, Model } from '@/hooks/useModels';
 import { useToast } from '@/hooks/use-toast';
 import MediaManager from '@/components/admin/MediaManager';
 import { useCities } from '@/hooks/useCities';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { useAdminCategories } from '@/hooks/useAdminCategories';
-import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
+import BasicInfoSection from './model-form/BasicInfoSection';
+import CategoriesSection from './model-form/CategoriesSection';
+import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';
+import OtherInfoSection from './model-form/OtherInfoSection';
+import SettingsSection from './model-form/SettingsSection';
 
 interface ModelFormProps {
   modelId?: string;
@@ -23,7 +23,7 @@ interface ModelFormProps {
   onCancel: () => void;
 }
 
-type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos' | 'categories'> & {
+export type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos' | 'categories'> & {
   category_ids: string[];
 };
 
@@ -36,7 +36,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const { data: categories = [] } = useAdminCategories();
   const { toast } = useToast();
 
-  const form = useForm<ModelFormData>({
+  const form: UseFormReturn<ModelFormData> = useForm<ModelFormData>({
     defaultValues: {
       name: '',
       age: 18,
@@ -63,11 +63,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const {
     handleSubmit,
     setValue,
-    watch,
   } = form;
-
-  const silicone = watch('silicone');
-  const isActive = watch('is_active');
 
   useEffect(() => {
     if (existingModel) {
@@ -145,302 +141,11 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Informações Básicas */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                Informações Básicas
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white">Nome *</Label>
-                  <Input
-                    id="name"
-                    {...form.register('name', { required: 'Nome é obrigatório' })}
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                    placeholder="Nome da modelo"
-                  />
-                  {form.formState.errors.name && (
-                    <p className="text-red-400 text-sm">{form.formState.errors.name.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="age" className="text-white">Idade *</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    {...form.register('age', { 
-                      required: 'Idade é obrigatória',
-                      min: { value: 18, message: 'Idade mínima é 18 anos' },
-                      max: { value: 65, message: 'Idade máxima é 65 anos' }
-                    })}
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                  {form.formState.errors.age && (
-                    <p className="text-red-400 text-sm">{form.formState.errors.age.message}</p>
-                  )}
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="city_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Cidade</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value || undefined}>
-                        <FormControl>
-                          <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectValue placeholder="Selecione uma cidade" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                          {cities.map((city) => (
-                            <SelectItem key={city.id} value={city.id}>
-                              {city.name} - {city.state}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="neighborhood" className="text-white">Bairro</Label>
-                  <Input
-                    id="neighborhood"
-                    {...form.register('neighborhood')}
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                    placeholder="Ex: Jardins"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp_number" className="text-white">WhatsApp</Label>
-                  <Input
-                    id="whatsapp_number"
-                    {...form.register('whatsapp_number')}
-                    placeholder="5511999999999"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Categorias */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                Categorias
-              </h3>
-              <FormField
-                control={form.control}
-                name="category_ids"
-                render={() => (
-                  <FormItem>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {categories?.map((item) => (
-                        <FormField
-                          key={item.id}
-                          control={form.control}
-                          name="category_ids"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, item.id])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== item.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal text-white">
-                                  {item.name}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Características Físicas */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                Características Físicas
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="height" className="text-white">Altura</Label>
-                  <Input
-                    id="height"
-                    {...form.register('height')}
-                    placeholder="1.70m"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="weight" className="text-white">Peso</Label>
-                  <Input
-                    id="weight"
-                    {...form.register('weight')}
-                    placeholder="60kg"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="eyes" className="text-white">Olhos</Label>
-                  <Input
-                    id="eyes"
-                    {...form.register('eyes')}
-                    placeholder="Castanhos, Verdes, etc."
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="body_type" className="text-white">Manequim</Label>
-                  <Input
-                    id="body_type"
-                    {...form.register('body_type')}
-                    placeholder="P, M, G, GG"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="shoe_size" className="text-white">Calçado</Label>
-                  <Input
-                    id="shoe_size"
-                    {...form.register('shoe_size')}
-                    placeholder="37, 38, 39"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Medidas */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bust" className="text-white">Busto</Label>
-                  <Input
-                    id="bust"
-                    {...form.register('bust')}
-                    placeholder="90cm"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="waist" className="text-white">Cintura</Label>
-                  <Input
-                    id="waist"
-                    {...form.register('waist')}
-                    placeholder="60cm"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="hip" className="text-white">Quadril</Label>
-                  <Input
-                    id="hip"
-                    {...form.register('hip')}
-                    placeholder="90cm"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Outras Informações */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                Outras Informações
-              </h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="languages" className="text-white">Idiomas</Label>
-                <Input
-                  id="languages"
-                  {...form.register('languages')}
-                  placeholder="Português, Inglês, Espanhol"
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-white">Descrição</Label>
-                <Textarea
-                  id="description"
-                  {...form.register('description')}
-                  rows={4}
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="Descrição detalhada da modelo..."
-                />
-              </div>
-            </div>
-
-            {/* Configurações */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                Configurações
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="silicone"
-                    checked={silicone}
-                    onCheckedChange={(checked) => setValue('silicone', checked)}
-                  />
-                  <Label htmlFor="silicone" className="text-white">Possui Silicone</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_active"
-                    checked={isActive}
-                    onCheckedChange={(checked) => setValue('is_active', checked)}
-                  />
-                  <Label htmlFor="is_active" className="text-white">Perfil Ativo</Label>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="display_order" className="text-white">Ordem de Exibição</Label>
-                <Input
-                  id="display_order"
-                  type="number"
-                  {...form.register('display_order', { 
-                    valueAsNumber: true,
-                    min: { value: 0, message: 'Ordem deve ser maior ou igual a 0' }
-                  })}
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="0"
-                />
-                <p className="text-zinc-400 text-sm">
-                  Quanto menor o número, mais acima aparecerá na lista
-                </p>
-              </div>
-            </div>
+            <BasicInfoSection form={form} cities={cities} />
+            <CategoriesSection form={form} categories={categories || []} />
+            <PhysicalCharacteristicsSection form={form} />
+            <OtherInfoSection form={form} />
+            <SettingsSection form={form} />
 
             {/* Gerenciar Mídia */}
             {modelId && (
