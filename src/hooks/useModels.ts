@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "./useCategories";
@@ -54,22 +55,24 @@ export const useModels = () => {
         throw modelsError;
       }
       
-      const modelIds = modelsData.map(m => m.id);
+      const modelIds = modelsData?.map(m => m.id) ?? [];
       
       if (modelIds.length === 0) {
         return [];
       }
 
+      // Get categories for every model using join table model_categories
       const { data: modelCategoriesData, error: mcError } = await supabase
         .from('model_categories')
-        .select('model_id, categories(*)')
+        .select('model_id, categories:categories(*)')
         .in('model_id', modelIds);
-      
+
       if (mcError) {
-          console.error('Error fetching model categories:', mcError);
-          throw mcError;
+        console.error('Error fetching model categories:', mcError);
+        throw mcError;
       }
 
+      // Get all photos for these models
       const { data: photosData, error: photosError } = await supabase
         .from('model_photos')
         .select('*')
@@ -91,14 +94,16 @@ export const useModels = () => {
           locationParts.push(modelWithCity.neighborhood);
         }
         
-        const categories = modelCategoriesData
-            .filter(mc => mc.model_id === model.id)
+        // collect categories for this model (ensure correct filtering)
+        const categories =
+          modelCategoriesData
+            ?.filter((mc: any) => mc.model_id === model.id)
             .map((mc: any) => mc.categories)
-            .filter(Boolean);
+            .filter(Boolean) ?? [];
         
         return {
           ...model,
-          photos: photosData.filter(photo => photo.model_id === model.id),
+          photos: (photosData ?? []).filter(photo => photo.model_id === model.id),
           location: locationParts.join(', '),
           categories,
         } as Model;
@@ -128,9 +133,10 @@ export const useModel = (id: string) => {
         return null;
       }
       
+      // get categories for this model
       const { data: modelCategoriesData, error: mcError } = await supabase
         .from('model_categories')
-        .select('model_id, categories(*)')
+        .select('model_id, categories:categories(*)')
         .eq('model_id', id);
 
       if (mcError) {
