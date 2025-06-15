@@ -9,13 +9,13 @@ type CategoryData = Omit<Category, 'id' | 'created_at'>;
 export const useAdminCategories = () => {
   return useQuery({
     queryKey: ['admin_categories'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Category[]> => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Category[];
+      return data ?? [];
     }
   });
 };

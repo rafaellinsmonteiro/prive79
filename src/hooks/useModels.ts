@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "./useCategories";
@@ -39,21 +40,11 @@ export interface Model {
   cities?: { name: string } | null;
 }
 
-// Helper to fetch all relevant categories for a batch of models
-const getCategoriesMap = async (): Promise<Map<string, Category>> => {
-  const { data, error } = await supabase.from('categories').select('*');
-  if (error) throw error;
-  const map = new Map<string, Category>();
-  (data ?? []).forEach((cat: any) => {
-    map.set(cat.id, cat as Category);
-  });
-  return map;
-};
-
 export const useModels = () => {
   return useQuery({
     queryKey: ['models'],
     queryFn: async (): Promise<Model[]> => {
+      // 1. Fetch models
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
         .select('*, cities(name)')
@@ -64,45 +55,58 @@ export const useModels = () => {
         console.error('Error fetching models:', modelsError);
         throw modelsError;
       }
-      const modelIds = modelsData?.map(m => m.id) ?? [];
+      if (!modelsData) return [];
+
+      const modelIds = modelsData.map(m => m.id);
       if (modelIds.length === 0) return [];
 
-      // Fetch join table data: model_categories (model_id, category_id)
-      const { data: mcData, error: mcError } = await supabase
-        .from('model_categories')
-        .select('model_id, category_id')
-        .in('model_id', modelIds);
+      // 2. Fetch all related data in parallel
+      const [
+        { data: mcData, error: mcError },
+        { data: categoriesData, error: catError },
+        { data: photosData, error: photosError }
+      ] = await Promise.all([
+        supabase
+          .from('model_categories')
+          .select('model_id, category_id')
+          .in('model_id', modelIds),
+        supabase
+          .from('categories')
+          .select('*'),
+        supabase
+          .from('model_photos')
+          .select('*')
+          .in('model_id', modelIds)
+          .order('display_order', { ascending: true })
+      ]);
 
       if (mcError) {
         console.error('Error fetching model_categories:', mcError);
         throw mcError;
       }
-
-      // Fetch all referenced categories once, build map
-      const categoriesMap = await getCategoriesMap();
-
-      // Fetch all photos for these models
-      const { data: photosData, error: photosError } = await supabase
-        .from('model_photos')
-        .select('*')
-        .in('model_id', modelIds)
-        .order('display_order', { ascending: true });
-
+      if (catError) {
+        console.error('Error fetching categories:', catError);
+        throw catError;
+      }
       if (photosError) {
         console.error('Error fetching photos:', photosError);
         throw photosError;
       }
 
+      // Create a map for quick category lookup
+      const categoriesMap = new Map<string, Category>();
+      (categoriesData ?? []).forEach(cat => categoriesMap.set(cat.id, cat as Category));
+
+      // 3. Join data in JavaScript
       return modelsData.map(model => {
         const modelWithCity = model as any;
         const locationParts = [];
         if (modelWithCity.cities?.name) locationParts.push(modelWithCity.cities.name);
         if (modelWithCity.neighborhood) locationParts.push(modelWithCity.neighborhood);
 
-        // Match category_ids for this model, then look up category objects
         const catsForModel = (mcData ?? [])
-          .filter((mc: any) => mc.model_id === model.id)
-          .map((mc: any) => categoriesMap.get(mc.category_id))
+          .filter(mc => mc.model_id === model.id)
+          .map(mc => categoriesMap.get(mc.category_id))
           .filter(Boolean) as Category[];
 
         return {
@@ -121,7 +125,8 @@ export const useModel = (id: string) => {
     queryKey: ['model', id],
     queryFn: async (): Promise<Model | null> => {
       if (!id) return null;
-
+      
+      // 1. Fetch model
       const { data: modelData, error: modelError } = await supabase
         .from('models')
         .select('*, cities(name)')
@@ -137,38 +142,46 @@ export const useModel = (id: string) => {
         return null;
       }
 
-      // get model_categories for this model's id, plain select
-      const { data: mcData, error: mcError } = await supabase
-        .from('model_categories')
-        .select('model_id, category_id')
-        .eq('model_id', id);
+      // 2. Fetch related data in parallel
+      const [
+        { data: mcData, error: mcError },
+        { data: photosData, error: photosError }
+      ] = await Promise.all([
+        supabase
+          .from('model_categories')
+          .select('category_id')
+          .eq('model_id', id),
+        supabase
+          .from('model_photos')
+          .select('*')
+          .eq('model_id', id)
+          .order('display_order', { ascending: true })
+      ]);
 
       if (mcError) {
         console.error('Error fetching model_categories for single model:', mcError);
         throw mcError;
       }
-
-      const { data: categoriesData, error: catError } = await supabase
-        .from('categories')
-        .select('*');
-      if (catError) throw catError;
-
-      // Get all relevant categories for this model
-      const categories = (mcData ?? [])
-        .map((mc: any) => (categoriesData ?? []).find((cat: any) => cat.id === mc.category_id))
-        .filter(Boolean) as Category[];
-
-      const { data: photosData, error: photosError } = await supabase
-        .from('model_photos')
-        .select('*')
-        .eq('model_id', id)
-        .order('display_order', { ascending: true });
-
       if (photosError) {
         console.error('Error fetching model photos:', photosError);
         throw photosError;
       }
 
+      const categoryIds = (mcData ?? []).map(mc => mc.category_id);
+      let categories: Category[] = [];
+      if (categoryIds.length > 0) {
+        const { data: categoriesData, error: catError } = await supabase
+          .from('categories')
+          .select('*')
+          .in('id', categoryIds);
+        
+        if (catError) {
+          console.error('Error fetching categories for single model:', catError);
+          throw catError;
+        }
+        categories = categoriesData ?? [];
+      }
+      
       const modelWithCity = modelData as any;
       const locationParts = [];
       if (modelWithCity.cities?.name) {

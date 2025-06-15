@@ -36,6 +36,27 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           created_at: string
@@ -59,6 +80,36 @@ export type Database = {
           state?: string | null
         }
         Relationships: []
+      }
+      model_categories: {
+        Row: {
+          category_id: string
+          model_id: string
+        }
+        Insert: {
+          category_id: string
+          model_id: string
+        }
+        Update: {
+          category_id?: string
+          model_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_categories_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       model_photos: {
         Row: {
