@@ -22,7 +22,6 @@ export const useCategories = () => {
         console.error('Error fetching categories:', error);
         throw error;
       }
-
       return (data ?? []) as Category[];
     },
   });

@@ -3,14 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Category } from "./useCategories";
 
+// Only fetch "plain" categories, not as relationships!
 type CategoryData = Omit<Category, 'id' | 'created_at'>;
 
-// Hook to fetch all categories for admin
 export const useAdminCategories = () => {
   return useQuery({
     queryKey: ['admin_categories'],
     queryFn: async () => {
-      // get ONLY categories
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -21,7 +20,6 @@ export const useAdminCategories = () => {
   });
 };
 
-// Hook to create a category
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -37,7 +35,6 @@ export const useCreateCategory = () => {
   });
 };
 
-// Hook to update a category
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -53,7 +50,6 @@ export const useUpdateCategory = () => {
   });
 };
 
-// Hook to delete a category
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({

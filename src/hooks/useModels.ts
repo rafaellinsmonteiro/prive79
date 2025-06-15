@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "./useCategories";
@@ -40,6 +39,17 @@ export interface Model {
   cities?: { name: string } | null;
 }
 
+// Helper to fetch all relevant categories for a batch of models
+const getCategoriesMap = async (): Promise<Map<string, Category>> => {
+  const { data, error } = await supabase.from('categories').select('*');
+  if (error) throw error;
+  const map = new Map<string, Category>();
+  (data ?? []).forEach((cat: any) => {
+    map.set(cat.id, cat as Category);
+  });
+  return map;
+};
+
 export const useModels = () => {
   return useQuery({
     queryKey: ['models'],
@@ -54,25 +64,24 @@ export const useModels = () => {
         console.error('Error fetching models:', modelsError);
         throw modelsError;
       }
-      
       const modelIds = modelsData?.map(m => m.id) ?? [];
-      
-      if (modelIds.length === 0) {
-        return [];
-      }
+      if (modelIds.length === 0) return [];
 
-      // Get categories for every model using join table model_categories
-      const { data: modelCategoriesData, error: mcError } = await supabase
+      // Fetch join table data: model_categories (model_id, category_id)
+      const { data: mcData, error: mcError } = await supabase
         .from('model_categories')
-        .select('model_id, categories:categories(*)')
+        .select('model_id, category_id')
         .in('model_id', modelIds);
 
       if (mcError) {
-        console.error('Error fetching model categories:', mcError);
+        console.error('Error fetching model_categories:', mcError);
         throw mcError;
       }
 
-      // Get all photos for these models
+      // Fetch all referenced categories once, build map
+      const categoriesMap = await getCategoriesMap();
+
+      // Fetch all photos for these models
       const { data: photosData, error: photosError } = await supabase
         .from('model_photos')
         .select('*')
@@ -87,25 +96,20 @@ export const useModels = () => {
       return modelsData.map(model => {
         const modelWithCity = model as any;
         const locationParts = [];
-        if (modelWithCity.cities?.name) {
-          locationParts.push(modelWithCity.cities.name);
-        }
-        if (modelWithCity.neighborhood) {
-          locationParts.push(modelWithCity.neighborhood);
-        }
-        
-        // collect categories for this model (ensure correct filtering)
-        const categories =
-          modelCategoriesData
-            ?.filter((mc: any) => mc.model_id === model.id)
-            .map((mc: any) => mc.categories)
-            .filter(Boolean) ?? [];
-        
+        if (modelWithCity.cities?.name) locationParts.push(modelWithCity.cities.name);
+        if (modelWithCity.neighborhood) locationParts.push(modelWithCity.neighborhood);
+
+        // Match category_ids for this model, then look up category objects
+        const catsForModel = (mcData ?? [])
+          .filter((mc: any) => mc.model_id === model.id)
+          .map((mc: any) => categoriesMap.get(mc.category_id))
+          .filter(Boolean) as Category[];
+
         return {
           ...model,
           photos: (photosData ?? []).filter(photo => photo.model_id === model.id),
           location: locationParts.join(', '),
-          categories,
+          categories: catsForModel,
         } as Model;
       });
     },
@@ -132,17 +136,27 @@ export const useModel = (id: string) => {
       if (!modelData) {
         return null;
       }
-      
-      // get categories for this model
-      const { data: modelCategoriesData, error: mcError } = await supabase
+
+      // get model_categories for this model's id, plain select
+      const { data: mcData, error: mcError } = await supabase
         .from('model_categories')
-        .select('model_id, categories:categories(*)')
+        .select('model_id, category_id')
         .eq('model_id', id);
 
       if (mcError) {
-          console.error('Error fetching model categories for single model:', mcError);
-          throw mcError;
+        console.error('Error fetching model_categories for single model:', mcError);
+        throw mcError;
       }
+
+      const { data: categoriesData, error: catError } = await supabase
+        .from('categories')
+        .select('*');
+      if (catError) throw catError;
+
+      // Get all relevant categories for this model
+      const categories = (mcData ?? [])
+        .map((mc: any) => (categoriesData ?? []).find((cat: any) => cat.id === mc.category_id))
+        .filter(Boolean) as Category[];
 
       const { data: photosData, error: photosError } = await supabase
         .from('model_photos')
@@ -163,8 +177,6 @@ export const useModel = (id: string) => {
       if (modelWithCity.neighborhood) {
         locationParts.push(modelWithCity.neighborhood);
       }
-      
-      const categories = modelCategoriesData?.map((mc: any) => mc.categories).filter(Boolean) || [];
 
       return {
         ...modelData,
