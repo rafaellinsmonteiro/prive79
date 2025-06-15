@@ -46,7 +46,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
-                    Para encontrar pessoalmente
+                  Especiais
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
@@ -59,10 +59,10 @@ const Header = () => {
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
                 <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Para curtir online
+                  Virtual
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Busca avançada
+                  Filtros
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
                   Contato
