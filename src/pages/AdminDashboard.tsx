@@ -44,9 +44,6 @@ const AdminDashboard = () => {
 
   const handleSignOut = async () => {
     const { error } = await signOut();
-
-    // The user is effectively logged out if the session is missing.
-    // In this case, or on successful logout, redirect them to the main page.
     if (!error || (error && error.message === 'Auth session missing!')) {
       navigate('/'); // Redirect to the main site
       if (!error) {
@@ -56,7 +53,6 @@ const AdminDashboard = () => {
         });
       }
     } else {
-      // For other errors (e.g., network issues), show an error toast and stay on the page.
       toast({
         title: "Erro no logout",
         description: error.message,
@@ -151,7 +147,8 @@ const AdminDashboard = () => {
               <Settings className="h-6 w-6" />
               <h2 className="text-xl font-semibold">Configurações Gerais</h2>
             </div>
-            
+
+            {/* Sistema de abas internas para Cidades e Categorias */}
             <Tabs defaultValue="cities" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="cities">
@@ -170,6 +167,7 @@ const AdminDashboard = () => {
                 <CategoriesManager />
               </TabsContent>
             </Tabs>
+
           </TabsContent>
         </Tabs>
       </div>
