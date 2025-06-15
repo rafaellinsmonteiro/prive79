@@ -90,14 +90,17 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     setLoading(true);
     try {
       const { category_ids, ...modelData } = data;
+      // 'categories' is expected by the Model type but is handled by a join table.
+      // We add it as an empty array to satisfy typing for the mutation hooks.
+      const apiPayload = { ...modelData, categories: [] };
       let modelResult;
       
       if (modelId) {
-        await updateModel.mutateAsync({ id: modelId, ...modelData });
+        await updateModel.mutateAsync({ id: modelId, ...apiPayload } as any);
         modelResult = { id: modelId };
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
       } else {
-        modelResult = await createModel.mutateAsync(modelData);
+        modelResult = await createModel.mutateAsync(apiPayload as any);
         toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
       
@@ -105,7 +108,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
 
       if (newModelId) {
         // Clear existing categories for the model
-        const { error: deleteError } = await supabase.from('model_categories').delete().eq('model_id', newModelId);
+        const { error: deleteError } = await supabase.from('model_categories' as any).delete().eq('model_id', newModelId);
         if (deleteError) throw deleteError;
         
         // Insert new categories if any are selected
@@ -114,7 +117,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             model_id: newModelId,
             category_id: catId
           }));
-          const { error: insertError } = await supabase.from('model_categories').insert(newJoins);
+          const { error: insertError } = await supabase.from('model_categories' as any).insert(newJoins);
           if (insertError) throw insertError;
         }
       }

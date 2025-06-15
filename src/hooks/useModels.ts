@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category } from "./useCategories";
@@ -75,7 +74,7 @@ export const useModels = () => {
           locationParts.push(modelWithCity.neighborhood);
         }
         
-        const categories = modelWithCity.model_categories.map((mc: any) => mc.categories).filter(Boolean);
+        const categories = modelWithCity.model_categories?.map((mc: any) => mc.categories).filter(Boolean) || [];
         
         return {
           ...model,
@@ -129,7 +128,7 @@ export const useModel = (id: string) => {
         locationParts.push(modelWithCity.neighborhood);
       }
       
-      const categories = modelWithCity.model_categories.map((mc: any) => mc.categories).filter(Boolean);
+      const categories = modelWithCity.model_categories?.map((mc: any) => mc.categories).filter(Boolean) || [];
 
       return {
         ...modelData,

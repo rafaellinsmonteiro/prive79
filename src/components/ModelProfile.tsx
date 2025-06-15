@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowLeft, ArrowRight, X, Video } from "lucide-react";
@@ -141,10 +140,10 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                 )}
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  {model.appearance && (
+                  {model.categories && model.categories.length > 0 && (
                     <div>
                       <span className="text-zinc-400 block">Aparência</span>
-                      <span>{model.appearance}</span>
+                      <span>{model.categories.map(c => c.name).join(', ')}</span>
                     </div>
                   )}
                   <div>
