@@ -28,8 +28,7 @@ const Index = () => {
             <h1 className="text-4xl font-bold mb-4">
              Privacidade. Exclusividade. <span className="text-primary">Você no controle.</span>
             </h1>
-            <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão com modelos, acompanhantes e massagistas selecionadas.
-Atendimento premium e total discrição — para quem exige o melhor.</p>
+            <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão e entretenimento de alto nível. Atendimento premium e total discrição — para quem exige o melhor.</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
