@@ -81,6 +81,95 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_configurations: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          menu_item_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          menu_item_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_configurations_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_configurations_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          display_order: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          menu_type: Database["public"]["Enums"]["menu_type"]
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          menu_type: Database["public"]["Enums"]["menu_type"]
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          menu_type?: Database["public"]["Enums"]["menu_type"]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_categories: {
         Row: {
           category_id: string
@@ -287,7 +376,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      menu_type: "url" | "category"
+      user_type: "guest" | "authenticated" | "all"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -402,6 +492,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      menu_type: ["url", "category"],
+      user_type: ["guest", "authenticated", "all"],
+    },
   },
 } as const

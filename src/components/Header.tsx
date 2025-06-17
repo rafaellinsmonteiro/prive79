@@ -13,19 +13,35 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, MapPin, ChevronDown } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
-import { useCategories } from "@/hooks/useCategories";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
-  const { data: categories = [] } = useCategories();
+  const { user } = useAuth();
+  
+  // Buscar cidade selecionada para filtrar o menu
+  const selectedCityData = cities.find(city => `${city.name} - ${city.state}` === selectedCity);
+  const { data: menuItems = [] } = useMenuItems(selectedCityData?.id, !!user);
 
-  const menuItems = [
-    { name: "Início", href: "#", special: false },
-    { name: "Virtual", href: "#", special: false },
-    { name: "Filtros", href: "#", special: false },
-    { name: "Contato", href: "#", special: false }
-  ];
+  // Separar itens do menu por tipo
+  const urlItems = menuItems.filter(item => item.menu_type === 'url');
+  const categoryItems = menuItems.filter(item => item.menu_type === 'category');
+
+  const handleMenuClick = (item: any) => {
+    if (item.menu_type === 'url' && item.url) {
+      // Navegar para URL
+      if (item.url.startsWith('http')) {
+        window.open(item.url, '_blank');
+      } else {
+        window.location.href = item.url;
+      }
+    } else if (item.menu_type === 'category' && item.categories) {
+      // TODO: Implementar navegação por categoria
+      console.log('Navigate to category:', item.categories.name);
+    }
+  };
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -40,32 +56,36 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-800">
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Início
-                </DropdownMenuItem>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
-                    Tipos
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
-                      {categories.map((category) => (
-                        <DropdownMenuItem key={category.id} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                          {category.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Virtual
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Filtros
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                  Contato
-                </DropdownMenuItem>
+                {urlItems.map((item) => (
+                  <DropdownMenuItem 
+                    key={item.id}
+                    onClick={() => handleMenuClick(item)}
+                    className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
+                  >
+                    {item.title}
+                  </DropdownMenuItem>
+                ))}
+                
+                {categoryItems.length > 0 && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="text-zinc-300 hover:text-zinc-100 data-[state=open]:bg-zinc-800 hover:bg-zinc-800">
+                      Tipos
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
+                        {categoryItems.map((item) => (
+                          <DropdownMenuItem 
+                            key={item.id}
+                            onClick={() => handleMenuClick(item)}
+                            className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
+                          >
+                            {item.categories?.name || item.title}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -79,33 +99,37 @@ const Header = () => {
 
           {/* Menu Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
-              Início
-            </a>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-950 data-[state=open]:bg-zinc-950">
-                  Tipos
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
-                {categories.map((category) => (
-                  <DropdownMenuItem key={category.id} className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800">
-                    {category.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
-              Virtual
-            </a>
-            <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
-              Filtros
-            </a>
-            <a href="#" className="text-zinc-300 hover:text-zinc-100 transition-colors">
-              Contato
-            </a>
+            {urlItems.map((item) => (
+              <a 
+                key={item.id}
+                href={item.url}
+                className="text-zinc-300 hover:text-zinc-100 transition-colors"
+              >
+                {item.title}
+              </a>
+            ))}
+            
+            {categoryItems.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-950 data-[state=open]:bg-zinc-950">
+                    Tipos
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-zinc-900 border-zinc-800">
+                  {categoryItems.map((item) => (
+                    <DropdownMenuItem 
+                      key={item.id}
+                      onClick={() => handleMenuClick(item)}
+                      className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
+                    >
+                      {item.categories?.name || item.title}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </nav>
 
           {/* Seletor de Cidades */}

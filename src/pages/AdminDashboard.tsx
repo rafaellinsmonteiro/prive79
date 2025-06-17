@@ -5,12 +5,13 @@ import { useAdminModels } from '@/hooks/useAdminModels';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, LogOut, Settings, Building, Tags } from 'lucide-react';
+import { Plus, Users, LogOut, Settings, Building, Tags, Menu } from 'lucide-react';
 import ModelsList from '@/components/admin/ModelsList';
 import ModelForm from '@/components/admin/ModelForm';
 import { useToast } from '@/hooks/use-toast';
 import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
+import MenuManager from '@/components/admin/MenuManager';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
@@ -148,9 +149,9 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-semibold">Configurações Gerais</h2>
             </div>
 
-            {/* Sistema de abas internas para Cidades e Categorias */}
+            {/* Sistema de abas internas para Cidades, Categorias e Menu */}
             <Tabs defaultValue="cities" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="cities">
                   <Building className="h-4 w-4 mr-2" />
                   Cidades
@@ -159,12 +160,19 @@ const AdminDashboard = () => {
                   <Tags className="h-4 w-4 mr-2" />
                   Categorias
                 </TabsTrigger>
+                <TabsTrigger value="menu">
+                  <Menu className="h-4 w-4 mr-2" />
+                  Menu
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="cities" className="mt-6">
                 <CitiesManager />
               </TabsContent>
               <TabsContent value="categories" className="mt-6">
                 <CategoriesManager />
+              </TabsContent>
+              <TabsContent value="menu" className="mt-6">
+                <MenuManager />
               </TabsContent>
             </Tabs>
 
