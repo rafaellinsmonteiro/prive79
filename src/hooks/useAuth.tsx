@@ -36,7 +36,10 @@ export const useAuth = () => {
           // Check if user is admin using the security definer function
           setTimeout(async () => {
             try {
+              console.log('Checking admin status for user:', session.user.id);
               const { data, error } = await supabase.rpc('is_admin');
+              console.log('Admin check result:', { data, error });
+              
               if (error) {
                 console.error('Error checking admin status:', error);
                 setState(prev => ({ 
@@ -46,6 +49,7 @@ export const useAuth = () => {
                   authComplete: true 
                 }));
               } else {
+                console.log('User is admin:', !!data);
                 setState(prev => ({ 
                   ...prev, 
                   isAdmin: !!data, 
@@ -64,6 +68,7 @@ export const useAuth = () => {
             }
           }, 0);
         } else {
+          console.log('No user session, setting as non-admin');
           setState(prev => ({ 
             ...prev, 
             isAdmin: false, 
@@ -76,6 +81,7 @@ export const useAuth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', !!session);
       setState(prev => ({ ...prev, session, user: session?.user ?? null }));
     });
 
@@ -83,10 +89,12 @@ export const useAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting sign in for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    console.log('Sign in result:', { success: !!data.user, error: !!error });
     return { data, error };
   };
 
@@ -103,6 +111,7 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
+    console.log('Signing out user');
     const { error } = await supabase.auth.signOut();
     return { error };
   };

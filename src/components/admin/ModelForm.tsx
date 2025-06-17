@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { useCities } from '@/hooks/useCities';
 import { Form } from "@/components/ui/form";
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import BasicInfoSection from './model-form/BasicInfoSection';
 import CategoriesSection from './model-form/CategoriesSection';
 import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';
@@ -35,6 +35,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const { data: cities = [] } = useCities();
   const { data: categories = [] } = useAdminCategories();
   const { toast } = useToast();
+  const { user, isAdmin, session } = useAuth();
 
   const form: UseFormReturn<ModelFormData> = useForm<ModelFormData>({
     defaultValues: {
@@ -65,6 +66,17 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     setValue,
   } = form;
 
+  // Debug do estado de autenticação
+  useEffect(() => {
+    console.log('ModelForm - Auth state:', {
+      user: !!user,
+      userId: user?.id,
+      isAdmin,
+      session: !!session,
+      sessionValid: session && new Date(session.expires_at || 0) > new Date()
+    });
+  }, [user, isAdmin, session]);
+
   useEffect(() => {
     if (existingModel) {
       const modelKeys = Object.keys(form.getValues());
@@ -83,53 +95,131 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   }, [existingModel, setValue, form]);
 
   const onSubmit = async (data: ModelFormData) => {
+    console.log('Form submission started:', {
+      user: !!user,
+      userId: user?.id,
+      isAdmin,
+      session: !!session
+    });
+
+    // Verificar autenticação antes de prosseguir
+    if (!user || !session) {
+      toast({
+        title: "Erro de Autenticação",
+        description: "Você precisa estar logado como admin para realizar esta operação.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isAdmin) {
+      toast({
+        title: "Acesso Negado",
+        description: "Apenas administradores podem gerenciar modelos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { category_ids, ...modelData } = data;
+      console.log('Submitting model data:', { modelData, category_ids });
+      
       // 'categories' is expected by the Model type but is handled by a join table.
       // We add it as an empty array to satisfy typing for the mutation hooks.
       const apiPayload = { ...modelData, categories: [] };
       let modelResult;
       
       if (modelId) {
+        console.log('Updating model:', modelId);
         await updateModel.mutateAsync({ id: modelId, ...apiPayload } as any);
         modelResult = { id: modelId };
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
       } else {
+        console.log('Creating new model');
         modelResult = await createModel.mutateAsync(apiPayload as any);
         toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
       
       const newModelId = modelResult.id;
+      console.log('Model operation successful, managing categories:', { newModelId, category_ids });
 
       if (newModelId) {
+        // Verificar sessão novamente antes das operações de categorias
+        const { data: currentSession } = await supabase.auth.getSession();
+        if (!currentSession.session) {
+          throw new Error('Sessão expirada. Faça login novamente.');
+        }
+
         // Clear existing categories for the model
-        const { error: deleteError } = await supabase.from('model_categories' as any).delete().eq('model_id', newModelId);
-        if (deleteError) throw deleteError;
+        console.log('Clearing existing categories for model:', newModelId);
+        const { error: deleteError } = await supabase
+          .from('model_categories' as any)
+          .delete()
+          .eq('model_id', newModelId);
+        
+        if (deleteError) {
+          console.error('Error deleting existing categories:', deleteError);
+          throw deleteError;
+        }
         
         // Insert new categories if any are selected
         if (category_ids && category_ids.length > 0) {
+          console.log('Inserting new categories:', category_ids);
           const newJoins = category_ids.map(catId => ({
             model_id: newModelId,
             category_id: catId
           }));
-          const { error: insertError } = await supabase.from('model_categories' as any).insert(newJoins);
-          if (insertError) throw insertError;
+          
+          const { error: insertError } = await supabase
+            .from('model_categories' as any)
+            .insert(newJoins);
+          
+          if (insertError) {
+            console.error('Error inserting categories:', insertError);
+            throw insertError;
+          }
         }
       }
 
       onSuccess(modelResult);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving model:', error);
+      
+      let errorMessage = "Erro ao salvar modelo. Tente novamente.";
+      
+      // Mensagens de erro mais específicas
+      if (error.message?.includes('auth')) {
+        errorMessage = "Erro de autenticação. Faça login novamente.";
+      } else if (error.message?.includes('permission') || error.message?.includes('policy')) {
+        errorMessage = "Você não tem permissão para realizar esta operação.";
+      } else if (error.message?.includes('Sessão expirada')) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro",
-        description: "Erro ao salvar modelo. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  // Verificar se o usuário está autenticado antes de renderizar o formulário
+  if (!user || !isAdmin) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardContent className="p-6">
+          <div className="text-center text-zinc-400">
+            <p>Você precisa estar logado como administrador para acessar esta funcionalidade.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
