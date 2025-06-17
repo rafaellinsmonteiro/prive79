@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -126,19 +127,16 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       const { category_ids, ...modelData } = data;
       console.log('Submitting model data:', { modelData, category_ids });
       
-      // 'categories' is expected by the Model type but is handled by a join table.
-      // We add it as an empty array to satisfy typing for the mutation hooks.
-      const apiPayload = { ...modelData, categories: [] };
       let modelResult;
       
       if (modelId) {
         console.log('Updating model:', modelId);
-        await updateModel.mutateAsync({ id: modelId, ...apiPayload } as any);
+        await updateModel.mutateAsync({ id: modelId, ...modelData } as any);
         modelResult = { id: modelId };
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
       } else {
         console.log('Creating new model');
-        modelResult = await createModel.mutateAsync(apiPayload as any);
+        modelResult = await createModel.mutateAsync(modelData as any);
         toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
       
@@ -196,6 +194,8 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         errorMessage = "Você não tem permissão para realizar esta operação.";
       } else if (error.message?.includes('Sessão expirada')) {
         errorMessage = error.message;
+      } else if (error.message?.includes('categories')) {
+        errorMessage = "Erro ao configurar categorias. Modelo salvo com sucesso.";
       }
       
       toast({

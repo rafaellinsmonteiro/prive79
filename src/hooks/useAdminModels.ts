@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Model } from "./useModels";
@@ -44,12 +45,18 @@ export const useCreateModel = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (modelData: Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos'>) => {
+    mutationFn: async (modelData: Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos' | 'categories'>) => {
       console.log('Creating model with data:', modelData);
+      
+      // Remove any fields that don't exist in the models table
+      const cleanModelData = { ...modelData };
+      delete (cleanModelData as any).categories;
+      delete (cleanModelData as any).location;
+      delete (cleanModelData as any).cities;
       
       const { data, error } = await supabase
         .from('models')
-        .insert(modelData)
+        .insert(cleanModelData)
         .select()
         .maybeSingle();
 
@@ -75,9 +82,18 @@ export const useUpdateModel = () => {
     mutationFn: async ({ id, ...updates }: Partial<Model> & { id: string }) => {
       console.log('Updating model with id:', id, 'and data:', updates);
       
+      // Remove any fields that don't exist in the models table
+      const cleanUpdates = { ...updates };
+      delete (cleanUpdates as any).categories;
+      delete (cleanUpdates as any).location;
+      delete (cleanUpdates as any).cities;
+      delete (cleanUpdates as any).photos;
+      delete (cleanUpdates as any).created_at;
+      delete (cleanUpdates as any).updated_at;
+      
       const { data, error } = await supabase
         .from('models')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select()
         .maybeSingle();
