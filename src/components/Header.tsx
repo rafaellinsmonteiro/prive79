@@ -162,7 +162,7 @@ const Header = () => {
             {/* Ícone de Login - apenas para usuários não autenticados */}
             {!user && (
               <a href="/login">
-                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100">
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:bg-white hover:text-black">
                   <LogIn className="h-4 w-4" />
                 </Button>
               </a>
