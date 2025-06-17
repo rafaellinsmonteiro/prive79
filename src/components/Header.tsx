@@ -11,7 +11,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, ChevronDown } from "lucide-react";
+import { Menu, MapPin, ChevronDown, LogIn } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
@@ -132,8 +132,9 @@ const Header = () => {
             )}
           </nav>
 
-          {/* Seletor de Cidades */}
+          {/* Área direita com Seletor de Cidades e Login */}
           <div className="flex items-center space-x-4">
+            {/* Seletor de Cidades */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
@@ -157,6 +158,15 @@ const Header = () => {
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Ícone de Login - apenas para usuários não autenticados */}
+            {!user && (
+              <a href="/login">
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100">
+                  <LogIn className="h-4 w-4" />
+                </Button>
+              </a>
+            )}
           </div>
         </div>
       </div>
