@@ -13,7 +13,7 @@ interface MenuConfigurationManagerProps {
 }
 
 const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => {
-  const [newCityId, setNewCityId] = useState<string>('');
+  const [newCityId, setNewCityId] = useState<string>('all');
   const [newUserType, setNewUserType] = useState<'guest' | 'authenticated' | 'all'>('all');
   const { data: configurations = [], isLoading } = useMenuConfigurations(itemId);
   const { data: cities = [] } = useCities();
@@ -27,7 +27,7 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
     try {
       await createConfiguration.mutateAsync({
         menu_item_id: itemId,
-        city_id: newCityId || undefined,
+        city_id: newCityId === 'all' ? undefined : newCityId,
         user_type: newUserType,
         is_active: true,
       });
@@ -37,7 +37,7 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
         description: "Configuração de visibilidade adicionada!",
       });
       
-      setNewCityId('');
+      setNewCityId('all');
       setNewUserType('all');
     } catch (error: any) {
       toast({
@@ -102,7 +102,7 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
               <SelectValue placeholder="Todas as cidades" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-zinc-700">
-              <SelectItem value="">Todas as cidades</SelectItem>
+              <SelectItem value="all">Todas as cidades</SelectItem>
               {cities.map((city) => (
                 <SelectItem key={city.id} value={city.id}>
                   {city.name} - {city.state}
