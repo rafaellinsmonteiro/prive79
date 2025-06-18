@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowLeft, ArrowRight, X, Video } from "lucide-react";
@@ -48,11 +49,23 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                     alt={model.name} 
                     className="w-full h-full object-cover" 
                   />
+                ) : currentMedia?.media_type === 'video' ? (
+                  <video 
+                    src={currentMedia.media_url}
+                    controls
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Erro ao carregar vídeo:', e);
+                    }}
+                  >
+                    Seu navegador não suporta reprodução de vídeo.
+                  </video>
                 ) : (
                   <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
                     <div className="text-center">
                       <Video className="h-16 w-16 mx-auto mb-4 text-zinc-400" />
-                      <p className="text-zinc-400">Vídeo Preview</p>
+                      <p className="text-zinc-400">Mídia não disponível</p>
                     </div>
                   </div>
                 )}
