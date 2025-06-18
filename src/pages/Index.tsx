@@ -1,15 +1,20 @@
+
 import { useState } from "react";
 import ModelCard from "@/components/ModelCard";
 import ModelProfile from "@/components/ModelProfile";
 import Header from "@/components/Header";
 import { useModels } from "@/hooks/useModels";
+import { useCity } from "@/contexts/CityContext";
+
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState(null);
+  const { selectedCityId } = useCity();
   const {
     data: models = [],
     isLoading,
     error
-  } = useModels();
+  } = useModels(selectedCityId);
+
   if (isLoading) {
     return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-zinc-100">Carregando...</div>

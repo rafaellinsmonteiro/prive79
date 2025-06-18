@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -14,18 +14,18 @@ import { Menu, MapPin, ChevronDown, LogIn } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
+import { useCity } from "@/contexts/CityContext";
 
 const Header = () => {
-  const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
   const { user, authComplete, loading } = useAuth();
+  const { selectedCityId, selectedCityName, setSelectedCity } = useCity();
   
   // Debug logs
   console.log('Header render - user:', !!user, 'authComplete:', authComplete, 'loading:', loading);
+  console.log('Header render - selectedCityId:', selectedCityId, 'selectedCityName:', selectedCityName);
   
-  // Buscar cidade selecionada para filtrar o menu
-  const selectedCityData = cities.find(city => `${city.name} - ${city.state}` === selectedCity);
-  const { data: menuItems = [] } = useMenuItems(selectedCityData?.id, !!user);
+  const { data: menuItems = [] } = useMenuItems(selectedCityId, !!user);
 
   // Separar itens do menu por tipo
   const urlItems = menuItems.filter(item => item.menu_type === 'url');
@@ -43,6 +43,11 @@ const Header = () => {
       // TODO: Implementar navegação por categoria
       console.log('Navigate to category:', item.categories.name);
     }
+  };
+
+  const handleCityChange = (city: any) => {
+    const cityName = `${city.name} - ${city.state}`;
+    setSelectedCity(city.id, cityName);
   };
 
   // Determine if login icon should be shown
@@ -144,8 +149,8 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
                   <MapPin className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">{selectedCity}</span>
-                  <span className="sm:hidden">{selectedCity ? selectedCity.split(' - ')[1] : ''}</span>
+                  <span className="hidden sm:inline">{selectedCityName}</span>
+                  <span className="sm:hidden">{selectedCityName ? selectedCityName.split(' - ')[1] : ''}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
@@ -154,7 +159,7 @@ const Header = () => {
                   return (
                     <DropdownMenuItem 
                       key={city.id}
-                      onClick={() => setSelectedCity(cityName)}
+                      onClick={() => handleCityChange(city)}
                       className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
                     >
                       {cityName}

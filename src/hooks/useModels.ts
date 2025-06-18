@@ -40,15 +40,22 @@ export interface Model {
   cities?: { name: string } | null;
 }
 
-export const useModels = () => {
+export const useModels = (cityId?: string) => {
   return useQuery({
-    queryKey: ['models'],
+    queryKey: ['models', cityId],
     queryFn: async (): Promise<Model[]> => {
-      // 1. Fetch models
-      const { data: modelsData, error: modelsError } = await supabase
+      // 1. Fetch models with city filter
+      let modelsQuery = supabase
         .from('models')
         .select('*, cities(name)')
-        .eq('is_active', true)
+        .eq('is_active', true);
+
+      // Apply city filter if provided
+      if (cityId) {
+        modelsQuery = modelsQuery.eq('city_id', cityId);
+      }
+
+      const { data: modelsData, error: modelsError } = await modelsQuery
         .order('display_order', { ascending: true });
 
       if (modelsError) {
