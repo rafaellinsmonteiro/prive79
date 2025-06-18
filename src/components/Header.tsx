@@ -19,7 +19,10 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
-  const { user } = useAuth();
+  const { user, authComplete } = useAuth();
+  
+  // Debug logs
+  console.log('Header render - user:', !!user, 'authComplete:', authComplete);
   
   // Buscar cidade selecionada para filtrar o menu
   const selectedCityData = cities.find(city => `${city.name} - ${city.state}` === selectedCity);
@@ -160,7 +163,8 @@ const Header = () => {
             </DropdownMenu>
 
             {/* Ícone de Login - apenas para usuários não autenticados */}
-            {!user && (
+            {/* Sempre mostra se auth não está completo ou se não há usuário */}
+            {(!authComplete || !user) && (
               <a href="/login">
                 <Button variant="ghost" size="icon" className="text-zinc-400 hover:bg-white hover:text-black">
                   <LogIn className="h-4 w-4" />
