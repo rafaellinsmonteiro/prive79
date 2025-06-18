@@ -1,7 +1,8 @@
 
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowLeft, ArrowRight, X, Video } from "lucide-react";
+import { Phone, ArrowLeft, ArrowRight, X, Video, Play } from "lucide-react";
 import { Model } from "@/hooks/useModels";
 import { useModelMedia } from "@/hooks/useModelMedia";
 
@@ -25,6 +26,33 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
   };
 
   const currentMedia = mediaItems[currentImageIndex];
+
+  // Function to generate thumbnail from video if needed
+  const generateVideoThumbnail = (videoUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.currentTime = 1; // Get frame at 1 second
+      
+      video.onloadeddata = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(video, 0, 0);
+        
+        const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(thumbnailUrl);
+      };
+      
+      video.onerror = () => {
+        resolve(''); // Return empty string if thumbnail generation fails
+      };
+      
+      video.src = videoUrl;
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-zinc-950 z-50 overflow-y-auto">
@@ -54,6 +82,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                     src={currentMedia.media_url}
                     controls
                     preload="metadata"
+                    poster={currentMedia.thumbnail_url || undefined}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       console.error('Erro ao carregar vídeo:', e);
@@ -111,16 +140,30 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                           alt={`${model.name} ${index + 1}`} 
                           className="w-full h-full object-cover" 
                         />
+                      ) : media.media_type === 'video' ? (
+                        <>
+                          {media.thumbnail_url ? (
+                            <img 
+                              src={media.thumbnail_url} 
+                              alt={`${model.name} vídeo ${index + 1}`} 
+                              className="w-full h-full object-cover" 
+                            />
+                          ) : (
+                            <video 
+                              src={media.media_url}
+                              preload="metadata"
+                              className="w-full h-full object-cover"
+                              muted
+                            />
+                          )}
+                          {/* Video play icon overlay */}
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white fill-white" />
+                          </div>
+                        </>
                       ) : (
                         <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
                           <Video className="h-4 w-4 text-zinc-400" />
-                        </div>
-                      )}
-                      
-                      {/* Video icon overlay */}
-                      {media.media_type === 'video' && (
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                          <Video className="h-6 w-6 text-white" />
                         </div>
                       )}
                     </button>
@@ -263,3 +306,4 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 };
 
 export default ModelProfile;
+
