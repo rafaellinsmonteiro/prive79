@@ -1,13 +1,10 @@
 
-import { useState } from "react";
-import ModelCard from "@/components/ModelCard";
-import ModelProfile from "@/components/ModelProfile";
-import Header from "@/components/Header";
 import { useModels } from "@/hooks/useModels";
 import { useCity } from "@/contexts/CityContext";
+import ModelCard from "@/components/ModelCard";
+import Header from "@/components/Header";
 
 const Index = () => {
-  const [selectedModel, setSelectedModel] = useState(null);
   const { selectedCityId } = useCity();
   const {
     data: models = [],
@@ -28,24 +25,23 @@ const Index = () => {
   return <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <Header />
       
-      {selectedModel ? <ModelProfile model={selectedModel} onClose={() => setSelectedModel(null)} /> : <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">
-             Privacidade. Exclusividade. <span className="text-primary">Você no controle.</span>
-            </h1>
-            <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão e entretenimento de alto nível. Atendimento premium e total discrição — para quem exige o melhor.</p>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4">
+           Privacidade. Exclusividade. <span className="text-primary">Você no controle.</span>
+          </h1>
+          <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão e entretenimento de alto nível. Atendimento premium e total discrição — para quem exige o melhor.</p>
+        </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-            {models.map(model => (
-              <ModelCard 
-                key={model.id} 
-                model={model} 
-                onClick={() => setSelectedModel(model)} 
-              />
-            ))}
-          </div>
-        </div>}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
+          {models.map(model => (
+            <ModelCard 
+              key={model.id} 
+              model={model} 
+            />
+          ))}
+        </div>
+      </div>
     </div>;
 };
 
