@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -19,10 +18,10 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [selectedCity, setSelectedCity] = useState("Aracaju - SE");
   const { data: cities = [] } = useCities();
-  const { user, authComplete } = useAuth();
+  const { user, authComplete, loading } = useAuth();
   
   // Debug logs
-  console.log('Header render - user:', !!user, 'authComplete:', authComplete);
+  console.log('Header render - user:', !!user, 'authComplete:', authComplete, 'loading:', loading);
   
   // Buscar cidade selecionada para filtrar o menu
   const selectedCityData = cities.find(city => `${city.name} - ${city.state}` === selectedCity);
@@ -45,6 +44,9 @@ const Header = () => {
       console.log('Navigate to category:', item.categories.name);
     }
   };
+
+  // Determine if login icon should be shown
+  const shouldShowLoginIcon = !user || (!authComplete && !loading);
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -162,9 +164,8 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Ícone de Login - apenas para usuários não autenticados */}
-            {/* Sempre mostra se auth não está completo ou se não há usuário */}
-            {(!authComplete || !user) && (
+            {/* Ícone de Login - mostra quando não há usuário ou quando auth ainda não completou */}
+            {shouldShowLoginIcon && (
               <a href="/login">
                 <Button variant="ghost" size="icon" className="text-zinc-400 hover:bg-white hover:text-black">
                   <LogIn className="h-4 w-4" />
