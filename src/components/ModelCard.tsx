@@ -4,10 +4,11 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { PhoneCall } from "lucide-react";
 import { Model } from "@/hooks/useModels";
+import { Link } from "react-router-dom";
 
 interface ModelCardProps {
   model: Model;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 const ModelCard = ({ model, onClick }: ModelCardProps) => {
@@ -17,10 +18,18 @@ const ModelCard = ({ model, onClick }: ModelCardProps) => {
 
   const whatsappLink = `https://wa.me/${model.whatsapp_number || '5511999999999'}?text=Ol%C3%A1%20${encodeURIComponent(model.name)},%20gostaria%20de%20conversar`;
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      window.location.href = `/modelo/${model.id}`;
+    }
+  };
+
   return (
     <Card 
       className="group overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border-zinc-800/50 bg-zinc-900/50 relative"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <AspectRatio ratio={3/4}>
         <img 

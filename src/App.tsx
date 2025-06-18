@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import Login from "./pages/Login";
+import ModelPage from "./pages/ModelPage";
+import CityPage from "./pages/CityPage";
+import CategoryPage from "./pages/CategoryPage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +26,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/modelo/:id" element={<ModelPage />} />
+            <Route path="/cidade/:cityId" element={<CityPage />} />
+            <Route path="/categoria/:categoryId" element={<CategoryPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

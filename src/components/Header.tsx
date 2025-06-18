@@ -15,11 +15,13 @@ import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useCity } from "@/contexts/CityContext";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const { data: cities = [] } = useCities();
   const { user, authComplete, loading } = useAuth();
   const { selectedCityId, selectedCityName, setSelectedCity } = useCity();
+  const navigate = useNavigate();
   
   // Debug logs
   console.log('Header render - user:', !!user, 'authComplete:', authComplete, 'loading:', loading);
@@ -40,14 +42,15 @@ const Header = () => {
         window.location.href = item.url;
       }
     } else if (item.menu_type === 'category' && item.categories) {
-      // TODO: Implementar navegação por categoria
-      console.log('Navigate to category:', item.categories.name);
+      // Navegar para página da categoria
+      navigate(`/categoria/${item.categories.id}`);
     }
   };
 
   const handleCityChange = (city: any) => {
     const cityName = `${city.name} - ${city.state}`;
     setSelectedCity(city.id, cityName);
+    navigate(`/cidade/${city.id}`);
   };
 
   // Determine if login icon should be shown

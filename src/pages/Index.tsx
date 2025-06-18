@@ -37,9 +37,16 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-            {models.map(model => <ModelCard key={model.id} model={model} onClick={() => setSelectedModel(model)} />)}
+            {models.map(model => (
+              <ModelCard 
+                key={model.id} 
+                model={model} 
+                onClick={() => setSelectedModel(model)} 
+              />
+            ))}
           </div>
         </div>}
     </div>;
 };
+
 export default Index;
