@@ -44,7 +44,8 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
     const handleVideoEnded = () => {
       console.log('Video ended, restarting...');
       video.currentTime = 0;
-      if (isActive && settings?.auto_play) {
+      // Sempre tentar reproduzir quando ativo, independente das configurações
+      if (isActive) {
         video.play().catch(console.error);
       }
     };
@@ -53,16 +54,22 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
     video.addEventListener('pause', handleVideoPause);
     video.addEventListener('ended', handleVideoEnded);
 
-    // Controle de reprodução baseado no estado ativo
-    if (isActive && settings?.auto_play && videoItem) {
-      console.log('Starting video for active reel');
+    // Controle de reprodução baseado no estado ativo - usar autoplay por padrão se settings for null/undefined
+    const shouldAutoPlay = settings?.auto_play !== false; // Default para true se settings for null/undefined
+    
+    if (isActive && shouldAutoPlay && videoItem) {
+      console.log('Starting video for active reel (autoplay:', shouldAutoPlay, ')');
       video.currentTime = 0;
       video.play().then(() => {
         console.log('Video play successful');
       }).catch((error) => {
         console.error('Video play failed:', error);
+        // Tentar novamente após um pequeno delay
+        setTimeout(() => {
+          video.play().catch(console.error);
+        }, 100);
       });
-    } else {
+    } else if (!isActive) {
       console.log('Pausing video for inactive reel');
       video.pause();
       setIsPlaying(false);

@@ -10,8 +10,8 @@ const ReelsPage = () => {
   const { data: models = [], isLoading, error } = useModels(selectedCityId);
   const { data: reelsSettings } = useReelsSettings();
 
-  // Verificar se o módulo de reels está habilitado
-  if (reelsSettings && !reelsSettings.is_enabled) {
+  // Verificar se o módulo de reels está habilitado - apenas se as configurações forem carregadas e explicitamente desabilitadas
+  if (reelsSettings && reelsSettings.is_enabled === false) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center text-white">
