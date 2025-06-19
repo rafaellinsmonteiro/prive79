@@ -15,6 +15,7 @@ export interface ReelsVideo {
   created_at: string;
   model?: {
     name: string;
+    city_id: string;
   };
 }
 
@@ -22,6 +23,8 @@ export const useReelsVideos = (cityId?: string) => {
   return useQuery({
     queryKey: ['reels-videos', cityId],
     queryFn: async (): Promise<ReelsVideo[]> => {
+      console.log('Fetching reels videos for cityId:', cityId);
+      
       let query = supabase
         .from('model_videos')
         .select(`
@@ -41,6 +44,8 @@ export const useReelsVideos = (cityId?: string) => {
         throw error;
       }
 
+      console.log('Reels videos fetched:', data?.length || 0);
+
       return (data || []).map(video => ({
         ...video,
         model: video.models
@@ -55,6 +60,8 @@ export const useToggleVideoInReels = () => {
 
   return useMutation({
     mutationFn: async ({ id, is_featured }: { id: string; is_featured: boolean }) => {
+      console.log('Toggling video in reels:', { id, is_featured });
+      
       const { data, error } = await supabase
         .from('model_videos')
         .update({ is_featured_in_reels: is_featured })
@@ -77,6 +84,7 @@ export const useToggleVideoInReels = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Error in useToggleVideoInReels:', error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar vídeo: " + error.message,

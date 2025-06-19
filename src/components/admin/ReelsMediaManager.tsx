@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Search, Video, Star, User, MapPin, Filter, RefreshCw } from 'lucide-react';
+import { Search, Video, Star, User, RefreshCw, Filter, AlertCircle } from 'lucide-react';
 
 const ReelsMediaManager = () => {
   const [selectedCityId, setSelectedCityId] = useState<string>('');
@@ -17,10 +17,18 @@ const ReelsMediaManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   
-  const { data: cities = [] } = useCities();
-  const { data: models = [] } = useAdminModels();
-  const { data: videos = [], isLoading, refetch } = useReelsVideos(selectedCityId || undefined);
+  const { data: cities = [], isLoading: citiesLoading } = useCities();
+  const { data: models = [], isLoading: modelsLoading } = useAdminModels();
+  const { data: videos = [], isLoading: videosLoading, refetch, error } = useReelsVideos(selectedCityId || undefined);
   const toggleVideo = useToggleVideoInReels();
+
+  console.log('ReelsMediaManager render:', {
+    citiesCount: cities.length,
+    modelsCount: models.length,
+    videosCount: videos.length,
+    isLoading: videosLoading,
+    error: error?.message
+  });
 
   // Filtrar modelos baseado na cidade selecionada
   const filteredModels = selectedCityId 
@@ -50,6 +58,7 @@ const ReelsMediaManager = () => {
   });
 
   const handleToggleVideo = (videoId: string, currentStatus: boolean) => {
+    console.log('Toggling video:', videoId, 'current status:', currentStatus);
     toggleVideo.mutate({
       id: videoId,
       is_featured: !currentStatus
@@ -69,12 +78,32 @@ const ReelsMediaManager = () => {
     available: filteredVideos.filter(v => !v.is_featured_in_reels).length,
   };
 
-  if (isLoading) {
+  // Loading state
+  if (videosLoading || citiesLoading || modelsLoading) {
     return (
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-6">
-          <div className="text-center text-zinc-400">
-            Carregando vídeos...
+          <div className="text-center text-zinc-400 space-y-2">
+            <RefreshCw className="h-8 w-8 mx-auto animate-spin" />
+            <p>Carregando dados...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardContent className="p-6">
+          <div className="text-center text-red-400 space-y-2">
+            <AlertCircle className="h-8 w-8 mx-auto" />
+            <p>Erro ao carregar dados</p>
+            <p className="text-sm text-zinc-400">{error.message}</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              Tentar Novamente
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -91,7 +120,7 @@ const ReelsMediaManager = () => {
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              disabled={isLoading}
+              disabled={videosLoading}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
@@ -262,7 +291,7 @@ const ReelsMediaManager = () => {
         ))}
       </div>
 
-      {filteredVideos.length === 0 && (
+      {filteredVideos.length === 0 && !videosLoading && (
         <Card className="bg-zinc-900 border-zinc-800">
           <CardContent className="p-6">
             <div className="text-center text-zinc-400">
