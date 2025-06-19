@@ -25,7 +25,17 @@ export const useCities = () => {
         throw error;
       }
 
-      return data || [];
+      // Filter out any cities with empty or invalid IDs
+      const validCities = (data || []).filter(city => {
+        const isValid = city.id && city.id.trim() !== '';
+        if (!isValid) {
+          console.warn('Filtering out city with invalid ID:', city);
+        }
+        return isValid;
+      });
+
+      console.log('useCities returning valid cities:', validCities);
+      return validCities;
     },
   });
 };
