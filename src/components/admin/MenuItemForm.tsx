@@ -80,6 +80,9 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
     item.id !== itemId && !item.parent_id // Apenas itens raiz podem ser pais
   );
 
+  // Filter out categories with invalid IDs
+  const validCategories = categories.filter(category => category.id && category.id.trim() !== '');
+
   // TODO: Buscar dados do item existente se itemId for fornecido
   // Isso requer implementar um hook useMenuItem(id) similar ao useModel
 
@@ -181,11 +184,13 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
                         <SelectItem value="none">Nenhum (Item Raiz)</SelectItem>
-                        {availableParentItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.title}
-                          </SelectItem>
-                        ))}
+                        {availableParentItems
+                          .filter(item => item.id && item.id.trim() !== '')
+                          .map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.title}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -250,7 +255,7 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {categories.map((category) => (
+                        {validCategories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
