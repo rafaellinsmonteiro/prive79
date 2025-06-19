@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -30,6 +29,13 @@ const Header = () => {
   const { data: menuItems = [] } = useMenuItems(selectedCityId, !!user);
 
   console.log('Header - menuItems received:', menuItems);
+  console.log('Header - menuItems structure check:', menuItems.map(item => ({
+    id: item.id,
+    title: item.title,
+    parent_id: item.parent_id,
+    hasChildren: !!(item.children && item.children.length > 0),
+    childrenCount: item.children?.length || 0
+  })));
 
   // Separar itens por tipo - apenas itens raiz (sem parent_id) e sem filhos
   const rootUrlItems = menuItems.filter(item => 
@@ -50,9 +56,9 @@ const Header = () => {
     item.children.length > 0
   );
 
-  console.log('Header - rootUrlItems:', rootUrlItems);
-  console.log('Header - rootCategoryItems:', rootCategoryItems);
-  console.log('Header - parentItemsWithChildren:', parentItemsWithChildren);
+  console.log('Header - rootUrlItems:', rootUrlItems.map(i => i.title));
+  console.log('Header - rootCategoryItems:', rootCategoryItems.map(i => i.title));
+  console.log('Header - parentItemsWithChildren:', parentItemsWithChildren.map(i => i.title));
 
   const handleMenuClick = (item: any) => {
     if (item.menu_type === 'url' && item.url) {
