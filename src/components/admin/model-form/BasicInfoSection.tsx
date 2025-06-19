@@ -13,6 +13,9 @@ interface BasicInfoSectionProps {
 }
 
 const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
+  // Debug logging
+  console.log('BasicInfoSection cities:', cities);
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
@@ -65,11 +68,19 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id}>
-                      {city.name} - {city.state}
-                    </SelectItem>
-                  ))}
+                  {cities.map((city) => {
+                    console.log('Rendering city:', city);
+                    // Ensure city.id is not empty string
+                    if (!city.id || city.id === "") {
+                      console.warn('City with empty or null ID found:', city);
+                      return null;
+                    }
+                    return (
+                      <SelectItem key={city.id} value={city.id}>
+                        {city.name} - {city.state}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <FormMessage />
