@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -152,14 +153,6 @@ const Header = () => {
 
           {/* Menu Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            {/* Link para Reels */}
-            <a 
-              href="/reels"
-              className="text-zinc-300 hover:text-zinc-100 transition-colors"
-            >
-              Reels
-            </a>
-
             {/* Itens URL raiz (sem filhos) */}
             {rootUrlItems.map((item) => (
               <a 
