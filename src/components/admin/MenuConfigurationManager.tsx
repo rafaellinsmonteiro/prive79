@@ -20,6 +20,9 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
   const deleteConfiguration = useDeleteMenuConfiguration();
   const { toast } = useToast();
 
+  // Filter out any cities with invalid IDs to prevent Select.Item errors
+  const validCities = cities.filter(city => city.id && city.id.trim() !== '');
+
   const handleAddConfiguration = async () => {
     if (!newUserType) return;
     
@@ -67,7 +70,7 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
 
   const getCityName = (cityId?: string) => {
     if (!cityId) return 'Todas as cidades';
-    const city = cities.find(c => c.id === cityId);
+    const city = validCities.find(c => c.id === cityId);
     return city ? `${city.name} - ${city.state}` : 'Cidade não encontrada';
   };
 
@@ -102,7 +105,7 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-zinc-700">
               <SelectItem value="all">Todas as cidades</SelectItem>
-              {cities.map((city) => (
+              {validCities.map((city) => (
                 <SelectItem key={city.id} value={city.id}>
                   {city.name} - {city.state}
                 </SelectItem>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,16 +74,11 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
     return result;
   };
 
-  // Obter lista plana de itens disponíveis como pais (excluindo o item atual se editando)
-  const availableParentItems = flattenMenuItems(menuItems).filter(item => 
-    item.id !== itemId && !item.parent_id // Apenas itens raiz podem ser pais
-  );
-
-  // Filter out categories with invalid IDs
+  // Filter out any entries with invalid IDs to prevent Select.Item errors
   const validCategories = categories.filter(category => category.id && category.id.trim() !== '');
-
-  // TODO: Buscar dados do item existente se itemId for fornecido
-  // Isso requer implementar um hook useMenuItem(id) similar ao useModel
+  const validMenuItems = flattenMenuItems(menuItems).filter(item => 
+    item.id && item.id.trim() !== '' && item.id !== itemId && !item.parent_id // Apenas itens raiz podem ser pais
+  );
 
   const onSubmit = async (data: MenuItemFormData) => {
     setLoading(true);
@@ -184,13 +178,11 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
                         <SelectItem value="none">Nenhum (Item Raiz)</SelectItem>
-                        {availableParentItems
-                          .filter(item => item.id && item.id.trim() !== '')
-                          .map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.title}
-                            </SelectItem>
-                          ))}
+                        {validMenuItems.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

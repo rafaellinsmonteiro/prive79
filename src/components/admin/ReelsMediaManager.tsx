@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useReelsVideos, useToggleVideoInReels } from '@/hooks/useReelsMedia';
 import { useCities } from '@/hooks/useCities';
@@ -30,10 +29,14 @@ const ReelsMediaManager = () => {
     error: error?.message
   });
 
+  // Filter out any entries with invalid IDs to prevent Select.Item errors
+  const validCities = cities.filter(city => city.id && city.id.trim() !== '');
+  const validModels = models.filter(model => model.id && model.id.trim() !== '');
+
   // Filtrar modelos baseado na cidade selecionada
   const filteredModels = selectedCityId 
-    ? models.filter(model => model.city_id === selectedCityId)
-    : models;
+    ? validModels.filter(model => model.city_id === selectedCityId)
+    : validModels;
 
   const filteredVideos = videos.filter(video => {
     // Filtro por termo de busca
@@ -148,7 +151,7 @@ const ReelsMediaManager = () => {
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as cidades</SelectItem>
-                {cities.map((city) => (
+                {validCities.map((city) => (
                   <SelectItem key={city.id} value={city.id}>
                     {city.name}
                   </SelectItem>
