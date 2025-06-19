@@ -2,27 +2,51 @@
 import { useState } from 'react';
 import { useReelsVideos, useToggleVideoInReels } from '@/hooks/useReelsMedia';
 import { useCities } from '@/hooks/useCities';
+import { useAdminModels } from '@/hooks/useAdminModels';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Search, Video, Star } from 'lucide-react';
+import { Search, Video, Star, User, MapPin, Filter, RefreshCw } from 'lucide-react';
 
 const ReelsMediaManager = () => {
   const [selectedCityId, setSelectedCityId] = useState<string>('');
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
+  
   const { data: cities = [] } = useCities();
-  const { data: videos = [], isLoading } = useReelsVideos(selectedCityId || undefined);
+  const { data: models = [] } = useAdminModels();
+  const { data: videos = [], isLoading, refetch } = useReelsVideos(selectedCityId || undefined);
   const toggleVideo = useToggleVideoInReels();
 
+  // Filtrar modelos baseado na cidade selecionada
+  const filteredModels = selectedCityId 
+    ? models.filter(model => model.city_id === selectedCityId)
+    : models;
+
   const filteredVideos = videos.filter(video => {
-    if (!searchTerm) return true;
-    return (
-      video.model?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.title?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filtro por termo de busca
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesModel = video.model?.name.toLowerCase().includes(searchLower);
+      const matchesTitle = video.title?.toLowerCase().includes(searchLower);
+      if (!matchesModel && !matchesTitle) return false;
+    }
+
+    // Filtro por modelo específico
+    if (selectedModelId && video.model_id !== selectedModelId) {
+      return false;
+    }
+
+    // Filtro por status featured
+    if (showOnlyFeatured && !video.is_featured_in_reels) {
+      return false;
+    }
+
+    return true;
   });
 
   const handleToggleVideo = (videoId: string, currentStatus: boolean) => {
@@ -30,6 +54,19 @@ const ReelsMediaManager = () => {
       id: videoId,
       is_featured: !currentStatus
     });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCityId('');
+    setSelectedModelId('');
+    setSearchTerm('');
+    setShowOnlyFeatured(false);
+  };
+
+  const stats = {
+    total: filteredVideos.length,
+    featured: filteredVideos.filter(v => v.is_featured_in_reels).length,
+    available: filteredVideos.filter(v => !v.is_featured_in_reels).length,
   };
 
   if (isLoading) {
@@ -48,27 +85,39 @@ const ReelsMediaManager = () => {
     <div className="space-y-6">
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white">Gestão de Mídia para Reels</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white">Gestão de Mídia para Reels</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filtros */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar por modelo ou título..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Busca */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar por modelo ou título..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+              />
             </div>
+
+            {/* Filtro por cidade */}
             <Select value={selectedCityId} onValueChange={setSelectedCityId}>
-              <SelectTrigger className="w-[200px] bg-zinc-800 border-zinc-700 text-white">
+              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                 <SelectValue placeholder="Filtrar por cidade" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as cidades</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city.id} value={city.id}>
@@ -77,25 +126,60 @@ const ReelsMediaManager = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Filtro por modelo */}
+            <Select value={selectedModelId} onValueChange={setSelectedModelId}>
+              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                <SelectValue placeholder="Filtrar por modelo" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
+                <SelectItem value="">Todas as modelos</SelectItem>
+                {filteredModels.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Botões de ação */}
+            <div className="flex gap-2">
+              <Button
+                variant={showOnlyFeatured ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
+                className="flex-1"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {showOnlyFeatured ? 'Todos' : 'Só Reels'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearFilters}
+              >
+                Limpar
+              </Button>
+            </div>
           </div>
 
           {/* Estatísticas */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-zinc-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-white">
-                {filteredVideos.length}
+                {stats.total}
               </div>
               <div className="text-zinc-400 text-sm">Total de Vídeos</div>
             </div>
             <div className="bg-zinc-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-green-400">
-                {filteredVideos.filter(v => v.is_featured_in_reels).length}
+                {stats.featured}
               </div>
               <div className="text-zinc-400 text-sm">Nos Reels</div>
             </div>
             <div className="bg-zinc-800 p-4 rounded-lg">
               <div className="text-2xl font-bold text-zinc-400">
-                {filteredVideos.filter(v => !v.is_featured_in_reels).length}
+                {stats.available}
               </div>
               <div className="text-zinc-400 text-sm">Disponíveis</div>
             </div>
@@ -126,16 +210,17 @@ const ReelsMediaManager = () => {
 
                 {/* Informações */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-white truncate">
                         {video.title || 'Sem título'}
                       </h3>
-                      <p className="text-sm text-zinc-400 truncate">
-                        Modelo: {video.model?.name}
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-zinc-400 mt-1">
+                        <User className="h-3 w-3" />
+                        <span className="truncate">{video.model?.name}</span>
+                      </div>
                       {video.duration && (
-                        <p className="text-xs text-zinc-500">
+                        <p className="text-xs text-zinc-500 mt-1">
                           Duração: {Math.round(video.duration)}s
                         </p>
                       )}
@@ -183,9 +268,18 @@ const ReelsMediaManager = () => {
             <div className="text-center text-zinc-400">
               <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Nenhum vídeo encontrado.</p>
-              {searchTerm && (
+              {(searchTerm || selectedCityId || selectedModelId || showOnlyFeatured) ? (
+                <div className="mt-4">
+                  <p className="text-sm mb-2">
+                    Tente ajustar os filtros ou buscar por outros termos.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleClearFilters}>
+                    Limpar Filtros
+                  </Button>
+                </div>
+              ) : (
                 <p className="text-sm mt-2">
-                  Tente buscar por outros termos ou remover os filtros.
+                  Adicione vídeos às modelos para começar a gerenciar os reels.
                 </p>
               )}
             </div>

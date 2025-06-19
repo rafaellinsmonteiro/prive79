@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useModelMedia } from '@/hooks/useModelMedia';
 import { Plus, Trash2, Star, Image, Video, Upload } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
   useSetPrimaryPhoto,
   useUploadFile
 } from '@/hooks/useMediaMutations';
+import { useToggleVideoInReels } from '@/hooks/useReelsMedia';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,9 +48,11 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
   const deleteVideoMutation = useDeleteVideo();
   const setPrimaryPhotoMutation = useSetPrimaryPhoto();
   const uploadFileMutation = useUploadFile();
+  const toggleVideoInReels = useToggleVideoInReels();
 
   const photos = mediaItems.filter(item => item.media_type === 'photo');
   const videos = mediaItems.filter(item => item.media_type === 'video');
+  const reelsVideos = videos.filter(video => video.is_featured_in_reels);
 
   const handleAddPhoto = async () => {
     if (!newPhotoUrl.trim()) {
@@ -61,7 +64,6 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
-    // Basic URL validation
     try {
       new URL(newPhotoUrl);
     } catch {
@@ -77,7 +79,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       await createPhotoMutation.mutateAsync({
         modelId,
         photoUrl: newPhotoUrl,
-        isPrimary: photos.length === 0 // Primeira foto será primária
+        isPrimary: photos.length === 0
       });
       
       setNewPhotoUrl('');
@@ -105,7 +107,6 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
-    // Basic URL validation
     try {
       new URL(newVideoUrl);
     } catch {
@@ -183,8 +184,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
   };
 
   const handleFileUpload = async (file: File, type: 'photo' | 'video') => {
-    // Validate file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({
         title: "Erro",
@@ -194,7 +194,6 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       return;
     }
 
-    // Validate file type
     const validPhotoTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
     
@@ -247,6 +246,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
     }
   };
 
+  const handleToggleReels = (videoId: string, currentStatus: boolean) => {
+    toggleVideoInReels.mutate({
+      id: videoId,
+      is_featured: !currentStatus
+    });
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Carregando mídias...</div>;
   }
@@ -256,7 +262,8 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                      deletePhotoMutation.isPending || 
                      deleteVideoMutation.isPending || 
                      setPrimaryPhotoMutation.isPending ||
-                     uploadFileMutation.isPending;
+                     uploadFileMutation.isPending ||
+                     toggleVideoInReels.isPending;
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -265,9 +272,10 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="photos" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="photos">Fotos ({photos.length})</TabsTrigger>
             <TabsTrigger value="videos">Vídeos ({videos.length})</TabsTrigger>
+            <TabsTrigger value="reels">Reels ({reelsVideos.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="photos" className="space-y-4">
@@ -284,7 +292,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       handleFileUpload(file, 'photo');
-                      e.target.value = ''; // Reset input
+                      e.target.value = '';
                     }
                   }}
                   className="bg-zinc-800 border-zinc-700 text-white"
@@ -399,7 +407,7 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       handleFileUpload(file, 'video');
-                      e.target.value = ''; // Reset input
+                      e.target.value = '';
                     }
                   }}
                   className="bg-zinc-800 border-zinc-700 text-white"
@@ -482,30 +490,40 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     </p>
                     <p className="text-zinc-400 text-sm truncate">{video.media_url}</p>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive" disabled={isProcessing}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteMedia(video.id, 'video')}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-zinc-400">Reels</span>
+                      <Switch
+                        checked={video.is_featured_in_reels || false}
+                        onCheckedChange={() => handleToggleReels(video.id, video.is_featured_in_reels || false)}
+                        disabled={isProcessing}
+                      />
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive" disabled={isProcessing}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteMedia(video.id, 'video')}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               ))}
             </div>
@@ -516,6 +534,82 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                 <p>Nenhum vídeo cadastrado ainda.</p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="reels" className="space-y-4">
+            <div className="bg-zinc-800 p-4 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Gestão de Reels</h4>
+              <p className="text-zinc-400 text-sm mb-4">
+                Aqui você pode ver e gerenciar os vídeos que estão sendo exibidos nos reels desta modelo.
+              </p>
+              
+              {reelsVideos.length > 0 ? (
+                <div className="space-y-4">
+                  {reelsVideos.map((video, index) => (
+                    <div key={video.id} className="flex items-center gap-4 p-4 border border-zinc-700 rounded-lg bg-zinc-900">
+                      {video.thumbnail_url ? (
+                        <img
+                          src={video.thumbnail_url}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-20 h-16 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-20 h-16 bg-zinc-800 rounded flex items-center justify-center">
+                          <Video className="h-6 w-6 text-zinc-500" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-white font-medium">
+                          {video.title || `Vídeo ${index + 1}`}
+                        </p>
+                        <p className="text-zinc-400 text-sm truncate">{video.media_url}</p>
+                        <Badge className="mt-2 bg-green-600">
+                          <Star className="h-3 w-3 mr-1" />
+                          Ativo nos Reels
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={true}
+                          onCheckedChange={() => handleToggleReels(video.id, true)}
+                          disabled={isProcessing}
+                        />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" disabled={isProcessing}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita e ele será removido dos reels.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteMedia(video.id, 'video')}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-zinc-400">
+                  <Video className="h-12 w-12 mx-auto mb-2" />
+                  <p>Nenhum vídeo está sendo exibido nos reels ainda.</p>
+                  <p className="text-sm mt-1">Vá para a aba "Vídeos" e ative o switch "Reels" para adicionar vídeos aos reels.</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
