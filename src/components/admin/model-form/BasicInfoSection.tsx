@@ -1,3 +1,4 @@
+
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,18 @@ interface BasicInfoSectionProps {
 }
 
 const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
+  // Ultra-comprehensive filtering to prevent Select.Item errors
+  const validCities = cities.filter(city => {
+    const hasValidId = city?.id && typeof city.id === 'string' && city.id.trim() !== '' && city.id !== 'undefined' && city.id !== 'null';
+    const hasValidName = city?.name && typeof city.name === 'string' && city.name.trim() !== '';
+    
+    if (!hasValidId || !hasValidName) {
+      console.warn('BasicInfoSection: Filtering invalid city', { city, hasValidId, hasValidName });
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
@@ -64,11 +77,17 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id}>
-                      {city.name} - {city.state}
+                  {validCities.length > 0 ? (
+                    validCities.map((city) => (
+                      <SelectItem key={city.id} value={city.id}>
+                        {city.name} - {city.state}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-cities-available" disabled>
+                      Nenhuma cidade disponível
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

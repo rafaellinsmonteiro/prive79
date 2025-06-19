@@ -197,19 +197,16 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
                         <SelectItem value="none">Nenhum (Item Raiz)</SelectItem>
-                        {validMenuItems.length > 0 ? validMenuItems.map((item) => {
-                          // Extra validation before rendering
-                          if (!item.id || item.id.trim() === '') {
-                            console.error('Skipping menu item with invalid ID:', item);
-                            return null;
-                          }
-                          return (
+                        {validMenuItems.length > 0 ? (
+                          validMenuItems.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.title}
                             </SelectItem>
-                          );
-                        }).filter(Boolean) : (
-                          <SelectItem value="no-items" disabled>Nenhum item disponível</SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-items-available" disabled>
+                            Nenhum item disponível
+                          </SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -275,19 +272,16 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {validCategories.length > 0 ? validCategories.map((category) => {
-                          // Extra validation before rendering
-                          if (!category.id || category.id.trim() === '') {
-                            console.error('Skipping category with invalid ID:', category);
-                            return null;
-                          }
-                          return (
+                        {validCategories.length > 0 ? (
+                          validCategories.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
                             </SelectItem>
-                          );
-                        }).filter(Boolean) : (
-                          <SelectItem value="no-categories" disabled>Nenhuma categoria disponível</SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-categories-available" disabled>
+                            Nenhuma categoria disponível
+                          </SelectItem>
                         )}
                       </SelectContent>
                     </Select>
