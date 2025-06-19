@@ -182,7 +182,7 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
 
       {/* Ações (canto inferior direito) */}
       <div className={`absolute bottom-20 flex flex-col space-y-4 z-10 ${
-        isMobile ? 'right-4' : 'right-14'
+        isMobile ? 'right-4' : 'right-20'
       }`}>
         <Button
           variant="ghost"
