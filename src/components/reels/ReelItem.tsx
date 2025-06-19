@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Model } from "@/hooks/useModels";
 import { useModelMedia } from "@/hooks/useModelMedia";
+import { ReelsSettings } from "@/hooks/useReelsSettings";
 import { Heart, MessageCircle, Share, User, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -11,9 +12,10 @@ interface ReelItemProps {
   isActive: boolean;
   onSwipeUp: () => void;
   onSwipeDown: () => void;
+  settings?: ReelsSettings | null;
 }
 
-const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown }: ReelItemProps) => {
+const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelItemProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [startY, setStartY] = useState(0);
@@ -29,13 +31,13 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown }: ReelItemProps) =>
     const video = videoRef.current;
     if (!video) return;
 
-    if (isActive) {
+    if (isActive && settings?.auto_play) {
       video.play().then(() => setIsPlaying(true)).catch(console.error);
     } else {
       video.pause();
       setIsPlaying(false);
     }
-  }, [isActive]);
+  }, [isActive, settings?.auto_play]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setStartY(e.touches[0].clientY);
@@ -91,6 +93,7 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown }: ReelItemProps) =>
           loop
           muted
           playsInline
+          controls={settings?.show_controls}
           onClick={handleVideoClick}
           poster={videoItem.thumbnail_url || photoItem?.media_url}
         />
@@ -114,10 +117,10 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown }: ReelItemProps) =>
       <div className="absolute bottom-20 left-4 text-white z-10">
         <h2 className="text-2xl font-bold mb-2">{model.name}</h2>
         <p className="text-lg mb-1">{model.age} anos</p>
-        {model.location && (
+        {model.neighborhood && (
           <div className="flex items-center mb-2">
             <MapPin className="w-4 h-4 mr-2" />
-            <span className="text-sm">{model.location}</span>
+            <span className="text-sm">{model.neighborhood}</span>
           </div>
         )}
         {model.description && (
