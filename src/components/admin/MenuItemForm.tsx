@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useCreateMenuItem, useUpdateMenuItem } from '@/hooks/useAdminMenuItems';
+import { useCreateMenuItem, useUpdateMenuItem, useAdminMenuItems } from '@/hooks/useAdminMenuItems';
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 import { useCities } from '@/hooks/useCities';
 import { MenuItem } from '@/hooks/useMenuItems';
@@ -17,6 +17,7 @@ import MenuConfigurationManager from './MenuConfigurationManager';
 
 interface MenuItemFormProps {
   itemId?: string;
+  parentId?: string;
   onSuccess: (newItem?: any) => void;
   onCancel: () => void;
 }
@@ -26,16 +27,18 @@ type MenuItemFormData = {
   menu_type: 'url' | 'category';
   url?: string;
   category_id?: string;
+  parent_id?: string;
   icon?: string;
   display_order: number;
   is_active: boolean;
 };
 
-const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
+const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormProps) => {
   const [loading, setLoading] = useState(false);
   const createMenuItem = useCreateMenuItem();
   const updateMenuItem = useUpdateMenuItem();
   const { data: categories = [] } = useAdminCategories();
+  const { data: menuItems = [] } = useAdminMenuItems();
   const { toast } = useToast();
 
   const form = useForm<MenuItemFormData>({
@@ -44,6 +47,7 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
       menu_type: 'url',
       url: '',
       category_id: undefined,
+      parent_id: parentId || undefined,
       icon: '',
       display_order: 0,
       is_active: true,
@@ -52,6 +56,29 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
 
   const { handleSubmit, setValue, watch } = form;
   const menuType = watch('menu_type');
+  const selectedParentId = watch('parent_id');
+
+  // Função para buscar todos os itens de forma plana (incluindo filhos)
+  const flattenMenuItems = (items: MenuItem[]): MenuItem[] => {
+    const result: MenuItem[] = [];
+    
+    const traverse = (itemList: MenuItem[]) => {
+      itemList.forEach(item => {
+        result.push(item);
+        if (item.children && item.children.length > 0) {
+          traverse(item.children);
+        }
+      });
+    };
+    
+    traverse(items);
+    return result;
+  };
+
+  // Obter lista plana de itens disponíveis como pais (excluindo o item atual se editando)
+  const availableParentItems = flattenMenuItems(menuItems).filter(item => 
+    item.id !== itemId && !item.parent_id // Apenas itens raiz podem ser pais
+  );
 
   // TODO: Buscar dados do item existente se itemId for fornecido
   // Isso requer implementar um hook useMenuItem(id) similar ao useModel
@@ -59,12 +86,22 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
   const onSubmit = async (data: MenuItemFormData) => {
     setLoading(true);
     try {
-      // Limpar campos baseado no tipo
+      // Limpar campos baseado no tipo e se é submenu
       const cleanData = { ...data };
-      if (data.menu_type === 'url') {
+      
+      // Se é um submenu (tem parent_id), pode não ter URL nem categoria
+      if (data.parent_id) {
+        // Submenus podem ter apenas título
+        cleanData.menu_type = 'url'; // Default para submenus
+        cleanData.url = undefined;
         cleanData.category_id = undefined;
       } else {
-        cleanData.url = undefined;
+        // Itens raiz precisam ter URL ou categoria
+        if (data.menu_type === 'url') {
+          cleanData.category_id = undefined;
+        } else {
+          cleanData.url = undefined;
+        }
       }
 
       let result;
@@ -90,11 +127,13 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
     }
   };
 
+  const isSubmenu = !!selectedParentId;
+
   return (
     <Card className="bg-zinc-900 border-zinc-800">
       <CardHeader>
         <CardTitle className="text-white">
-          {itemId ? 'Editar Item do Menu' : 'Novo Item do Menu'}
+          {itemId ? 'Editar Item do Menu' : (isSubmenu ? 'Novo Submenu' : 'Novo Item do Menu')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -121,6 +160,34 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
 
               <FormField
                 control={form.control}
+                name="parent_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-zinc-300">Item Pai (Opcional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                          <SelectValue placeholder="Selecione um item pai" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="">Nenhum (Item Raiz)</SelectItem>
+                        {availableParentItems.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {!isSubmenu && (
+              <FormField
+                control={form.control}
                 name="menu_type"
                 render={({ field }) => (
                   <FormItem>
@@ -140,9 +207,9 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
                   </FormItem>
                 )}
               />
-            </div>
+            )}
 
-            {menuType === 'url' && (
+            {!isSubmenu && menuType === 'url' && (
               <FormField
                 control={form.control}
                 name="url"
@@ -162,7 +229,7 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
               />
             )}
 
-            {menuType === 'category' && (
+            {!isSubmenu && menuType === 'category' && (
               <FormField
                 control={form.control}
                 name="category_id"
@@ -187,6 +254,13 @@ const MenuItemForm = ({ itemId, onSuccess, onCancel }: MenuItemFormProps) => {
                   </FormItem>
                 )}
               />
+            )}
+
+            {isSubmenu && (
+              <div className="p-4 border border-dashed border-yellow-600 rounded-lg text-center text-yellow-200 bg-yellow-900/20">
+                <p><strong>Submenu:</strong> Este item será exibido como filho do item pai selecionado.</p>
+                <p className="text-sm mt-1">Submenus não precisam ter URL ou categoria - apenas título.</p>
+              </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

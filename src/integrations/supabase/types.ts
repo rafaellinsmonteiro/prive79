@@ -132,6 +132,7 @@ export type Database = {
           id: string
           is_active: boolean
           menu_type: Database["public"]["Enums"]["menu_type"]
+          parent_id: string | null
           title: string
           updated_at: string
           url: string | null
@@ -144,6 +145,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           menu_type: Database["public"]["Enums"]["menu_type"]
+          parent_id?: string | null
           title: string
           updated_at?: string
           url?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           menu_type?: Database["public"]["Enums"]["menu_type"]
+          parent_id?: string | null
           title?: string
           updated_at?: string
           url?: string | null
@@ -166,6 +169,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
             referencedColumns: ["id"]
           },
         ]

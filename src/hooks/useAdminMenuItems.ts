@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, MenuConfiguration } from "./useMenuItems";
@@ -23,7 +22,38 @@ export const useAdminMenuItems = () => {
         throw error;
       }
 
-      return data || [];
+      // Organizar em hierarquia
+      const itemsMap = new Map<string, MenuItem>();
+      const rootItems: MenuItem[] = [];
+
+      // Primeiro, criar o mapa de todos os itens
+      (data || []).forEach(item => {
+        itemsMap.set(item.id, { ...item, children: [] });
+      });
+
+      // Depois, organizar a hierarquia
+      (data || []).forEach(item => {
+        const menuItem = itemsMap.get(item.id)!;
+        
+        if (item.parent_id && itemsMap.has(item.parent_id)) {
+          // É um item filho
+          const parent = itemsMap.get(item.parent_id)!;
+          parent.children = parent.children || [];
+          parent.children.push(menuItem);
+        } else {
+          // É um item raiz
+          rootItems.push(menuItem);
+        }
+      });
+
+      // Ordenar filhos dentro de cada pai
+      rootItems.forEach(item => {
+        if (item.children) {
+          item.children.sort((a, b) => a.display_order - b.display_order);
+        }
+      });
+
+      return rootItems;
     },
   });
 };
@@ -32,7 +62,7 @@ export const useCreateMenuItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (itemData: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'categories'>) => {
+    mutationFn: async (itemData: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'categories' | 'children'>) => {
       console.log('Creating menu item with data:', itemData);
       
       const { data, error } = await supabase
@@ -63,9 +93,10 @@ export const useUpdateMenuItem = () => {
     mutationFn: async ({ id, ...updates }: Partial<MenuItem> & { id: string }) => {
       console.log('Updating menu item with id:', id, 'and data:', updates);
       
-      // Remove campos que não existem na tabela
+      // Remover campos que não existem na tabela
       const cleanUpdates = { ...updates };
       delete (cleanUpdates as any).categories;
+      delete (cleanUpdates as any).children;
       delete (cleanUpdates as any).created_at;
       delete (cleanUpdates as any).updated_at;
       

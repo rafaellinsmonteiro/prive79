@@ -8,6 +8,7 @@ export interface MenuItem {
   menu_type: 'url' | 'category';
   url?: string;
   category_id?: string;
+  parent_id?: string;
   icon?: string;
   display_order: number;
   is_active: boolean;
@@ -17,6 +18,7 @@ export interface MenuItem {
     id: string;
     name: string;
   };
+  children?: MenuItem[];
 }
 
 export interface MenuConfiguration {
@@ -76,8 +78,40 @@ export const useMenuItems = (cityId?: string, isAuthenticated?: boolean) => {
 
       // Filtrar itens do menu baseado nas configurações
       const visibleMenuItemIds = new Set(configurations?.map(config => config.menu_item_id) || []);
-      
-      return menuItems?.filter(item => visibleMenuItemIds.has(item.id)) || [];
+      const visibleItems = menuItems?.filter(item => visibleMenuItemIds.has(item.id)) || [];
+
+      // Organizar itens em hierarquia (pais e filhos)
+      const itemsMap = new Map<string, MenuItem>();
+      const rootItems: MenuItem[] = [];
+
+      // Primeiro, criar o mapa de todos os itens
+      visibleItems.forEach(item => {
+        itemsMap.set(item.id, { ...item, children: [] });
+      });
+
+      // Depois, organizar a hierarquia
+      visibleItems.forEach(item => {
+        const menuItem = itemsMap.get(item.id)!;
+        
+        if (item.parent_id && itemsMap.has(item.parent_id)) {
+          // É um item filho
+          const parent = itemsMap.get(item.parent_id)!;
+          parent.children = parent.children || [];
+          parent.children.push(menuItem);
+        } else {
+          // É um item raiz
+          rootItems.push(menuItem);
+        }
+      });
+
+      // Ordenar filhos dentro de cada pai
+      rootItems.forEach(item => {
+        if (item.children) {
+          item.children.sort((a, b) => a.display_order - b.display_order);
+        }
+      });
+
+      return rootItems;
     },
   });
 };
