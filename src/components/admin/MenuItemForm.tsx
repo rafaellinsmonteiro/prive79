@@ -86,7 +86,7 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
   const onSubmit = async (data: MenuItemFormData) => {
     setLoading(true);
     try {
-      // Limpar campos baseado no tipo e se é submenu
+      // Limpar campos baseado no tipo
       const cleanData = { ...data };
       
       // Converter "none" de volta para undefined para parent_id
@@ -94,14 +94,18 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
         cleanData.parent_id = undefined;
       }
       
-      // Se é um submenu (tem parent_id), pode não ter URL nem categoria
+      // Se é um submenu (tem parent_id), deve ter URL ou categoria
       if (cleanData.parent_id) {
-        // Submenus podem ter apenas título
-        cleanData.menu_type = 'url'; // Default para submenus
-        cleanData.url = undefined;
-        cleanData.category_id = undefined;
+        // Submenus devem ter conteúdo
+        if (data.menu_type === 'url') {
+          cleanData.category_id = undefined;
+          // URL é obrigatória para submenus do tipo URL
+        } else {
+          cleanData.url = undefined;
+          // category_id é obrigatória para submenus do tipo categoria
+        }
       } else {
-        // Itens raiz precisam ter URL ou categoria
+        // Itens raiz podem não ter conteúdo (apenas título) ou ter URL/categoria
         if (data.menu_type === 'url') {
           cleanData.category_id = undefined;
         } else {
@@ -190,31 +194,29 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
               />
             </div>
 
-            {!isSubmenu && (
-              <FormField
-                control={form.control}
-                name="menu_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-zinc-300">Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        <SelectItem value="url">URL Personalizada</SelectItem>
-                        <SelectItem value="category">Categoria</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="menu_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-zinc-300">Tipo</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="url">URL Personalizada</SelectItem>
+                      <SelectItem value="category">Categoria</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {!isSubmenu && menuType === 'url' && (
+            {menuType === 'url' && (
               <FormField
                 control={form.control}
                 name="url"
@@ -234,7 +236,7 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
               />
             )}
 
-            {!isSubmenu && menuType === 'category' && (
+            {menuType === 'category' && (
               <FormField
                 control={form.control}
                 name="category_id"
@@ -262,9 +264,16 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
             )}
 
             {isSubmenu && (
-              <div className="p-4 border border-dashed border-yellow-600 rounded-lg text-center text-yellow-200 bg-yellow-900/20">
+              <div className="p-4 border border-dashed border-blue-600 rounded-lg text-center text-blue-200 bg-blue-900/20">
                 <p><strong>Submenu:</strong> Este item será exibido como filho do item pai selecionado.</p>
-                <p className="text-sm mt-1">Submenus não precisam ter URL ou categoria - apenas título.</p>
+                <p className="text-sm mt-1">Submenus devem ter URL ou categoria definida.</p>
+              </div>
+            )}
+
+            {!isSubmenu && (
+              <div className="p-4 border border-dashed border-green-600 rounded-lg text-center text-green-200 bg-green-900/20">
+                <p><strong>Item Raiz:</strong> Este item pode ter filhos (submenus).</p>
+                <p className="text-sm mt-1">Itens raiz podem não ter URL nem categoria se tiverem apenas filhos.</p>
               </div>
             )}
 
