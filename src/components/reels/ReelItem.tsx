@@ -13,9 +13,10 @@ interface ReelItemProps {
   onSwipeUp: () => void;
   onSwipeDown: () => void;
   settings?: ReelsSettings | null;
+  isMobile: boolean;
 }
 
-const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelItemProps) => {
+const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile }: ReelItemProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [startY, setStartY] = useState(0);
@@ -122,7 +123,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
 
   return (
     <div 
-      className="relative h-screen w-full snap-start bg-black flex items-center justify-center"
+      className={`relative h-screen w-full snap-start bg-black flex items-center justify-center ${
+        !isMobile ? 'max-w-md mx-auto' : ''
+      }`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -131,7 +134,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
         <video
           ref={videoRef}
           src={videoItem.media_url}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${
+            isMobile ? 'object-cover' : 'object-contain'
+          }`}
           loop
           muted
           playsInline
@@ -144,7 +149,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
         <img
           src={photoItem.media_url}
           alt={model.name}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${
+            isMobile ? 'object-cover' : 'object-contain'
+          }`}
           onClick={handleProfileClick}
         />
       ) : (

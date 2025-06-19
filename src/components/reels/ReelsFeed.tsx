@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Model } from "@/hooks/useModels";
 import { ReelsSettings } from "@/hooks/useReelsSettings";
 import ReelItem from "./ReelItem";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReelsFeedProps {
   models: Model[];
@@ -13,6 +14,7 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -60,21 +62,28 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className="h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-    >
-      {models.map((model, index) => (
-        <ReelItem
-          key={model.id}
-          model={model}
-          isActive={index === currentIndex}
-          onSwipeUp={handleSwipeUp}
-          onSwipeDown={handleSwipeDown}
-          settings={settings}
-        />
-      ))}
+    <div className={`h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide ${
+      !isMobile ? 'flex justify-center bg-black' : ''
+    }`}>
+      <div 
+        ref={containerRef}
+        className={`${
+          isMobile ? 'h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide' : 'w-full max-w-md h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide'
+        }`}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {models.map((model, index) => (
+          <ReelItem
+            key={model.id}
+            model={model}
+            isActive={index === currentIndex}
+            onSwipeUp={handleSwipeUp}
+            onSwipeDown={handleSwipeDown}
+            settings={settings}
+            isMobile={isMobile}
+          />
+        ))}
+      </div>
     </div>
   );
 };
