@@ -14,6 +14,7 @@ export interface ModelMedia {
   created_at: string;
   thumbnail_url?: string;
   title?: string;
+  is_featured_in_reels?: boolean;
 }
 
 export const useModelMedia = (modelId?: string) => {
@@ -34,7 +35,7 @@ export const useModelMedia = (modelId?: string) => {
         throw photosError;
       }
 
-      // Buscar vídeos
+      // Buscar vídeos (agora incluindo is_featured_in_reels)
       const { data: videosData, error: videosError } = await supabase
         .from('model_videos')
         .select('*')
@@ -67,7 +68,8 @@ export const useModelMedia = (modelId?: string) => {
         is_primary: false,
         display_order: video.display_order || 0,
         created_at: video.created_at,
-        thumbnail_url: video.thumbnail_url || undefined
+        thumbnail_url: video.thumbnail_url || undefined,
+        is_featured_in_reels: video.is_featured_in_reels || false
       }));
 
       // Combinar e ordenar por display_order

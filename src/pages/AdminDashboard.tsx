@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminModels } from '@/hooks/useAdminModels';
@@ -12,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
 import MenuManager from '@/components/admin/MenuManager';
+import ReelsManager from '@/components/admin/ReelsManager';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
@@ -81,8 +81,9 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="models" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-1 lg:w-auto lg:grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1 lg:w-auto lg:grid-cols-3">
             <TabsTrigger value="models">Modelos</TabsTrigger>
+            <TabsTrigger value="reels">Reels</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -141,6 +142,10 @@ const AdminDashboard = () => {
                 setEditingModel(id);
               }}
             />
+          </TabsContent>
+
+          <TabsContent value="reels" className="space-y-6">
+            <ReelsManager />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

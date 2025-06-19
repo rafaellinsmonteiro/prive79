@@ -245,6 +245,36 @@ export type Database = {
           },
         ]
       }
+      model_video_reels_categories: {
+        Row: {
+          category_id: string
+          video_id: string
+        }
+        Insert: {
+          category_id: string
+          video_id: string
+        }
+        Update: {
+          category_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_video_reels_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "reels_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_video_reels_categories_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "model_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_videos: {
         Row: {
           created_at: string
@@ -252,6 +282,7 @@ export type Database = {
           duration: number | null
           id: string
           is_active: boolean | null
+          is_featured_in_reels: boolean | null
           model_id: string
           thumbnail_url: string | null
           title: string | null
@@ -264,6 +295,7 @@ export type Database = {
           duration?: number | null
           id?: string
           is_active?: boolean | null
+          is_featured_in_reels?: boolean | null
           model_id: string
           thumbnail_url?: string | null
           title?: string | null
@@ -276,6 +308,7 @@ export type Database = {
           duration?: number | null
           id?: string
           is_active?: boolean | null
+          is_featured_in_reels?: boolean | null
           model_id?: string
           thumbnail_url?: string | null
           title?: string | null
@@ -374,6 +407,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reels_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      reels_settings: {
+        Row: {
+          auto_play: boolean
+          created_at: string
+          id: string
+          is_enabled: boolean
+          items_per_page: number | null
+          max_duration: number | null
+          show_controls: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_play?: boolean
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          items_per_page?: number | null
+          max_duration?: number | null
+          show_controls?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_play?: boolean
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          items_per_page?: number | null
+          max_duration?: number | null
+          show_controls?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

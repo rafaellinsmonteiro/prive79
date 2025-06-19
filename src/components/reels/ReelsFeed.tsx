@@ -1,13 +1,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Model } from "@/hooks/useModels";
+import { ReelsSettings } from "@/hooks/useReelsSettings";
 import ReelItem from "./ReelItem";
 
 interface ReelsFeedProps {
   models: Model[];
+  settings?: ReelsSettings | null;
 }
 
-const ReelsFeed = ({ models }: ReelsFeedProps) => {
+const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -70,6 +72,7 @@ const ReelsFeed = ({ models }: ReelsFeedProps) => {
           isActive={index === currentIndex}
           onSwipeUp={handleSwipeUp}
           onSwipeDown={handleSwipeDown}
+          settings={settings}
         />
       ))}
     </div>
