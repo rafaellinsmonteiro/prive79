@@ -74,11 +74,30 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
     return result;
   };
 
-  // Filter out any entries with invalid IDs to prevent Select.Item errors
-  const validCategories = categories.filter(category => category.id && category.id.trim() !== '');
-  const validMenuItems = flattenMenuItems(menuItems).filter(item => 
-    item.id && item.id.trim() !== '' && item.id !== itemId && !item.parent_id // Apenas itens raiz podem ser pais
-  );
+  // Ultra-comprehensive filtering to prevent Select.Item errors
+  const validCategories = categories.filter(category => {
+    const hasValidId = category?.id && typeof category.id === 'string' && category.id.trim() !== '' && category.id !== 'undefined' && category.id !== 'null';
+    const hasValidName = category?.name && typeof category.name === 'string' && category.name.trim() !== '';
+    
+    if (!hasValidId || !hasValidName) {
+      console.warn('MenuItemForm: Filtering invalid category', { category, hasValidId, hasValidName });
+      return false;
+    }
+    return true;
+  });
+  
+  const validMenuItems = flattenMenuItems(menuItems).filter(item => {
+    const hasValidId = item?.id && typeof item.id === 'string' && item.id.trim() !== '' && item.id !== 'undefined' && item.id !== 'null';
+    const hasValidTitle = item?.title && typeof item.title === 'string' && item.title.trim() !== '';
+    const isNotSelf = item.id !== itemId;
+    const isRootItem = !item.parent_id; // Apenas itens raiz podem ser pais
+    
+    if (!hasValidId || !hasValidTitle || !isNotSelf || !isRootItem) {
+      console.warn('MenuItemForm: Filtering invalid menu item', { item, hasValidId, hasValidTitle, isNotSelf, isRootItem });
+      return false;
+    }
+    return true;
+  });
 
   const onSubmit = async (data: MenuItemFormData) => {
     setLoading(true);
@@ -178,11 +197,20 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
                         <SelectItem value="none">Nenhum (Item Raiz)</SelectItem>
-                        {validMenuItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.title}
-                          </SelectItem>
-                        ))}
+                        {validMenuItems.length > 0 ? validMenuItems.map((item) => {
+                          // Extra validation before rendering
+                          if (!item.id || item.id.trim() === '') {
+                            console.error('Skipping menu item with invalid ID:', item);
+                            return null;
+                          }
+                          return (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.title}
+                            </SelectItem>
+                          );
+                        }).filter(Boolean) : (
+                          <SelectItem value="no-items" disabled>Nenhum item disponível</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -247,11 +275,20 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {validCategories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
+                        {validCategories.length > 0 ? validCategories.map((category) => {
+                          // Extra validation before rendering
+                          if (!category.id || category.id.trim() === '') {
+                            console.error('Skipping category with invalid ID:', category);
+                            return null;
+                          }
+                          return (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          );
+                        }).filter(Boolean) : (
+                          <SelectItem value="no-categories" disabled>Nenhuma categoria disponível</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

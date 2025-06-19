@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useReelsVideos, useToggleVideoInReels } from '@/hooks/useReelsMedia';
 import { useCities } from '@/hooks/useCities';
@@ -29,23 +30,29 @@ const ReelsMediaManager = () => {
     error: error?.message
   });
 
-  // More comprehensive filtering to prevent Select.Item errors
+  // Ultra-comprehensive filtering to prevent Select.Item errors
   const validCities = cities.filter(city => {
-    const isValid = city.id && typeof city.id === 'string' && city.id.trim() !== '' && 
-                   city.name && typeof city.name === 'string' && city.name.trim() !== '';
-    if (!isValid) {
-      console.warn('ReelsMediaManager: Filtering invalid city', city);
+    // Check for valid, non-empty ID and name
+    const hasValidId = city?.id && typeof city.id === 'string' && city.id.trim() !== '' && city.id !== 'undefined' && city.id !== 'null';
+    const hasValidName = city?.name && typeof city.name === 'string' && city.name.trim() !== '';
+    
+    if (!hasValidId || !hasValidName) {
+      console.warn('ReelsMediaManager: Filtering invalid city', { city, hasValidId, hasValidName });
+      return false;
     }
-    return isValid;
+    return true;
   });
 
   const validModels = models.filter(model => {
-    const isValid = model.id && typeof model.id === 'string' && model.id.trim() !== '' && 
-                   model.name && typeof model.name === 'string' && model.name.trim() !== '';
-    if (!isValid) {
-      console.warn('ReelsMediaManager: Filtering invalid model', model);
+    // Check for valid, non-empty ID and name
+    const hasValidId = model?.id && typeof model.id === 'string' && model.id.trim() !== '' && model.id !== 'undefined' && model.id !== 'null';
+    const hasValidName = model?.name && typeof model.name === 'string' && model.name.trim() !== '';
+    
+    if (!hasValidId || !hasValidName) {
+      console.warn('ReelsMediaManager: Filtering invalid model', { model, hasValidId, hasValidName });
+      return false;
     }
-    return isValid;
+    return true;
   });
 
   // Filtrar modelos baseado na cidade selecionada
@@ -166,14 +173,21 @@ const ReelsMediaManager = () => {
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as cidades</SelectItem>
-                {validCities.map((city) => {
+                {validCities.length > 0 ? validCities.map((city) => {
                   console.log('Rendering city SelectItem:', city.id, city.name);
+                  // Extra validation before rendering
+                  if (!city.id || city.id.trim() === '') {
+                    console.error('Skipping city with invalid ID:', city);
+                    return null;
+                  }
                   return (
                     <SelectItem key={city.id} value={city.id}>
                       {city.name}
                     </SelectItem>
                   );
-                })}
+                }).filter(Boolean) : (
+                  <SelectItem value="no-cities" disabled>Nenhuma cidade disponível</SelectItem>
+                )}
               </SelectContent>
             </Select>
 
@@ -184,14 +198,21 @@ const ReelsMediaManager = () => {
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as modelos</SelectItem>
-                {filteredModels.map((model) => {
+                {filteredModels.length > 0 ? filteredModels.map((model) => {
                   console.log('Rendering model SelectItem:', model.id, model.name);
+                  // Extra validation before rendering
+                  if (!model.id || model.id.trim() === '') {
+                    console.error('Skipping model with invalid ID:', model);
+                    return null;
+                  }
                   return (
                     <SelectItem key={model.id} value={model.id}>
                       {model.name}
                     </SelectItem>
                   );
-                })}
+                }).filter(Boolean) : (
+                  <SelectItem value="no-models" disabled>Nenhuma modelo disponível</SelectItem>
+                )}
               </SelectContent>
             </Select>
 
