@@ -31,10 +31,24 @@ const Header = () => {
 
   console.log('Header - menuItems received:', menuItems);
 
-  // Separar itens por tipo - apenas itens raiz (sem parent_id)
-  const rootUrlItems = menuItems.filter(item => item.menu_type === 'url' && !item.parent_id);
-  const rootCategoryItems = menuItems.filter(item => item.menu_type === 'category' && !item.parent_id);
-  const parentItemsWithChildren = menuItems.filter(item => !item.parent_id && item.children && item.children.length > 0);
+  // Separar itens por tipo - apenas itens raiz (sem parent_id) e sem filhos
+  const rootUrlItems = menuItems.filter(item => 
+    item.menu_type === 'url' && 
+    !item.parent_id && 
+    (!item.children || item.children.length === 0)
+  );
+  
+  const rootCategoryItems = menuItems.filter(item => 
+    item.menu_type === 'category' && 
+    !item.parent_id && 
+    (!item.children || item.children.length === 0)
+  );
+  
+  const parentItemsWithChildren = menuItems.filter(item => 
+    !item.parent_id && 
+    item.children && 
+    item.children.length > 0
+  );
 
   console.log('Header - rootUrlItems:', rootUrlItems);
   console.log('Header - rootCategoryItems:', rootCategoryItems);
