@@ -89,8 +89,13 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
       // Limpar campos baseado no tipo e se é submenu
       const cleanData = { ...data };
       
+      // Converter "none" de volta para undefined para parent_id
+      if (cleanData.parent_id === "none") {
+        cleanData.parent_id = undefined;
+      }
+      
       // Se é um submenu (tem parent_id), pode não ter URL nem categoria
-      if (data.parent_id) {
+      if (cleanData.parent_id) {
         // Submenus podem ter apenas título
         cleanData.menu_type = 'url'; // Default para submenus
         cleanData.url = undefined;
@@ -127,7 +132,7 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
     }
   };
 
-  const isSubmenu = !!selectedParentId;
+  const isSubmenu = !!selectedParentId && selectedParentId !== "none";
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -164,14 +169,14 @@ const MenuItemForm = ({ itemId, parentId, onSuccess, onCancel }: MenuItemFormPro
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-zinc-300">Item Pai (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || "none"}>
                       <FormControl>
                         <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
                           <SelectValue placeholder="Selecione um item pai" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-zinc-800 border-zinc-700">
-                        <SelectItem value="">Nenhum (Item Raiz)</SelectItem>
+                        <SelectItem value="none">Nenhum (Item Raiz)</SelectItem>
                         {availableParentItems.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}
