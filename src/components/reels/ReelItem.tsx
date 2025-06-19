@@ -164,7 +164,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
 
       {/* Informações da modelo (canto inferior esquerdo) */}
-      <div className="absolute bottom-20 left-4 text-white z-10">
+      <div className={`absolute bottom-20 text-white z-10 ${
+        isMobile ? 'left-4' : 'left-8'
+      }`}>
         <h2 className="text-2xl font-bold mb-2">{model.name}</h2>
         <p className="text-lg mb-1">{model.age} anos</p>
         {model.neighborhood && (
@@ -179,7 +181,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
       </div>
 
       {/* Ações (canto inferior direito) */}
-      <div className="absolute bottom-20 right-4 flex flex-col space-y-4 z-10">
+      <div className={`absolute bottom-20 flex flex-col space-y-4 z-10 ${
+        isMobile ? 'right-4' : 'right-8'
+      }`}>
         <Button
           variant="ghost"
           size="icon"
