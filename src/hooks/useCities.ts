@@ -25,16 +25,19 @@ export const useCities = () => {
         throw error;
       }
 
-      // Filter out any cities with empty or invalid IDs
+      // More comprehensive filtering for invalid cities
       const validCities = (data || []).filter(city => {
-        const isValid = city.id && city.id.trim() !== '';
-        if (!isValid) {
-          console.warn('Filtering out city with invalid ID:', city);
+        const hasValidId = city.id && typeof city.id === 'string' && city.id.trim() !== '';
+        const hasValidName = city.name && typeof city.name === 'string' && city.name.trim() !== '';
+        
+        if (!hasValidId || !hasValidName) {
+          console.warn('Filtering out invalid city:', city);
+          return false;
         }
-        return isValid;
+        return true;
       });
 
-      console.log('useCities returning valid cities:', validCities);
+      console.log('useCities returning valid cities:', validCities.length, 'out of', (data || []).length);
       return validCities;
     },
   });

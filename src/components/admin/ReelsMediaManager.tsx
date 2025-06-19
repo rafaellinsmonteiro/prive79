@@ -29,9 +29,24 @@ const ReelsMediaManager = () => {
     error: error?.message
   });
 
-  // Filter out any entries with invalid IDs to prevent Select.Item errors
-  const validCities = cities.filter(city => city.id && city.id.trim() !== '');
-  const validModels = models.filter(model => model.id && model.id.trim() !== '');
+  // More comprehensive filtering to prevent Select.Item errors
+  const validCities = cities.filter(city => {
+    const isValid = city.id && typeof city.id === 'string' && city.id.trim() !== '' && 
+                   city.name && typeof city.name === 'string' && city.name.trim() !== '';
+    if (!isValid) {
+      console.warn('ReelsMediaManager: Filtering invalid city', city);
+    }
+    return isValid;
+  });
+
+  const validModels = models.filter(model => {
+    const isValid = model.id && typeof model.id === 'string' && model.id.trim() !== '' && 
+                   model.name && typeof model.name === 'string' && model.name.trim() !== '';
+    if (!isValid) {
+      console.warn('ReelsMediaManager: Filtering invalid model', model);
+    }
+    return isValid;
+  });
 
   // Filtrar modelos baseado na cidade selecionada
   const filteredModels = selectedCityId 
@@ -151,11 +166,14 @@ const ReelsMediaManager = () => {
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as cidades</SelectItem>
-                {validCities.map((city) => (
-                  <SelectItem key={city.id} value={city.id}>
-                    {city.name}
-                  </SelectItem>
-                ))}
+                {validCities.map((city) => {
+                  console.log('Rendering city SelectItem:', city.id, city.name);
+                  return (
+                    <SelectItem key={city.id} value={city.id}>
+                      {city.name}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
@@ -166,11 +184,14 @@ const ReelsMediaManager = () => {
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="">Todas as modelos</SelectItem>
-                {filteredModels.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.name}
-                  </SelectItem>
-                ))}
+                {filteredModels.map((model) => {
+                  console.log('Rendering model SelectItem:', model.id, model.name);
+                  return (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 

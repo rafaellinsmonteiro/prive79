@@ -20,8 +20,15 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
   const deleteConfiguration = useDeleteMenuConfiguration();
   const { toast } = useToast();
 
-  // Filter out any cities with invalid IDs to prevent Select.Item errors
-  const validCities = cities.filter(city => city.id && city.id.trim() !== '');
+  // More comprehensive filtering to prevent Select.Item errors
+  const validCities = cities.filter(city => {
+    const isValid = city.id && typeof city.id === 'string' && city.id.trim() !== '' && 
+                   city.name && typeof city.name === 'string' && city.name.trim() !== '';
+    if (!isValid) {
+      console.warn('MenuConfigurationManager: Filtering invalid city', city);
+    }
+    return isValid;
+  });
 
   const handleAddConfiguration = async () => {
     if (!newUserType) return;
@@ -105,11 +112,14 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-zinc-700">
               <SelectItem value="all">Todas as cidades</SelectItem>
-              {validCities.map((city) => (
-                <SelectItem key={city.id} value={city.id}>
-                  {city.name} - {city.state}
-                </SelectItem>
-              ))}
+              {validCities.map((city) => {
+                console.log('MenuConfig rendering city SelectItem:', city.id, city.name);
+                return (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name} - {city.state}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

@@ -15,7 +15,20 @@ export const useAdminCities = () => {
         .select('*')
         .order('name', { ascending: true });
       if (error) throw error;
-      return data;
+      
+      // Filter out invalid cities
+      const validCities = (data || []).filter(city => {
+        const hasValidId = city.id && typeof city.id === 'string' && city.id.trim() !== '';
+        const hasValidName = city.name && typeof city.name === 'string' && city.name.trim() !== '';
+        
+        if (!hasValidId || !hasValidName) {
+          console.warn('Filtering out invalid admin city:', city);
+          return false;
+        }
+        return true;
+      });
+      
+      return validCities;
     }
   });
 };
