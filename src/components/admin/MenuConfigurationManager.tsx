@@ -21,6 +21,9 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
   const deleteConfiguration = useDeleteMenuConfiguration();
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('MenuConfigurationManager cities:', cities);
+
   const handleAddConfiguration = async () => {
     if (!newUserType) return;
     
@@ -103,11 +106,19 @@ const MenuConfigurationManager = ({ itemId }: MenuConfigurationManagerProps) => 
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-zinc-700">
               <SelectItem value="all">Todas as cidades</SelectItem>
-              {cities.map((city) => (
-                <SelectItem key={city.id} value={city.id}>
-                  {city.name} - {city.state}
-                </SelectItem>
-              ))}
+              {cities.map((city) => {
+                console.log('MenuConfigurationManager rendering city:', city);
+                // Ensure city.id is not empty string
+                if (!city.id || city.id === "") {
+                  console.warn('MenuConfigurationManager: City with empty or null ID found:', city);
+                  return null;
+                }
+                return (
+                  <SelectItem key={city.id} value={city.id}>
+                    {city.name} - {city.state}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
