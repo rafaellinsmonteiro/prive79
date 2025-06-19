@@ -107,11 +107,11 @@ const MenuItemsList = ({ items, loading, onEdit, onCreateSubmenu }: MenuItemsLis
       return;
     }
 
-    // Função para buscar todos os itens de forma plana
-    const flattenItems = (itemList: MenuItem[]): MenuItem[] => {
-      const result: MenuItem[] = [];
+    // Função para buscar todos os itens de forma plana com seus níveis
+    const flattenItems = (itemList: MenuItem[], parentLevel = 0): Array<MenuItem & { level: number }> => {
+      const result: Array<MenuItem & { level: number }> = [];
       
-      const traverse = (list: MenuItem[], level = 0) => {
+      const traverse = (list: MenuItem[], level: number) => {
         list.forEach(item => {
           result.push({ ...item, level });
           if (item.children && item.children.length > 0) {
@@ -120,7 +120,7 @@ const MenuItemsList = ({ items, loading, onEdit, onCreateSubmenu }: MenuItemsLis
         });
       };
       
-      traverse(itemList);
+      traverse(itemList, parentLevel);
       return result;
     };
 
