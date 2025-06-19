@@ -31,13 +31,49 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
     const video = videoRef.current;
     if (!video) return;
 
-    if (isActive && settings?.auto_play) {
-      video.play().then(() => setIsPlaying(true)).catch(console.error);
+    const handleVideoPlay = () => {
+      console.log('Video started playing');
+      setIsPlaying(true);
+    };
+
+    const handleVideoPause = () => {
+      console.log('Video paused');
+      setIsPlaying(false);
+    };
+
+    const handleVideoEnded = () => {
+      console.log('Video ended, restarting...');
+      video.currentTime = 0;
+      if (isActive && settings?.auto_play) {
+        video.play().catch(console.error);
+      }
+    };
+
+    video.addEventListener('play', handleVideoPlay);
+    video.addEventListener('pause', handleVideoPause);
+    video.addEventListener('ended', handleVideoEnded);
+
+    // Controle de reprodução baseado no estado ativo
+    if (isActive && settings?.auto_play && videoItem) {
+      console.log('Starting video for active reel');
+      video.currentTime = 0;
+      video.play().then(() => {
+        console.log('Video play successful');
+      }).catch((error) => {
+        console.error('Video play failed:', error);
+      });
     } else {
+      console.log('Pausing video for inactive reel');
       video.pause();
       setIsPlaying(false);
     }
-  }, [isActive, settings?.auto_play]);
+
+    return () => {
+      video.removeEventListener('play', handleVideoPlay);
+      video.removeEventListener('pause', handleVideoPause);
+      video.removeEventListener('ended', handleVideoEnded);
+    };
+  }, [isActive, settings?.auto_play, videoItem]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setStartY(e.touches[0].clientY);
@@ -62,9 +98,8 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
 
     if (isPlaying) {
       video.pause();
-      setIsPlaying(false);
     } else {
-      video.play().then(() => setIsPlaying(true)).catch(console.error);
+      video.play().catch(console.error);
     }
   };
 
@@ -93,8 +128,9 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
           loop
           muted
           playsInline
+          preload="metadata"
           controls={settings?.show_controls}
-          onClick={handleVideoClick}
+          onClick={!settings?.show_controls ? handleVideoClick : undefined}
           poster={videoItem.thumbnail_url || photoItem?.media_url}
         />
       ) : photoItem ? (
@@ -176,8 +212,8 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings }: ReelIte
       </div>
 
       {/* Indicador de play/pause */}
-      {!isPlaying && videoItem && (
-        <div className="absolute inset-0 flex items-center justify-center z-10">
+      {!isPlaying && videoItem && !settings?.show_controls && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
             <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
           </div>
