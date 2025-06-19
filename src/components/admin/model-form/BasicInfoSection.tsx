@@ -55,7 +55,10 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-white">Cidade</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value || undefined}>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value && field.value !== "" ? field.value : undefined}
+              >
                 <FormControl>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Selecione uma cidade" />
