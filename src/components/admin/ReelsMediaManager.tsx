@@ -10,16 +10,31 @@ import ReelsMediaFilters from './reels/ReelsMediaFilters';
 import ReelsMediaStats from './reels/ReelsMediaStats';
 import ReelsMediaList from './reels/ReelsMediaList';
 
+interface Model {
+  id: string;
+  name: string;
+  city_id: string;
+}
+
 const ReelsMediaManager = () => {
   const [selectedCityId, setSelectedCityId] = useState<string>('');
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
+  const [showOnlyFeatured, setShowOnlyFeatured] = useState<boolean>(false);
   
   const { data: cities = [], isLoading: citiesLoading } = useCities();
-  const { data: models = [], isLoading: modelsLoading } = useAdminModels();
+  const { data: adminModels = [], isLoading: modelsLoading } = useAdminModels();
   const { data: videos = [], isLoading: videosLoading, refetch, error } = useReelsVideos(selectedCityId || undefined);
   const toggleVideo = useToggleVideoInReels();
+
+  // Filter and map models to ensure consistent typing
+  const models: Model[] = adminModels
+    .filter(model => model.id && model.name && model.city_id)
+    .map(model => ({
+      id: model.id,
+      name: model.name,
+      city_id: model.city_id!
+    }));
 
   console.log('ReelsMediaManager render:', {
     citiesCount: cities.length,
@@ -72,7 +87,7 @@ const ReelsMediaManager = () => {
     available: filteredVideos.filter(v => !v.is_featured_in_reels).length,
   };
 
-  const hasActiveFilters = searchTerm || selectedCityId || selectedModelId || showOnlyFeatured;
+  const hasActiveFilters = Boolean(searchTerm || selectedCityId || selectedModelId || showOnlyFeatured);
 
   // Loading state
   if (videosLoading || citiesLoading || modelsLoading) {

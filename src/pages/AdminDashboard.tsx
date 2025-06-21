@@ -4,7 +4,7 @@ import { useAdminModels } from '@/hooks/useAdminModels';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, LogOut, Settings, Building, Tags, Menu } from 'lucide-react';
+import { Plus, Users, LogOut, Settings, Building, Tags, Menu, MapPin, Image, Video, Bot } from 'lucide-react';
 import ModelsList from '@/components/admin/ModelsList';
 import ModelForm from '@/components/admin/ModelForm';
 import { useToast } from '@/hooks/use-toast';
@@ -12,12 +12,23 @@ import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
 import MenuManager from '@/components/admin/MenuManager';
 import ReelsManager from '@/components/admin/ReelsManager';
+import ZaiaAIManager from "@/components/admin/ZaiaAIManager";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
   const { data: models = [], isLoading } = useAdminModels();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModel, setEditingModel] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('models');
+  const menuItems = [
+    { key: 'models', label: 'Modelos', icon: Users },
+    { key: 'cities', label: 'Cidades', icon: MapPin },
+    { key: 'categories', label: 'Categorias', icon: Tags },
+    { key: 'media', label: 'Mídia', icon: Image },
+    { key: 'menu', label: 'Menu', icon: Menu },
+    { key: 'reels', label: 'Reels', icon: Video },
+    { key: 'zaia-ai', label: 'Zaia AI', icon: Bot },
+  ];
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -59,6 +70,27 @@ const AdminDashboard = () => {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'models':
+        return <ModelsList />;
+      case 'cities':
+        return <CitiesManager />;
+      case 'categories':
+        return <CategoriesManager />;
+      case 'media':
+        return <MediaManager />;
+      case 'menu':
+        return <MenuManager />;
+      case 'reels':
+        return <ReelsManager />;
+      case 'zaia-ai':
+        return <ZaiaAIManager />;
+      default:
+        return <ModelsList />;
     }
   };
 
