@@ -10,7 +10,7 @@ import ReelsMediaFilters from './reels/ReelsMediaFilters';
 import ReelsMediaStats from './reels/ReelsMediaStats';
 import ReelsMediaList from './reels/ReelsMediaList';
 
-interface Model {
+interface LocalModel {
   id: string;
   name: string;
   city_id: string;
@@ -28,7 +28,7 @@ const ReelsMediaManager = () => {
   const toggleVideo = useToggleVideoInReels();
 
   // Filter and map models to ensure consistent typing
-  const models: Model[] = adminModels
+  const models: LocalModel[] = adminModels
     .filter(model => model.id && model.name && model.city_id)
     .map(model => ({
       id: model.id,
@@ -48,7 +48,7 @@ const ReelsMediaManager = () => {
     // Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const matchesModel = video.model?.name.toLowerCase().includes(searchLower);
+      const matchesModel = video.model?.name?.toLowerCase().includes(searchLower);
       const matchesTitle = video.title?.toLowerCase().includes(searchLower);
       if (!matchesModel && !matchesTitle) return false;
     }

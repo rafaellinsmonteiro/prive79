@@ -1,25 +1,50 @@
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAdminModels } from '@/hooks/useAdminModels';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, LogOut, Settings, Building, Tags, Menu, MapPin, Image, Video, Bot } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import ModelsList from '@/components/admin/ModelsList';
-import ModelForm from '@/components/admin/ModelForm';
-import { useToast } from '@/hooks/use-toast';
 import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
+import MediaManager from '@/components/admin/MediaManager';
 import MenuManager from '@/components/admin/MenuManager';
 import ReelsManager from '@/components/admin/ReelsManager';
-import ZaiaAIManager from "@/components/admin/ZaiaAIManager";
+import ZaiaAIManager from '@/components/admin/ZaiaAIManager';
 
 const AdminDashboard = () => {
-  const { user, isAdmin, loading: authLoading, authComplete, signOut } = useAuth();
-  const { data: models = [], isLoading } = useAdminModels();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingModel, setEditingModel] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState('models');
+  const { user, signOut, isLoading, isAdmin } = useAuth();
+
+  useEffect(() => {
+    console.log('AdminDashboard - Auth state:', { user: !!user, isAdmin, isLoading });
+  }, [user, isAdmin, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="bg-zinc-900 border-zinc-800">
+          <CardHeader>
+            <CardTitle className="text-white">Acesso Negado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-zinc-400">
+              Você não tem permissão para acessar esta área.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const menuItems = [
     { key: 'models', label: 'Modelos', icon: Users },
     { key: 'cities', label: 'Cidades', icon: MapPin },
@@ -29,49 +54,6 @@ const AdminDashboard = () => {
     { key: 'reels', label: 'Reels', icon: Video },
     { key: 'zaia-ai', label: 'Zaia AI', icon: Bot },
   ];
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Only redirect when auth is complete
-    if (authComplete && (!user || !isAdmin)) {
-      console.log('Admin dashboard: redirecting to login', { user: !!user, isAdmin });
-      navigate('/login');
-    }
-  }, [user, isAdmin, authComplete, navigate]);
-
-  // Show loading while auth is being checked
-  if (authLoading || !authComplete) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-white">Verificando autenticação...</div>
-      </div>
-    );
-  }
-
-  // Don't render if user is not admin (will be redirected by useEffect)
-  if (!user || !isAdmin) {
-    return null;
-  }
-
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (!error || (error && error.message === 'Auth session missing!')) {
-      navigate('/'); // Redirect to the main site
-      if (!error) {
-        toast({
-          title: "Logout realizado",
-          description: "Você foi desconectado com sucesso.",
-        });
-      }
-    } else {
-      toast({
-        title: "Erro no logout",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -95,126 +77,48 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Header */}
-      <div className="border-b border-zinc-800">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Dashboard Administrativo</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-zinc-400">Olá, {user.email}</span>
-              <Button variant="ghost" size="icon" onClick={handleSignOut}>
-                <LogOut className="h-5 w-5" />
+    <div className="min-h-screen bg-black">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-zinc-900 min-h-screen border-r border-zinc-800">
+          <div className="p-6">
+            <h1 className="text-xl font-bold text-white mb-6">Admin Panel</h1>
+            <nav className="space-y-2">
+              {menuItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => setActiveSection(item.key)}
+                    className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-colors ${
+                      activeSection === item.key
+                        ? 'bg-blue-600 text-white'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                    }`}
+                  >
+                    <IconComponent className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="mt-8 pt-8 border-t border-zinc-800">
+              <Button
+                onClick={signOut}
+                variant="ghost"
+                className="w-full justify-start text-zinc-400 hover:text-white"
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                Sair
               </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="models" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-1 lg:w-auto lg:grid-cols-3">
-            <TabsTrigger value="models">Modelos</TabsTrigger>
-            <TabsTrigger value="reels">Reels</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="models" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="h-6 w-6" />
-                <h2 className="text-xl font-semibold">Gerenciar Modelos</h2>
-              </div>
-              <Button onClick={() => { setShowCreateForm(true); setEditingModel(null); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Modelo
-              </Button>
-            </div>
-
-            {showCreateForm && !editingModel && (
-              <ModelForm
-                onSuccess={(newModel) => {
-                  setShowCreateForm(false);
-                  if (newModel?.id) {
-                    setEditingModel(newModel.id);
-                    toast({
-                      title: "Modelo criada com sucesso!",
-                      description: "Agora você pode adicionar fotos e vídeos.",
-                    });
-                  } else {
-                     toast({
-                      title: "Sucesso",
-                      description: "Modelo criada com sucesso!",
-                    });
-                  }
-                }}
-                onCancel={() => setShowCreateForm(false)}
-              />
-            )}
-
-            {editingModel && (
-              <ModelForm
-                modelId={editingModel}
-                onSuccess={() => {
-                  setEditingModel(null);
-                  toast({
-                    title: "Sucesso",
-                    description: "Modelo atualizada com sucesso!",
-                  });
-                }}
-                onCancel={() => setEditingModel(null)}
-              />
-            )}
-
-            <ModelsList
-              models={models}
-              loading={isLoading}
-              onEdit={(id) => {
-                setShowCreateForm(false);
-                setEditingModel(id);
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="reels" className="space-y-6">
-            <ReelsManager />
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Settings className="h-6 w-6" />
-              <h2 className="text-xl font-semibold">Configurações Gerais</h2>
-            </div>
-
-            {/* Sistema de abas internas para Cidades, Categorias e Menu */}
-            <Tabs defaultValue="cities" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="cities">
-                  <Building className="h-4 w-4 mr-2" />
-                  Cidades
-                </TabsTrigger>
-                <TabsTrigger value="categories">
-                  <Tags className="h-4 w-4 mr-2" />
-                  Categorias
-                </TabsTrigger>
-                <TabsTrigger value="menu">
-                  <Menu className="h-4 w-4 mr-2" />
-                  Menu
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="cities" className="mt-6">
-                <CitiesManager />
-              </TabsContent>
-              <TabsContent value="categories" className="mt-6">
-                <CategoriesManager />
-              </TabsContent>
-              <TabsContent value="menu" className="mt-6">
-                <MenuManager />
-              </TabsContent>
-            </Tabs>
-
-          </TabsContent>
-        </Tabs>
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
