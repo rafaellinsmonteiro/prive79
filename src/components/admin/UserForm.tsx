@@ -153,7 +153,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
               <SelectValue placeholder="Selecione um plano" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhum plano</SelectItem>
+              <SelectItem value="no_plan">Nenhum plano</SelectItem>
               {plans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.id}>
                   {plan.name} - R$ {plan.price}

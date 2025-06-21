@@ -48,6 +48,7 @@ const ModelsListContainer = () => {
             <ModelForm
               modelId={editingModelId}
               onSuccess={handleCloseForm}
+              onCancel={handleCloseForm}
             />
           </DialogContent>
         </Dialog>
