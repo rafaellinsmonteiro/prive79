@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type Plan = Tables<'plans'> & {
-  categories?: Tables<'categories'>[];
+  categories?: { id: string; name: string; }[];
 };
 
 export const useAdminPlans = () => {

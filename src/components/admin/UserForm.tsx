@@ -73,8 +73,12 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
     setIsSubmitting(true);
     try {
       const submitData = {
-        ...data,
-        plan_id: data.plan_id && data.plan_id !== '' ? data.plan_id : null,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        user_role: data.user_role,
+        plan_id: data.plan_id && data.plan_id !== 'no_plan' ? data.plan_id : null,
+        is_active: data.is_active,
       };
 
       if (userId) {
@@ -134,10 +138,10 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
             <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="modelo">Modelo</SelectItem>
-            <SelectItem value="cliente">Cliente</SelectItem>
+          <SelectContent className="bg-zinc-800 border-zinc-700">
+            <SelectItem value="admin" className="text-white hover:bg-zinc-700">Admin</SelectItem>
+            <SelectItem value="modelo" className="text-white hover:bg-zinc-700">Modelo</SelectItem>
+            <SelectItem value="cliente" className="text-white hover:bg-zinc-700">Cliente</SelectItem>
           </SelectContent>
         </Select>
         {errors.user_role && (
@@ -152,10 +156,10 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
             <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
               <SelectValue placeholder="Selecione um plano" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="no_plan">Nenhum plano</SelectItem>
+            <SelectContent className="bg-zinc-800 border-zinc-700">
+              <SelectItem value="no_plan" className="text-white hover:bg-zinc-700">Nenhum plano</SelectItem>
               {plans.map((plan) => (
-                <SelectItem key={plan.id} value={plan.id}>
+                <SelectItem key={plan.id} value={plan.id} className="text-white hover:bg-zinc-700">
                   {plan.name} - R$ {plan.price}
                 </SelectItem>
               ))}

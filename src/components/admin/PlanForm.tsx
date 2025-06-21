@@ -83,7 +83,11 @@ const PlanForm = ({ planId, onSuccess }: PlanFormProps) => {
     setIsSubmitting(true);
     try {
       const submitData = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        display_order: data.display_order,
+        is_active: data.is_active,
         categories: selectedCategories,
       };
 
