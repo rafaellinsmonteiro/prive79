@@ -1,26 +1,25 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import ModelsList from '@/components/admin/ModelsList';
+import ModelsListContainer from '@/components/admin/ModelsListContainer';
 import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
-import MediaManager from '@/components/admin/MediaManager';
+import MediaManagerContainer from '@/components/admin/MediaManagerContainer';
 import MenuManager from '@/components/admin/MenuManager';
 import ReelsManager from '@/components/admin/ReelsManager';
 import ZaiaAIManager from '@/components/admin/ZaiaAIManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
-  const { user, signOut, isLoading, isAdmin } = useAuth();
+  const { user, signOut, loading, isAdmin } = useAuth();
 
   useEffect(() => {
-    console.log('AdminDashboard - Auth state:', { user: !!user, isAdmin, isLoading });
-  }, [user, isAdmin, isLoading]);
+    console.log('AdminDashboard - Auth state:', { user: !!user, isAdmin, loading });
+  }, [user, isAdmin, loading]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white">Carregando...</div>
@@ -58,13 +57,13 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'models':
-        return <ModelsList />;
+        return <ModelsListContainer />;
       case 'cities':
         return <CitiesManager />;
       case 'categories':
         return <CategoriesManager />;
       case 'media':
-        return <MediaManager />;
+        return <MediaManagerContainer />;
       case 'menu':
         return <MenuManager />;
       case 'reels':
@@ -72,7 +71,7 @@ const AdminDashboard = () => {
       case 'zaia-ai':
         return <ZaiaAIManager />;
       default:
-        return <ModelsList />;
+        return <ModelsListContainer />;
     }
   };
 
