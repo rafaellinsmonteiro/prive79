@@ -28,9 +28,9 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">
-           Modelos exclusivas. <span className="text-primary">Você no controle.</span>
+           A VITRINE MAIS EXCLUSIVA DE <span className="text-primary">ARACAJU</span>
           </h1>
-          <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão e entretenimento de alto nível em Aracaju.</p>
+          <p className="text-zinc-400 text-lg">Descubra uma nova forma de conexão e entretenimento de alto nível.</p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
