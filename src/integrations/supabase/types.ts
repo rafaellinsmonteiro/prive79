@@ -408,6 +408,69 @@ export type Database = {
           },
         ]
       }
+      plan_categories: {
+        Row: {
+          category_id: string
+          plan_id: string
+        }
+        Insert: {
+          category_id: string
+          plan_id: string
+        }
+        Update: {
+          category_id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_categories_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reels_categories: {
         Row: {
           created_at: string
@@ -468,6 +531,53 @@ export type Database = {
         }
         Relationships: []
       }
+      system_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string | null
+          phone: string | null
+          plan_id: string | null
+          updated_at: string
+          user_id: string | null
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_users_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -480,6 +590,7 @@ export type Database = {
     }
     Enums: {
       menu_type: "url" | "category"
+      user_role: "admin" | "modelo" | "cliente"
       user_type: "guest" | "authenticated" | "all"
     }
     CompositeTypes: {
@@ -597,6 +708,7 @@ export const Constants = {
   public: {
     Enums: {
       menu_type: ["url", "category"],
+      user_role: ["admin", "modelo", "cliente"],
       user_type: ["guest", "authenticated", "all"],
     },
   },

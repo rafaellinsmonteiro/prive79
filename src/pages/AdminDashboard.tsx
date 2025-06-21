@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
 import CitiesManager from '@/components/admin/CitiesManager';
@@ -10,6 +11,8 @@ import MediaManagerContainer from '@/components/admin/MediaManagerContainer';
 import MenuManager from '@/components/admin/MenuManager';
 import ReelsManager from '@/components/admin/ReelsManager';
 import ZaiaAIManager from '@/components/admin/ZaiaAIManager';
+import UsersManager from '@/components/admin/UsersManager';
+import PlansManager from '@/components/admin/PlansManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -46,6 +49,8 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { key: 'models', label: 'Modelos', icon: Users },
+    { key: 'users', label: 'Usuários', icon: UserCheck },
+    { key: 'plans', label: 'Planos', icon: CreditCard },
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
     { key: 'media', label: 'Mídia', icon: Image },
@@ -58,6 +63,10 @@ const AdminDashboard = () => {
     switch (activeSection) {
       case 'models':
         return <ModelsListContainer />;
+      case 'users':
+        return <UsersManager />;
+      case 'plans':
+        return <PlansManager />;
       case 'cities':
         return <CitiesManager />;
       case 'categories':

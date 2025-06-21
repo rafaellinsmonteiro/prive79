@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
-import { useAdminModels } from '@/hooks/useAdminModels';
+import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ModelsList from './ModelsList';
-import ModelForm from './ModelForm';
+import UsersList from './UsersList';
+import UserForm from './UserForm';
 import {
   Dialog,
   DialogContent,
@@ -13,48 +13,48 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-const ModelsListContainer = () => {
-  const [editingModelId, setEditingModelId] = useState<string | null>(null);
+const UsersManager = () => {
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const { data: models = [], isLoading } = useAdminModels();
+  const { data: users = [], isLoading } = useAdminUsers();
 
   const handleEdit = (id: string) => {
-    setEditingModelId(id);
+    setEditingUserId(id);
     setIsFormOpen(true);
   };
 
   const handleCloseForm = () => {
-    setEditingModelId(null);
+    setEditingUserId(null);
     setIsFormOpen(false);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Gestão de Modelos</h2>
+        <h2 className="text-2xl font-bold text-white">Gestão de Usuários</h2>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Nova Modelo
+              Novo Usuário
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingModelId ? 'Editar Modelo' : 'Nova Modelo'}
+                {editingUserId ? 'Editar Usuário' : 'Novo Usuário'}
               </DialogTitle>
             </DialogHeader>
-            <ModelForm
-              modelId={editingModelId}
+            <UserForm
+              userId={editingUserId}
               onSuccess={handleCloseForm}
             />
           </DialogContent>
         </Dialog>
       </div>
 
-      <ModelsList
-        models={models}
+      <UsersList
+        users={users}
         loading={isLoading}
         onEdit={handleEdit}
       />
@@ -62,4 +62,4 @@ const ModelsListContainer = () => {
   );
 };
 
-export default ModelsListContainer;
+export default UsersManager;
