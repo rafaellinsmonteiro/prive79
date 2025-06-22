@@ -211,30 +211,61 @@ export const useModel = (id: string) => {
   return useQuery({
     queryKey: ['model', id, isAdmin],
     queryFn: async (): Promise<Model | null> => {
-      if (!id) return null;
+      console.log('useModel - Starting fetch for ID:', id);
+      console.log('useModel - Current admin status:', isAdmin);
+      
+      if (!id) {
+        console.log('useModel - No ID provided, returning null');
+        return null;
+      }
       
       // 1. Fetch model
+      console.log('useModel - Fetching model data...');
       const { data: modelData, error: modelError } = await supabase
         .from('models')
         .select('*, cities(name)')
         .eq('id', id)
         .maybeSingle();
 
+      console.log('useModel - Raw model data:', modelData);
+      console.log('useModel - Model error:', modelError);
+
       if (modelError) {
-        console.error('Error fetching model:', modelError);
+        console.error('useModel - Error fetching model:', modelError);
         throw modelError;
       }
 
       if (!modelData) {
+        console.log('useModel - No model found with ID:', id);
         return null;
       }
 
+      // Debug specific model if it's Madu Silva
+      if (modelData.name && (modelData.name.includes('Madu Silva') || modelData.name.includes('Madu'))) {
+        console.log('useModel - Found Madu Silva model:', {
+          id: modelData.id,
+          name: modelData.name,
+          is_active: modelData.is_active,
+          visibility_type: modelData.visibility_type,
+          allowed_plan_ids: modelData.allowed_plan_ids
+        });
+      }
+
       // Check model visibility - admins can see all models
-      if (modelData.visibility_type === 'plans' && !isAdmin) {
+      console.log('useModel - Checking model visibility:', {
+        isAdmin,
+        visibility_type: modelData.visibility_type,
+        allowed_plan_ids: modelData.allowed_plan_ids
+      });
+
+      if (!isAdmin && modelData.visibility_type === 'plans') {
+        console.log('useModel - Access denied for non-admin user (requires plan)');
         // TODO: Implement user plan checking when authentication is added
         // For now, return null to hide plan-restricted models for non-admin users
         return null;
       }
+
+      console.log('useModel - Access granted, proceeding with fetch...');
 
       // 2. Fetch related data in parallel
       const [
@@ -251,6 +282,9 @@ export const useModel = (id: string) => {
           .eq('model_id', id)
           .order('display_order', { ascending: true })
       ]);
+
+      console.log('useModel - Categories data:', mcData);
+      console.log('useModel - Photos data:', photosData);
 
       if (mcError) {
         console.error('Error fetching model_categories for single model:', mcError);
@@ -274,6 +308,7 @@ export const useModel = (id: string) => {
           throw catError;
         }
         categories = categoriesData ?? [];
+        console.log('useModel - Categories:', categories);
       }
       
       const modelWithCity = modelData as any;
@@ -303,12 +338,24 @@ export const useModel = (id: string) => {
         return false;
       });
 
-      return {
+      console.log('useModel - Visible photos count:', visiblePhotos.length);
+
+      const finalModel = {
         ...modelData,
         photos: visiblePhotos,
         location: locationParts.join(', '),
         categories,
       } as Model;
+
+      console.log('useModel - Final model:', {
+        id: finalModel.id,
+        name: finalModel.name,
+        photosCount: finalModel.photos.length,
+        categoriesCount: finalModel.categories.length,
+        location: finalModel.location
+      });
+
+      return finalModel;
     },
     enabled: !!id,
   });
