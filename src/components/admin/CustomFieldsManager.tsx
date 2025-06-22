@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder } from '@/hooks/useCustomFields';
+import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder } from '@/hooks/useCustomFields';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash, Settings, GripVertical, FolderPlus, Folder, List } from 'lucide-react';
 import CustomFieldForm from './CustomFieldForm';
@@ -59,6 +59,7 @@ const CustomFieldsManager = () => {
   const updateCustomField = useUpdateCustomField();
   const deleteCustomField = useDeleteCustomField();
   const updateFieldOrder = useUpdateFieldOrder();
+  const updateSectionOrder = useUpdateSectionOrder();
   const { toast } = useToast();
 
   const systemFields: SystemField[] = [
@@ -116,6 +117,36 @@ const CustomFieldsManager = () => {
       isCustomField: true
     }))
   ].sort((a, b) => a.display_order - b.display_order);
+
+  const handleSectionDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(allSections);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updates = items
+      .filter(item => !item.isSystemSection)
+      .map((item, index) => ({
+        id: item.id,
+        display_order: index + 1,
+      }));
+
+    try {
+      await updateSectionOrder.mutateAsync(updates);
+      toast({
+        title: "Sucesso",
+        description: "Ordem das seções atualizada com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao reordenar seções:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar ordem das seções.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -320,56 +351,77 @@ const CustomFieldsManager = () => {
             </TabsList>
             
             <TabsContent value="sections" className="mt-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                  Todas as Seções
-                </h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-zinc-700">
-                      <TableHead className="text-zinc-300">Nome da Seção</TableHead>
-                      <TableHead className="text-zinc-300">Ordem</TableHead>
-                      <TableHead className="text-zinc-300">Origem</TableHead>
-                      <TableHead className="text-zinc-300">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allSections.map((section) => (
-                      <TableRow key={section.id} className="border-zinc-700 hover:bg-zinc-800/50">
-                        <TableCell className="text-white font-medium">
-                          <div className="flex items-center gap-2">
-                            <Folder className="h-4 w-4 text-zinc-400" />
-                            {section.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-zinc-300">
-                          {section.display_order}
-                        </TableCell>
-                        <TableCell className="text-zinc-300">
-                          {section.isSystemSection ? (
-                            <span className="text-blue-400">Sistema</span>
-                          ) : (
-                            <span className="text-green-400">Personalizada</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            {!section.isSystemSection && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <DragDropContext onDragEnd={handleSectionDragEnd}>
+                <Droppable droppableId="sections">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                          Todas as Seções - Arrastar e Soltar para Reordenar
+                        </h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-zinc-700">
+                              <TableHead className="text-zinc-300 w-10"></TableHead>
+                              <TableHead className="text-zinc-300">Nome da Seção</TableHead>
+                              <TableHead className="text-zinc-300">Ordem</TableHead>
+                              <TableHead className="text-zinc-300">Origem</TableHead>
+                              <TableHead className="text-zinc-300">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {allSections.map((section, index) => (
+                              <Draggable key={section.id} draggableId={section.id} index={index} isDragDisabled={section.isSystemSection}>
+                                {(provided, snapshot) => (
+                                  <TableRow 
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
+                                  >
+                                    <TableCell {...provided.dragHandleProps} className="text-zinc-400">
+                                      {!section.isSystemSection && <GripVertical className="h-4 w-4" />}
+                                    </TableCell>
+                                    <TableCell className="text-white font-medium">
+                                      <div className="flex items-center gap-2">
+                                        <Folder className="h-4 w-4 text-zinc-400" />
+                                        {section.name}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {section.display_order}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {section.isSystemSection ? (
+                                        <span className="text-blue-400">Sistema</span>
+                                      ) : (
+                                        <span className="text-green-400">Personalizada</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex space-x-2">
+                                        {!section.isSystemSection && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </TabsContent>
 
             <TabsContent value="fields" className="mt-4">

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -156,6 +155,33 @@ export const useCreateCustomSection = () => {
       }
 
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    },
+  });
+};
+
+export const useUpdateSectionOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updates: { id: string; display_order: number }[]) => {
+      const promises = updates.map(update => {
+        return (supabase as any)
+          .from('custom_sections')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id);
+      });
+
+      const results = await Promise.all(promises);
+      
+      for (const result of results) {
+        if (result.error) {
+          console.error('Error updating section order:', result.error);
+          throw result.error;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
