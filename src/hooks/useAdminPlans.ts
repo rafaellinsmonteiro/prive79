@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -20,7 +19,7 @@ export const useAdminPlans = () => {
         .from('plans')
         .select(`
           *,
-          plan_categories!inner (
+          plan_categories (
             categories (
               id,
               name,
