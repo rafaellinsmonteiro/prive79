@@ -57,6 +57,8 @@ export const useModels = (cityId?: string) => {
         cityId, 
         isAdmin, 
         userId: user?.id,
+        userEmail: user?.email,
+        currentUserData: currentUser,
         userPlanId: currentUser?.plan_id 
       });
       
@@ -88,7 +90,8 @@ export const useModels = (cityId?: string) => {
           isAdmin,
           visibility_type: model.visibility_type,
           allowed_plan_ids: model.allowed_plan_ids,
-          userPlanId: currentUser?.plan_id
+          userPlanId: currentUser?.plan_id,
+          currentUser: !!currentUser
         });
 
         // If user is admin, show all models
@@ -113,7 +116,7 @@ export const useModels = (cityId?: string) => {
           
           // Check if user has a valid plan
           if (!currentUser?.plan_id) {
-            console.log(`useModels - User has no plan, denying access to ${model.name}`);
+            console.log(`useModels - User has no plan, denying access to ${model.name}. CurrentUser:`, currentUser);
             return false;
           }
           
@@ -243,6 +246,8 @@ export const useModel = (id: string) => {
       console.log('useModel - Current user status:', { 
         isAdmin, 
         userId: user?.id,
+        userEmail: user?.email,
+        currentUserData: currentUser,
         userPlanId: currentUser?.plan_id 
       });
       
@@ -275,7 +280,8 @@ export const useModel = (id: string) => {
         isAdmin,
         visibility_type: modelData.visibility_type,
         allowed_plan_ids: modelData.allowed_plan_ids,
-        userPlanId: currentUser?.plan_id
+        userPlanId: currentUser?.plan_id,
+        currentUser: !!currentUser
       });
 
       if (!isAdmin && modelData.visibility_type === 'plans') {
@@ -285,7 +291,7 @@ export const useModel = (id: string) => {
         } else {
           // Check if user has a valid plan
           if (!currentUser?.plan_id) {
-            console.log('useModel - User has no plan, denying access');
+            console.log('useModel - User has no plan, denying access. CurrentUser:', currentUser);
             return null;
           }
           
