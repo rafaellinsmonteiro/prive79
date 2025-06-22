@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Model } from "./useModels";
@@ -80,7 +79,12 @@ export const useUpdateModel = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Model> & { id: string }) => {
-      console.log('Updating model with id:', id, 'and data:', updates);
+      console.log('=== UPDATE MODEL MUTATION START ===');
+      console.log('useAdminModels - Updating model with id:', id, 'and data:', updates);
+      console.log('useAdminModels - Visibility data received:', {
+        visibility_type: updates.visibility_type,
+        allowed_plan_ids: updates.allowed_plan_ids
+      });
       
       // Remove any fields that don't exist in the models table
       const cleanUpdates = { ...updates };
@@ -91,8 +95,11 @@ export const useUpdateModel = () => {
       delete (cleanUpdates as any).created_at;
       delete (cleanUpdates as any).updated_at;
       
-      // Garantir que os campos de visibilidade sejam incluídos
-      console.log('Clean updates being sent to database:', cleanUpdates);
+      console.log('useAdminModels - Clean updates being sent to database:', cleanUpdates);
+      console.log('useAdminModels - Visibility in clean updates:', {
+        visibility_type: cleanUpdates.visibility_type,
+        allowed_plan_ids: cleanUpdates.allowed_plan_ids
+      });
       
       const { data, error } = await supabase
         .from('models')
@@ -102,11 +109,18 @@ export const useUpdateModel = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error updating model:', error);
+        console.error('=== UPDATE MODEL MUTATION ERROR ===');
+        console.error('useAdminModels - Error updating model:', error);
         throw error;
       }
       
-      console.log('Model updated successfully:', data);
+      console.log('=== UPDATE MODEL MUTATION SUCCESS ===');
+      console.log('useAdminModels - Model updated successfully:', data);
+      console.log('useAdminModels - Updated model visibility:', {
+        visibility_type: data?.visibility_type,
+        allowed_plan_ids: data?.allowed_plan_ids
+      });
+      
       return data;
     },
     onSuccess: () => {

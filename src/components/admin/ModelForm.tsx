@@ -70,6 +70,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const {
     handleSubmit,
     setValue,
+    watch,
   } = form;
 
   // Debug do estado de autenticação
@@ -86,6 +87,10 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   useEffect(() => {
     if (existingModel) {
       console.log('ModelForm - Loading existing model data:', existingModel);
+      console.log('ModelForm - Existing model visibility settings:', {
+        visibility_type: existingModel.visibility_type,
+        allowed_plan_ids: existingModel.allowed_plan_ids
+      });
       
       const modelKeys = Object.keys(form.getValues());
       modelKeys.forEach((key) => {
@@ -102,23 +107,43 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         setValue('category_ids', existingModel.categories.map(c => c.id));
       }
       
-      // Set visibility settings with proper defaults
-      setValue('visibility_type', existingModel.visibility_type || 'public');
-      setValue('allowed_plan_ids', existingModel.allowed_plan_ids || []);
+      // Set visibility settings with proper defaults and extra logging
+      const visibilityType = existingModel.visibility_type || 'public';
+      const allowedPlanIds = existingModel.allowed_plan_ids || [];
       
-      console.log('ModelForm - Set visibility values:', {
-        visibility_type: existingModel.visibility_type || 'public',
-        allowed_plan_ids: existingModel.allowed_plan_ids || []
+      console.log('ModelForm - Setting visibility form values:', {
+        visibility_type: visibilityType,
+        allowed_plan_ids: allowedPlanIds
       });
+      
+      setValue('visibility_type', visibilityType);
+      setValue('allowed_plan_ids', allowedPlanIds);
+      
+      // Verificar se realmente foi definido no formulário
+      setTimeout(() => {
+        const currentValues = form.getValues();
+        console.log('ModelForm - Form values after setting:', {
+          visibility_type: currentValues.visibility_type,
+          allowed_plan_ids: currentValues.allowed_plan_ids
+        });
+      }, 100);
     }
   }, [existingModel, setValue, form]);
 
   const onSubmit = async (data: ModelFormData) => {
+    console.log('=== FORM SUBMISSION START ===');
     console.log('Form submission started:', {
       user: !!user,
       userId: user?.id,
       isAdmin,
       session: !!session
+    });
+
+    // Debug: valores do formulário antes do processamento
+    console.log('ModelForm - Raw form data received:', data);
+    console.log('ModelForm - Visibility data specifically:', {
+      visibility_type: data.visibility_type,
+      allowed_plan_ids: data.allowed_plan_ids
     });
 
     // Verificar autenticação antes de prosseguir
@@ -143,15 +168,37 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     setLoading(true);
     try {
       const { category_ids, ...modelData } = data;
-      console.log('Submitting model data:', { modelData, category_ids });
+      console.log('Submitting model data (after removing category_ids):', modelData);
+      console.log('ModelForm - Visibility data being submitted:', {
+        visibility_type: modelData.visibility_type,
+        allowed_plan_ids: modelData.allowed_plan_ids
+      });
       
       let modelResult;
       
       if (modelId) {
         console.log('Updating model:', modelId);
-        await updateModel.mutateAsync({ id: modelId, ...modelData } as any);
+        const updateData = { id: modelId, ...modelData };
+        console.log('ModelForm - Complete update data being sent:', updateData);
+        
+        await updateModel.mutateAsync(updateData as any);
         modelResult = { id: modelId };
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
+        
+        // Verificar se a atualização realmente funcionou
+        console.log('ModelForm - Checking if update persisted...');
+        const { data: updatedModel, error: checkError } = await supabase
+          .from('models')
+          .select('visibility_type, allowed_plan_ids')
+          .eq('id', modelId)
+          .single();
+        
+        if (checkError) {
+          console.error('ModelForm - Error checking updated model:', checkError);
+        } else {
+          console.log('ModelForm - Model data in database after update:', updatedModel);
+        }
+        
       } else {
         console.log('Creating new model');
         modelResult = await createModel.mutateAsync(modelData as any);
@@ -199,8 +246,10 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         }
       }
 
+      console.log('=== FORM SUBMISSION SUCCESS ===');
       onSuccess(modelResult);
     } catch (error: any) {
+      console.error('=== FORM SUBMISSION ERROR ===');
       console.error('Error saving model:', error);
       
       let errorMessage = "Erro ao salvar modelo. Tente novamente.";
@@ -255,6 +304,13 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <OtherInfoSection form={form} />
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
+
+            {/* Debug adicional - mostrar valores atuais do formulário */}
+            <div className="text-xs text-zinc-500 p-2 bg-zinc-800 rounded">
+              <p><strong>DEBUG FORM VALUES:</strong></p>
+              <p>visibility_type: {watch('visibility_type')}</p>
+              <p>allowed_plan_ids: {JSON.stringify(watch('allowed_plan_ids'))}</p>
+            </div>
 
             {/* Gerenciar Mídia */}
             {modelId && (
