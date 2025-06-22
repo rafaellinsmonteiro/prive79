@@ -47,19 +47,6 @@ export const useCurrentUser = () => {
         role: user.role
       });
       
-      // Debug: Let's check what users exist in the system_users table
-      console.log('useCurrentUser - Checking all system_users...');
-      const { data: allUsers, error: allUsersError } = await supabase
-        .from('system_users')
-        .select('*');
-      
-      if (allUsersError) {
-        console.error('useCurrentUser - Error fetching all users:', allUsersError);
-      } else {
-        console.log('useCurrentUser - All system_users:', allUsers);
-        console.log('useCurrentUser - Looking for user_id:', user.id, 'or email:', user.email);
-      }
-
       // First get the user data - try by user_id first, then by email
       let { data: userData, error: userError } = await supabase
         .from('system_users')
@@ -91,18 +78,52 @@ export const useCurrentUser = () => {
         throw userError;
       }
 
+      // If no user found, create one for the demo user
+      if (!userData && user.email === 'cliente@demo.com') {
+        console.log('useCurrentUser - Creating demo user in system_users');
+        
+        // Get the first available plan
+        const { data: plans, error: plansError } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('is_active', true)
+          .limit(1);
+        
+        if (plansError) {
+          console.error('Error fetching plans:', plansError);
+        }
+
+        const planId = plans && plans.length > 0 ? plans[0].id : null;
+        
+        const { data: newUser, error: createError } = await supabase
+          .from('system_users')
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || 'Cliente Demo',
+            user_role: 'cliente',
+            plan_id: planId,
+            is_active: true
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user:', createError);
+          alert(`Erro ao criar usuário: ${createError.message}`);
+        } else {
+          console.log('Demo user created successfully:', newUser);
+          userData = newUser;
+          alert('Usuário demo criado com sucesso!');
+        }
+      }
+
       if (!userData) {
         console.log('useCurrentUser - No user data found for user_id:', user.id, 'or email:', user.email);
-        console.log('useCurrentUser - This means the user is not in system_users table or is_active = false');
-        
-        // Alert to help with debugging
-        alert(`Usuário não encontrado no sistema. Email: ${user.email}, ID: ${user.id}`);
-        
         return null;
       }
 
       console.log('useCurrentUser - Found user data:', userData);
-      alert(`Usuário encontrado! Plan ID: ${userData.plan_id}`);
 
       let planData = null;
       if (userData.plan_id) {
@@ -115,15 +136,12 @@ export const useCurrentUser = () => {
 
         if (planError) {
           console.error('useCurrentUser - Error fetching plan data:', planError);
-          alert(`Erro ao carregar plano: ${planError.message}`);
         } else {
           planData = plan;
           console.log('useCurrentUser - Found plan data:', planData);
-          alert(`Plano encontrado: ${planData?.name || 'Sem nome'}`);
         }
       } else {
         console.log('useCurrentUser - User has no plan_id:', userData.plan_id);
-        alert('Usuário não possui plan_id definido');
       }
 
       const result = {
