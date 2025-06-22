@@ -7,11 +7,11 @@ export const useSystemFieldsInitializer = () => {
   const createCustomSection = useCreateCustomSection();
 
   const systemSections = [
-    { name: 'Informações Básicas', display_order: 1 },
-    { name: 'Características Físicas', display_order: 2 },
-    { name: 'Outras Informações', display_order: 3 },
-    { name: 'Configurações', display_order: 4 },
-    { name: 'Controle de Acesso', display_order: 5 },
+    { name: 'Informações Básicas', display_order: 1, is_active: true },
+    { name: 'Características Físicas', display_order: 2, is_active: true },
+    { name: 'Outras Informações', display_order: 3, is_active: true },
+    { name: 'Configurações', display_order: 4, is_active: true },
+    { name: 'Controle de Acesso', display_order: 5, is_active: true },
   ];
 
   const systemFields = [
@@ -47,23 +47,39 @@ export const useSystemFieldsInitializer = () => {
 
   const initializeSystemData = async () => {
     try {
+      console.log('🚀 Iniciando criação das seções do sistema...');
+      
       // Criar seções do sistema
       for (const section of systemSections) {
-        await createCustomSection.mutateAsync(section);
+        console.log('📁 Criando seção:', section.name);
+        try {
+          await createCustomSection.mutateAsync(section);
+          console.log('✅ Seção criada:', section.name);
+        } catch (error) {
+          console.error('❌ Erro ao criar seção:', section.name, error);
+        }
       }
 
+      console.log('🚀 Iniciando criação dos campos do sistema...');
+      
       // Criar campos do sistema
       for (const field of systemFields) {
-        await createCustomField.mutateAsync({
-          ...field,
-          is_active: true,
-          help_text: field.description,
-        });
+        console.log('🏷️ Criando campo:', field.field_name);
+        try {
+          await createCustomField.mutateAsync({
+            ...field,
+            is_active: true,
+            help_text: field.description,
+          });
+          console.log('✅ Campo criado:', field.field_name);
+        } catch (error) {
+          console.error('❌ Erro ao criar campo:', field.field_name, error);
+        }
       }
 
-      console.log('Campos e seções do sistema criados com sucesso!');
+      console.log('🎉 Campos e seções do sistema criados com sucesso!');
     } catch (error) {
-      console.error('Erro ao criar campos e seções do sistema:', error);
+      console.error('💥 Erro geral ao criar campos e seções do sistema:', error);
     }
   };
 

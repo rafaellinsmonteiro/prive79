@@ -133,7 +133,10 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormLabel className="text-white">
                   {field.label} {field.is_required && '*'}
                 </FormLabel>
-                <Select onValueChange={formField.onChange} value={formField.value != null ? String(formField.value) : ''}>
+                <Select 
+                  onValueChange={formField.onChange} 
+                  value={formField.value != null ? String(formField.value) : ''}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                       <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
