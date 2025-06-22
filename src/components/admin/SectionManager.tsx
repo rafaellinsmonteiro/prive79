@@ -1,55 +1,57 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCreateCustomSection } from '@/hooks/useCustomFields';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { X } from 'lucide-react';
+import { CustomSection } from '@/hooks/useCustomFields';
 
 interface SectionManagerProps {
+  section?: CustomSection;
+  onSubmit: (sectionData: any) => Promise<void>;
   onCancel: () => void;
 }
 
-const SectionManager = ({ onCancel }: SectionManagerProps) => {
+const SectionManager = ({ section, onSubmit, onCancel }: SectionManagerProps) => {
   const [sectionName, setSectionName] = useState('');
   const [displayOrder, setDisplayOrder] = useState(100);
-  const createCustomSection = useCreateCustomSection();
-  const { toast } = useToast();
+  const [isActive, setIsActive] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (section) {
+      setSectionName(section.name || '');
+      setDisplayOrder(section.display_order || 100);
+      setIsActive(section.is_active !== false);
+    }
+  }, [section]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!sectionName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome da seção é obrigatório.",
-        variant: "destructive",
-      });
       return;
     }
 
+    setLoading(true);
     try {
-      await createCustomSection.mutateAsync({
+      await onSubmit({
         name: sectionName,
         display_order: displayOrder,
-        is_active: true,
+        is_active: isActive,
       });
       
-      toast({
-        title: "Sucesso",
-        description: "Seção criada com sucesso!",
-      });
-      
-      setSectionName('');
-      onCancel();
+      if (!section) {
+        setSectionName('');
+        setDisplayOrder(100);
+        setIsActive(true);
+      }
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao criar seção.",
-        variant: "destructive",
-      });
+      console.error('Error saving section:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +59,7 @@ const SectionManager = ({ onCancel }: SectionManagerProps) => {
     <Card className="bg-zinc-900 border-zinc-800">
       <CardHeader>
         <CardTitle className="text-white flex items-center justify-between">
-          <span>Nova Seção</span>
+          <span>{section ? 'Editar Seção' : 'Nova Seção'}</span>
           <Button
             variant="ghost"
             size="sm"
@@ -97,21 +99,32 @@ const SectionManager = ({ onCancel }: SectionManagerProps) => {
             />
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_active"
+              checked={isActive}
+              onCheckedChange={setIsActive}
+            />
+            <Label htmlFor="is_active" className="text-white">
+              Ativa
+            </Label>
+          </div>
+
           <div className="flex justify-end space-x-2">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={createCustomSection.isPending}
+              disabled={loading}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={createCustomSection.isPending}
+              disabled={loading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {createCustomSection.isPending ? 'Criando...' : 'Criar Seção'}
+              {loading ? 'Salvando...' : (section ? 'Atualizar Seção' : 'Criar Seção')}
             </Button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,9 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
     { value: 'url', label: 'URL' },
   ];
 
+  // Ensure we have the default section available
+  const allSections = ['Campos Personalizados', ...availableSections].filter((section, index, arr) => arr.indexOf(section) === index);
+
   return (
     <Card className="bg-zinc-900 border-zinc-800">
       <CardHeader>
@@ -153,7 +157,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {availableSections.map((section) => (
+                  {allSections.map((section) => (
                     <SelectItem key={section} value={section} className="text-white">
                       {section}
                     </SelectItem>
@@ -161,6 +165,19 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="display_order" className="text-white">
+              Ordem de Exibição
+            </Label>
+            <Input
+              id="display_order"
+              type="number"
+              value={formData.display_order}
+              onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+              className="bg-zinc-800 border-zinc-700 text-white"
+            />
           </div>
 
           <div className="space-y-2">
