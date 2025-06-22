@@ -428,10 +428,12 @@ export type Database = {
           appearance: string | null
           body_type: string | null
           bust: string | null
+          cabelo: string | null
           city_id: string | null
           created_at: string
           description: string | null
           display_order: number | null
+          etnia: string | null
           eyes: string | null
           height: string | null
           hip: string | null
@@ -440,8 +442,10 @@ export type Database = {
           languages: string | null
           name: string
           neighborhood: string | null
+          olhos: string | null
           shoe_size: string | null
           silicone: boolean | null
+          tatuagem: boolean | null
           updated_at: string
           visibility_type: string | null
           waist: string | null
@@ -454,10 +458,12 @@ export type Database = {
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
+          cabelo?: string | null
           city_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
+          etnia?: string | null
           eyes?: string | null
           height?: string | null
           hip?: string | null
@@ -466,8 +472,10 @@ export type Database = {
           languages?: string | null
           name: string
           neighborhood?: string | null
+          olhos?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
+          tatuagem?: boolean | null
           updated_at?: string
           visibility_type?: string | null
           waist?: string | null
@@ -480,10 +488,12 @@ export type Database = {
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
+          cabelo?: string | null
           city_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
+          etnia?: string | null
           eyes?: string | null
           height?: string | null
           hip?: string | null
@@ -492,8 +502,10 @@ export type Database = {
           languages?: string | null
           name?: string
           neighborhood?: string | null
+          olhos?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
+          tatuagem?: boolean | null
           updated_at?: string
           visibility_type?: string | null
           waist?: string | null

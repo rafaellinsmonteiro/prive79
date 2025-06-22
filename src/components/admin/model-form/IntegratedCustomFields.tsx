@@ -16,14 +16,10 @@ const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsPro
   const fieldsForSection = customFields.filter(field => {
     const isActive = field.is_active;
     const isForThisSection = field.section === sectionName;
-    const isSystemField = ['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name);
     
-    console.log(`🔍 IntegratedCustomFields - Field ${field.field_name}: active=${isActive}, section=${field.section}, forThisSection=${isForThisSection}, isSystem=${isSystemField}`);
+    console.log(`🔍 IntegratedCustomFields - Field ${field.field_name}: active=${isActive}, section=${field.section}, forThisSection=${isForThisSection}`);
     
-    // IMPORTANTE: Não excluir campo "eyes" se ele foi criado como campo personalizado
-    const isCustomEyesField = field.field_name === 'eyes' && field.section === sectionName;
-    
-    return isActive && isForThisSection && (!isSystemField || isCustomEyesField);
+    return isActive && isForThisSection;
   }).sort((a, b) => a.display_order - b.display_order);
 
   console.log(`✅ IntegratedCustomFields - Found ${fieldsForSection.length} fields for section "${sectionName}"`);
@@ -31,7 +27,8 @@ const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsPro
     name: f.field_name, 
     label: f.label, 
     type: f.field_type,
-    options: f.options 
+    options: f.options,
+    display_order: f.display_order
   })));
 
   if (fieldsForSection.length === 0) {

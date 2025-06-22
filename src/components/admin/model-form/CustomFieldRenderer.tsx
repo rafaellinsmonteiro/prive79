@@ -20,7 +20,10 @@ interface CustomFieldRendererProps {
 }
 
 const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
-  const fieldName = `custom_${field.field_name}` as keyof ModelFormData;
+  // Para campos personalizados integrados, usar o nome direto do campo
+  // Para outros campos personalizados, usar o prefixo custom_
+  const isIntegratedField = ['olhos', 'tatuagem', 'cabelo', 'etnia'].includes(field.field_name);
+  const fieldName = isIntegratedField ? field.field_name as keyof ModelFormData : `custom_${field.field_name}` as keyof ModelFormData;
 
   const formatValue = (value: any): string => {
     if (value === null || value === undefined) return '';
@@ -33,6 +36,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
   };
 
   console.log(`🎨 CustomFieldRenderer - Rendering field: ${field.field_name} (${field.field_type})`);
+  console.log(`🎨 Field name used: ${String(fieldName)}, integrated: ${isIntegratedField}`);
   console.log(`🎨 Field options:`, field.options);
 
   switch (field.field_type) {
@@ -49,7 +53,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Textarea
-                  {...formField}
                   value={formatValue(formField.value)}
                   onChange={(e) => formField.onChange(e.target.value)}
                   placeholder={field.placeholder || ''}
@@ -78,7 +81,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...formField}
                   value={formatNumberValue(formField.value)}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -182,7 +184,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...formField}
                   value={formatValue(formField.value)}
                   onChange={(e) => formField.onChange(e.target.value)}
                   type="date"
@@ -211,7 +212,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...formField}
                   value={formatValue(formField.value)}
                   onChange={(e) => formField.onChange(e.target.value)}
                   type="email"
@@ -241,7 +241,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...formField}
                   value={formatValue(formField.value)}
                   onChange={(e) => formField.onChange(e.target.value)}
                   type="url"
@@ -271,7 +270,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...formField}
                   value={formatValue(formField.value)}
                   onChange={(e) => formField.onChange(e.target.value)}
                   placeholder={field.placeholder || ''}

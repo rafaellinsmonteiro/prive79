@@ -68,6 +68,11 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       category_ids: [],
       visibility_type: 'public',
       allowed_plan_ids: [],
+      // Campos personalizados integrados
+      olhos: '',
+      tatuagem: false,
+      cabelo: '',
+      etnia: '',
     }
   });
 
@@ -121,14 +126,26 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           : [],
       };
       
-      // Adicionar campos personalizados
-      customFields.forEach(field => {
-        const customFieldKey = `custom_${field.field_name}`;
-        const modelValue = (existingModel as any)[field.field_name] || (existingModel as any)[customFieldKey];
-        
+      // Adicionar campos personalizados integrados
+      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+      integratedFields.forEach(fieldName => {
+        const modelValue = (existingModel as any)[fieldName];
         if (modelValue !== undefined && modelValue !== null) {
-          console.log(`🔧 Loading custom field ${field.field_name}:`, modelValue);
-          (formData as any)[customFieldKey] = modelValue;
+          console.log(`🔧 Loading integrated field ${fieldName}:`, modelValue);
+          (formData as any)[fieldName] = modelValue;
+        }
+      });
+      
+      // Adicionar outros campos personalizados
+      customFields.forEach(field => {
+        if (!integratedFields.includes(field.field_name)) {
+          const customFieldKey = `custom_${field.field_name}`;
+          const modelValue = (existingModel as any)[field.field_name] || (existingModel as any)[customFieldKey];
+          
+          if (modelValue !== undefined && modelValue !== null) {
+            console.log(`🔧 Loading custom field ${field.field_name}:`, modelValue);
+            (formData as any)[customFieldKey] = modelValue;
+          }
         }
       });
       
@@ -142,7 +159,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         const currentValues = form.getValues();
         console.log('🔄 FORM: Values after reset:', {
           visibility_type: currentValues.visibility_type,
-          allowed_plan_ids: currentValues.allowed_plan_ids
+          allowed_plan_ids: currentValues.allowed_plan_ids,
+          olhos: currentValues.olhos,
+          tatuagem: currentValues.tatuagem
         });
         
         // Se ainda não estiver correto, forçar os valores individualmente
@@ -184,22 +203,24 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       
       // Separar campos personalizados dos campos do modelo
       const modelData: any = {};
-      const customFieldsData: any = {};
+      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
       
       Object.entries(formData).forEach(([key, value]) => {
         if (key.startsWith('custom_')) {
           // Campo personalizado - remover o prefixo custom_ e adicionar ao modelo
           const fieldName = key.replace('custom_', '');
-          customFieldsData[fieldName] = value;
-          modelData[fieldName] = value; // Também adicionar ao modelData para salvar
+          modelData[fieldName] = value;
           console.log(`🔧 Custom field ${fieldName} = ${value}`);
         } else {
-          // Campo padrão do modelo
+          // Campo padrão do modelo (incluindo campos integrados)
           modelData[key] = value;
+          if (integratedFields.includes(key)) {
+            console.log(`🔧 Integrated field ${key} = ${value}`);
+          }
         }
       });
       
-      console.log('🔧 Model data (with custom fields):', modelData);
+      console.log('🔧 Model data (with all fields):', modelData);
       
       let modelResult;
       
@@ -330,7 +351,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
               <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
               <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
               <p className="text-white">allowed_plan_ids: <span className="text-green-400">{JSON.stringify(watch('allowed_plan_ids'))}</span></p>
-              <p className="text-xs text-gray-400 mt-2">Se estes valores estão corretos, clique em salvar e observe os alerts que vão aparecer</p>
+              <p className="text-white">olhos: <span className="text-green-400">{watch('olhos' as any)}</span></p>
+              <p className="text-white">tatuagem: <span className="text-green-400">{String(watch('tatuagem' as any))}</span></p>
+              <p className="text-xs text-gray-400 mt-2">Verificação dos valores dos campos personalizados</p>
             </div>
 
             {/* Gerenciar Mídia */}
