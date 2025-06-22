@@ -1,11 +1,11 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder } from '@/hooks/useCustomFields';
+import { useSystemFieldsInitializer } from '@/hooks/useSystemFieldsInitializer';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List } from 'lucide-react';
+import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List, Database } from 'lucide-react';
 import CustomFieldForm from './CustomFieldForm';
 import SectionManager from './SectionManager';
 import {
@@ -36,13 +36,24 @@ const CustomFieldsManager = () => {
   const updateFieldOrder = useUpdateFieldOrder();
   const updateSectionOrder = useUpdateSectionOrder();
   const { toast } = useToast();
+  const { initializeSystemData } = useSystemFieldsInitializer();
 
-  // Usar apenas as seções personalizadas da base de dados
+  // Verificar se existem campos/seções do sistema, se não existirem, criar
+  useEffect(() => {
+    const hasSystemFields = customFields.some(field => 
+      ['name', 'age', 'height', 'weight'].includes(field.field_name)
+    );
+    
+    if (!isLoading && customFields.length === 0 && customSections.length === 0) {
+      console.log('Inicializando campos e seções do sistema...');
+      initializeSystemData();
+    }
+  }, [customFields, customSections, isLoading, initializeSystemData]);
+
   const allSections = customSections
     .filter(section => section.is_active)
     .sort((a, b) => a.display_order - b.display_order);
 
-  // Usar apenas os campos personalizados da base de dados
   const allFields = customFields
     .sort((a, b) => a.display_order - b.display_order);
 
@@ -53,7 +64,6 @@ const CustomFieldsManager = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Atualizar ordens de todas as seções
     const updates = items.map((item, index) => ({
       id: item.id,
       display_order: index + 1
@@ -184,6 +194,13 @@ const CustomFieldsManager = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">Gerenciamento de Campos e Seções</h1>
         <div className="flex space-x-2">
+          <Button
+            onClick={() => initializeSystemData()}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Database className="h-4 w-4 mr-2" />
+            Recriar Sistema
+          </Button>
           <Button
             onClick={() => setShowSectionManager(true)}
             className="bg-green-600 hover:bg-green-700"

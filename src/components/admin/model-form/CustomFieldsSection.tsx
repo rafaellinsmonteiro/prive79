@@ -51,7 +51,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Textarea
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
@@ -79,7 +79,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     type="number"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -133,7 +133,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormLabel className="text-white">
                   {field.label} {field.is_required && '*'}
                 </FormLabel>
-                <Select onValueChange={formField.onChange} value={formField.value ? String(formField.value) : ''}>
+                <Select onValueChange={formField.onChange} value={formField.value != null ? String(formField.value) : ''}>
                   <FormControl>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                       <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
@@ -170,7 +170,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     type="date"
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
@@ -198,7 +198,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     type="email"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -227,7 +227,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     type="url"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -256,7 +256,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
