@@ -15,6 +15,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+interface DefaultField {
+  name: string;
+  label: string;
+  type: string;
+  required: boolean;
+  is_default: boolean;
+}
+
 const CustomFieldsManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingField, setEditingField] = useState<any>(null);
@@ -25,7 +33,7 @@ const CustomFieldsManager = () => {
   const { toast } = useToast();
 
   // Campos padrão existentes no modelo
-  const defaultFields = [
+  const defaultFields: DefaultField[] = [
     { name: 'name', label: 'Nome', type: 'text', required: true, is_default: true },
     { name: 'age', label: 'Idade', type: 'number', required: true, is_default: true },
     { name: 'height', label: 'Altura', type: 'text', required: false, is_default: true },
@@ -42,9 +50,6 @@ const CustomFieldsManager = () => {
     { name: 'whatsapp_number', label: 'WhatsApp', type: 'text', required: false, is_default: true },
     { name: 'neighborhood', label: 'Bairro', type: 'text', required: false, is_default: true },
   ];
-
-  // Combinar campos padrão com campos personalizados
-  const allFields = [...defaultFields, ...customFields];
 
   const handleCreateField = async (fieldData: any) => {
     try {
@@ -151,7 +156,7 @@ const CustomFieldsManager = () => {
 
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white">Todos os Campos</CardTitle>
+          <CardTitle className="text-white">Campos Padrão do Sistema</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -166,73 +171,114 @@ const CustomFieldsManager = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allFields.map((field, index) => (
-                <TableRow key={field.id || `default-${index}`} className="border-zinc-700">
+              {defaultFields.map((field, index) => (
+                <TableRow key={`default-${index}`} className="border-zinc-700">
                   <TableCell className="text-white font-mono text-sm">
-                    {field.field_name || field.name}
+                    {field.name}
                   </TableCell>
                   <TableCell className="text-white">
                     {field.label}
                   </TableCell>
                   <TableCell className="text-zinc-300">
-                    {getFieldTypeName(field.field_type || field.type)}
+                    {getFieldTypeName(field.type)}
                   </TableCell>
                   <TableCell className="text-zinc-300">
-                    {field.is_required || field.required ? 'Sim' : 'Não'}
+                    {field.required ? 'Sim' : 'Não'}
                   </TableCell>
                   <TableCell className="text-zinc-300">
-                    {field.is_default ? (
-                      <span className="text-blue-400">Padrão</span>
-                    ) : field.is_active ? (
-                      <span className="text-green-400">Ativo</span>
-                    ) : (
-                      <span className="text-red-400">Inativo</span>
-                    )}
+                    <span className="text-blue-400">Campo do Sistema</span>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
-                      {!field.is_default && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingField(field);
-                              setShowForm(true);
-                            }}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteField(field.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      {field.is_default && (
-                        <span className="text-xs text-zinc-500 px-2 py-1">
-                          Campo do sistema
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-xs text-zinc-500 px-2 py-1">
+                      Não editável
+                    </span>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-
-          {allFields.length === 0 && (
-            <div className="text-center py-8 text-zinc-400">
-              Nenhum campo encontrado. Clique em "Novo Campo" para criar o primeiro.
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {customFields.length > 0 && (
+        <Card className="bg-zinc-900 border-zinc-800">
+          <CardHeader>
+            <CardTitle className="text-white">Campos Personalizados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-zinc-700">
+                  <TableHead className="text-zinc-300">Nome do Campo</TableHead>
+                  <TableHead className="text-zinc-300">Rótulo</TableHead>
+                  <TableHead className="text-zinc-300">Tipo</TableHead>
+                  <TableHead className="text-zinc-300">Obrigatório</TableHead>
+                  <TableHead className="text-zinc-300">Status</TableHead>
+                  <TableHead className="text-zinc-300">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {customFields.map((field) => (
+                  <TableRow key={field.id} className="border-zinc-700">
+                    <TableCell className="text-white font-mono text-sm">
+                      {field.field_name}
+                    </TableCell>
+                    <TableCell className="text-white">
+                      {field.label}
+                    </TableCell>
+                    <TableCell className="text-zinc-300">
+                      {getFieldTypeName(field.field_type)}
+                    </TableCell>
+                    <TableCell className="text-zinc-300">
+                      {field.is_required ? 'Sim' : 'Não'}
+                    </TableCell>
+                    <TableCell className="text-zinc-300">
+                      {field.is_active ? (
+                        <span className="text-green-400">Ativo</span>
+                      ) : (
+                        <span className="text-red-400">Inativo</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingField(field);
+                            setShowForm(true);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteField(field.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {customFields.length === 0 && (
+        <Card className="bg-zinc-900 border-zinc-800">
+          <CardContent className="text-center py-8">
+            <div className="text-zinc-400">
+              Nenhum campo personalizado criado ainda. Clique em "Novo Campo" para criar o primeiro.
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

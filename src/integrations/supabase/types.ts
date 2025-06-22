@@ -81,6 +81,51 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_fields: {
+        Row: {
+          created_at: string
+          display_order: number
+          field_name: string
+          field_type: string
+          help_text: string | null
+          id: string
+          is_active: boolean
+          is_required: boolean
+          label: string
+          options: string[] | null
+          placeholder: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          field_name: string
+          field_type: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          label: string
+          options?: string[] | null
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          field_name?: string
+          field_type?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          label?: string
+          options?: string[] | null
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_configurations: {
         Row: {
           city_id: string | null
