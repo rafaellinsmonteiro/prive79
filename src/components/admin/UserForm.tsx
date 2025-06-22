@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -100,13 +99,19 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         await updateUserMutation.mutateAsync({ id: userId, ...submitData });
         toast.success('Usuário atualizado com sucesso!');
       } else {
-        await createUserMutation.mutateAsync(submitData);
-        toast.success('Usuário criado com sucesso!');
+        // For creation, password is required
+        if (!data.password) {
+          toast.error('Senha é obrigatória para criar um usuário');
+          return;
+        }
+        await createUserMutation.mutateAsync({ ...submitData, password: data.password });
+        toast.success('Usuário criado com sucesso! Agora ele pode fazer login no sistema.');
       }
       onSuccess();
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
-      toast.error('Erro ao salvar usuário');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error(`Erro ao salvar usuário: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,6 +166,11 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         />
         {errors.password && (
           <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
+        {!userId && (
+          <p className="text-zinc-400 text-xs mt-1">
+            A senha permitirá que o usuário faça login no sistema
+          </p>
         )}
       </div>
 
