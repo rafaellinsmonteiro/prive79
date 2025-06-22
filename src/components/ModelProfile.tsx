@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowLeft, ArrowRight, X, Video, Play } from "lucide-react";
@@ -29,11 +28,11 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
   const currentMedia = mediaItems[currentImageIndex];
 
-  // Organize fields by sections - excluding unwanted sections
+  // Organize fields by sections - excluding unwanted sections and duplicate fields
   const organizeFieldsBySection = () => {
     const sections: Record<string, Array<{ label: string; value: any; type?: string }>> = {};
 
-    // Informações Básicas
+    // Informações Básicas - filtering out duplicates without "2"
     const basicInfo = [];
     if (model.name) basicInfo.push({ label: 'Nome', value: model.name });
     if (model.age) basicInfo.push({ label: 'Idade', value: model.age });
@@ -41,7 +40,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
     if (basicInfo.length > 0) sections['Informações Básicas'] = basicInfo;
 
-    // Características Físicas
+    // Características Físicas - filtering out duplicates without "2"
     const physicalInfo = [];
     if (model.height) physicalInfo.push({ label: 'Altura', value: model.height });
     if (model.weight) physicalInfo.push({ label: 'Peso', value: model.weight });
@@ -54,10 +53,28 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
     if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
 
-    // Custom Fields por seção - excluindo seções administrativas
+    // Custom Fields por seção - excluindo seções administrativas e campos duplicados
     const activeCustomFields = customFields.filter(field => field.is_active);
     
+    // Create a map to track duplicate field names and prioritize those with "2"
+    const fieldMap = new Map();
+    
     activeCustomFields.forEach(field => {
+      const baseName = field.field_name.replace(/2$/, ''); // Remove "2" from end to get base name
+      
+      if (!fieldMap.has(baseName)) {
+        fieldMap.set(baseName, field);
+      } else {
+        // If we already have this base name, keep the one with "2" at the end
+        const existing = fieldMap.get(baseName);
+        if (field.field_name.endsWith('2') && !existing.field_name.endsWith('2')) {
+          fieldMap.set(baseName, field);
+        }
+      }
+    });
+    
+    // Now process the filtered fields
+    Array.from(fieldMap.values()).forEach(field => {
       let value;
       
       // Check if it's an integrated field or custom field
@@ -243,7 +260,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                 </Button>
               )}
 
-              {/* Display sections with data - excluding administrative sections */}
+              {/* Display sections with data - excluding administrative sections and duplicates */}
               {Object.entries(sectionsByData).map(([sectionName, fields]) => (
                 <div key={sectionName} className="space-y-4">
                   <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">

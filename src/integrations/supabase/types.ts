@@ -445,6 +445,7 @@ export type Database = {
           languages: string | null
           name: string
           neighborhood: string | null
+          nuru: boolean | null
           olhos: string | null
           oral2: boolean | null
           shoe_size: string | null
@@ -481,6 +482,7 @@ export type Database = {
           languages?: string | null
           name: string
           neighborhood?: string | null
+          nuru?: boolean | null
           olhos?: string | null
           oral2?: boolean | null
           shoe_size?: string | null
@@ -517,6 +519,7 @@ export type Database = {
           languages?: string | null
           name?: string
           neighborhood?: string | null
+          nuru?: boolean | null
           olhos?: string | null
           oral2?: boolean | null
           shoe_size?: string | null
