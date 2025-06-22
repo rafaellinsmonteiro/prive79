@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { useAdminCustomFields, useAdminCustomSections, useDeleteCustomField, useDeleteCustomSection } from '@/hooks/useAdminCustomFields';
 import { useCreateCustomField, useUpdateCustomField, useCreateCustomSection, useUpdateCustomSection } from '@/hooks/useCustomFields';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, RefreshCw } from 'lucide-react';
 import DraggableCustomFieldsList from './DraggableCustomFieldsList';
 import CustomFieldForm from './CustomFieldForm';
 import SectionManager from './SectionManager';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ const CustomFieldsManager = () => {
   const createCustomSection = useCreateCustomSection();
   const updateCustomSection = useUpdateCustomSection();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleEditField = (id: string) => {
     setEditingFieldId(id);
@@ -73,6 +75,9 @@ const CustomFieldsManager = () => {
         toast({ title: "Campo criado com sucesso!" });
       }
       handleCloseFieldForm();
+      
+      // Force refresh all related queries
+      await refreshCache();
     } catch (error) {
       console.error('Error saving field:', error);
       toast({ 
@@ -93,6 +98,9 @@ const CustomFieldsManager = () => {
         toast({ title: "Seção criada com sucesso!" });
       }
       handleCloseSectionForm();
+      
+      // Force refresh all related queries
+      await refreshCache();
     } catch (error) {
       console.error('Error saving section:', error);
       toast({ 
@@ -101,6 +109,19 @@ const CustomFieldsManager = () => {
         variant: "destructive" 
       });
     }
+  };
+
+  const refreshCache = async () => {
+    console.log('🔄 Forcing cache refresh for custom fields and sections...');
+    await queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+    await queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
+    await queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    await queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
+    await queryClient.refetchQueries({ queryKey: ['custom-fields'] });
+    await queryClient.refetchQueries({ queryKey: ['admin-custom-fields'] });
+    await queryClient.refetchQueries({ queryKey: ['custom-sections'] });
+    await queryClient.refetchQueries({ queryKey: ['admin-custom-sections'] });
+    console.log('✅ Cache refresh completed');
   };
 
   const handleClearAll = async () => {
@@ -127,6 +148,7 @@ const CustomFieldsManager = () => {
     }
   
     toast({ title: "Todos os campos e seções foram removidos." });
+    await refreshCache();
   };
 
   // Get the field object for editing
@@ -138,6 +160,10 @@ const CustomFieldsManager = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">Gestão de Campos Personalizados</h2>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={refreshCache}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar Cache
+          </Button>
           <Button variant="destructive" onClick={() => setShowClearAllDialog(true)}>
             <Trash2 className="h-4 w-4 mr-2" />
             Limpar Tudo

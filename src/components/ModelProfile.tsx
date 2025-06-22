@@ -1,10 +1,10 @@
 
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowLeft, ArrowRight, X, Video, Play } from "lucide-react";
 import { Model } from "@/hooks/useModels";
 import { useModelMedia } from "@/hooks/useModelMedia";
+import { useCustomFields, useCustomSections } from "@/hooks/useCustomFields";
 
 interface ModelProfileProps {
   model: Model;
@@ -14,6 +14,8 @@ interface ModelProfileProps {
 const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { data: mediaItems = [] } = useModelMedia(model.id);
+  const { data: customFields = [] } = useCustomFields();
+  const { data: customSections = [] } = useCustomSections();
   
   const whatsappLink = `https://wa.me/${model.whatsapp_number}?text=Ol%C3%A1%20${encodeURIComponent(model.name)},%20gostaria%20de%20conversar`;
 
@@ -53,6 +55,60 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       video.src = videoUrl;
     });
   };
+
+  // Filter and organize custom fields for display
+  const systemSections = [
+    'Informações Básicas',
+    'Características Físicas', 
+    'Atendimento',
+    'Outras Informações',
+    'Controle de Acesso',
+    'Configurações'
+  ];
+
+  const activeCustomFields = customFields.filter(field => 
+    field.is_active && 
+    !systemSections.includes(field.section || '') &&
+    !['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name)
+  );
+
+  const customFieldsBySection = activeCustomFields.reduce((acc, field) => {
+    const section = field.section || 'Campos Personalizados';
+    if (!acc[section]) {
+      acc[section] = [];
+    }
+    acc[section].push(field);
+    return acc;
+  }, {} as Record<string, typeof activeCustomFields>);
+
+  // Get custom field values from model data (assuming they're stored with custom_ prefix)
+  const getCustomFieldValue = (fieldName: string) => {
+    const key = `custom_${fieldName}`;
+    return (model as any)[key];
+  };
+
+  const formatCustomFieldValue = (field: typeof activeCustomFields[0], value: any) => {
+    if (value === null || value === undefined || value === '') return null;
+    
+    switch (field.field_type) {
+      case 'boolean':
+        return value ? 'Sim' : 'Não';
+      case 'date':
+        return new Date(value).toLocaleDateString('pt-BR');
+      case 'select':
+      case 'text':
+      case 'textarea':
+      case 'email':
+      case 'url':
+      case 'number':
+      default:
+        return String(value);
+    }
+  };
+
+  const activeCustomSections = customSections
+    .filter(section => section.is_active && !systemSections.includes(section.name))
+    .sort((a, b) => a.display_order - b.display_order);
 
   return (
     <div className="fixed inset-0 bg-zinc-950 z-50 overflow-y-auto">
@@ -296,6 +352,72 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                     <p className="text-zinc-300 leading-relaxed">{model.description}</p>
                   </div>
                 )}
+
+                {/* Custom Fields Sections */}
+                {activeCustomSections.map((section) => {
+                  const fieldsInSection = customFieldsBySection[section.name] || [];
+                  
+                  if (fieldsInSection.length === 0) return null;
+
+                  const visibleFields = fieldsInSection.filter(field => {
+                    const value = getCustomFieldValue(field.field_name);
+                    return value !== null && value !== undefined && value !== '';
+                  });
+
+                  if (visibleFields.length === 0) return null;
+
+                  return (
+                    <div key={section.id} className="space-y-4">
+                      <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                        {section.name}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        {visibleFields.map(field => {
+                          const value = getCustomFieldValue(field.field_name);
+                          const formattedValue = formatCustomFieldValue(field, value);
+                          
+                          if (!formattedValue) return null;
+
+                          return (
+                            <div key={field.id}>
+                              <span className="text-zinc-400 block">{field.label}</span>
+                              <span>{formattedValue}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Default custom fields section */}
+                {customFieldsBySection['Campos Personalizados'] && customFieldsBySection['Campos Personalizados'].length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                      Campos Personalizados
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      {customFieldsBySection['Campos Personalizados']
+                        .filter(field => {
+                          const value = getCustomFieldValue(field.field_name);
+                          return value !== null && value !== undefined && value !== '';
+                        })
+                        .map(field => {
+                          const value = getCustomFieldValue(field.field_name);
+                          const formattedValue = formatCustomFieldValue(field, value);
+                          
+                          if (!formattedValue) return null;
+
+                          return (
+                            <div key={field.id}>
+                              <span className="text-zinc-400 block">{field.label}</span>
+                              <span>{formattedValue}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -306,4 +428,3 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 };
 
 export default ModelProfile;
-
