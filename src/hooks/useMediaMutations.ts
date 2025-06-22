@@ -284,3 +284,79 @@ export const useUpdateVideoVisibility = () => {
     },
   });
 };
+
+export const useUpdatePhotoVisibilitySettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      photoId, 
+      visibilityType, 
+      allowedPlanIds 
+    }: { 
+      photoId: string; 
+      visibilityType: string; 
+      allowedPlanIds: string[]; 
+    }) => {
+      console.log('Updating photo visibility settings:', { photoId, visibilityType, allowedPlanIds });
+      
+      const { error } = await supabase
+        .from('model_photos')
+        .update({ 
+          visibility_type: visibilityType,
+          allowed_plan_ids: allowedPlanIds.length > 0 ? allowedPlanIds : null 
+        })
+        .eq('id', photoId);
+
+      if (error) {
+        console.error('Error updating photo visibility settings:', error);
+        throw error;
+      }
+      
+      console.log('Photo visibility settings updated successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['model-media'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};
+
+export const useUpdateVideoVisibilitySettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      videoId, 
+      visibilityType, 
+      allowedPlanIds 
+    }: { 
+      videoId: string; 
+      visibilityType: string; 
+      allowedPlanIds: string[]; 
+    }) => {
+      console.log('Updating video visibility settings:', { videoId, visibilityType, allowedPlanIds });
+      
+      const { error } = await supabase
+        .from('model_videos')
+        .update({ 
+          visibility_type: visibilityType,
+          allowed_plan_ids: allowedPlanIds.length > 0 ? allowedPlanIds : null 
+        })
+        .eq('id', videoId);
+
+      if (error) {
+        console.error('Error updating video visibility settings:', error);
+        throw error;
+      }
+      
+      console.log('Video visibility settings updated successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['model-media'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};

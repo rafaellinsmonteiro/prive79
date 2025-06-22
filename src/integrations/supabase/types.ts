@@ -212,6 +212,7 @@ export type Database = {
       }
       model_photos: {
         Row: {
+          allowed_plan_ids: string[] | null
           created_at: string
           display_order: number | null
           id: string
@@ -220,8 +221,10 @@ export type Database = {
           photo_url: string
           show_in_gallery: boolean | null
           show_in_profile: boolean | null
+          visibility_type: string | null
         }
         Insert: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number | null
           id?: string
@@ -230,8 +233,10 @@ export type Database = {
           photo_url: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          visibility_type?: string | null
         }
         Update: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number | null
           id?: string
@@ -240,6 +245,7 @@ export type Database = {
           photo_url?: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          visibility_type?: string | null
         }
         Relationships: [
           {
@@ -283,6 +289,7 @@ export type Database = {
       }
       model_videos: {
         Row: {
+          allowed_plan_ids: string[] | null
           created_at: string
           display_order: number | null
           duration: number | null
@@ -296,8 +303,10 @@ export type Database = {
           title: string | null
           updated_at: string
           video_url: string
+          visibility_type: string | null
         }
         Insert: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number | null
           duration?: number | null
@@ -311,8 +320,10 @@ export type Database = {
           title?: string | null
           updated_at?: string
           video_url: string
+          visibility_type?: string | null
         }
         Update: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number | null
           duration?: number | null
@@ -326,6 +337,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           video_url?: string
+          visibility_type?: string | null
         }
         Relationships: [
           {
@@ -340,6 +352,7 @@ export type Database = {
       models: {
         Row: {
           age: number
+          allowed_plan_ids: string[] | null
           appearance: string | null
           body_type: string | null
           bust: string | null
@@ -358,12 +371,14 @@ export type Database = {
           shoe_size: string | null
           silicone: boolean | null
           updated_at: string
+          visibility_type: string | null
           waist: string | null
           weight: string | null
           whatsapp_number: string | null
         }
         Insert: {
           age: number
+          allowed_plan_ids?: string[] | null
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
@@ -382,12 +397,14 @@ export type Database = {
           shoe_size?: string | null
           silicone?: boolean | null
           updated_at?: string
+          visibility_type?: string | null
           waist?: string | null
           weight?: string | null
           whatsapp_number?: string | null
         }
         Update: {
           age?: number
+          allowed_plan_ids?: string[] | null
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
@@ -406,6 +423,7 @@ export type Database = {
           shoe_size?: string | null
           silicone?: boolean | null
           updated_at?: string
+          visibility_type?: string | null
           waist?: string | null
           weight?: string | null
           whatsapp_number?: string | null

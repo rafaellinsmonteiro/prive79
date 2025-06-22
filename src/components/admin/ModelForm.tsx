@@ -26,6 +26,8 @@ interface ModelFormProps {
 
 export type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'photos' | 'categories'> & {
   category_ids: string[];
+  visibility_type?: string;
+  allowed_plan_ids?: string[];
 };
 
 const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
@@ -59,6 +61,8 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       is_active: true,
       display_order: 0,
       category_ids: [],
+      visibility_type: 'public',
+      allowed_plan_ids: [],
     }
   });
 
@@ -235,6 +239,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <CategoriesSection form={form} categories={categories || []} />
             <PhysicalCharacteristicsSection form={form} />
             <OtherInfoSection form={form} />
+            <VisibilitySection form={form} />
             <SettingsSection form={form} />
 
             {/* Gerenciar Mídia */}
