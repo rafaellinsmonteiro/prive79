@@ -94,6 +94,7 @@ export type Database = {
           label: string
           options: string[] | null
           placeholder: string | null
+          section: string | null
           updated_at: string
         }
         Insert: {
@@ -108,6 +109,7 @@ export type Database = {
           label: string
           options?: string[] | null
           placeholder?: string | null
+          section?: string | null
           updated_at?: string
         }
         Update: {
@@ -122,7 +124,32 @@ export type Database = {
           label?: string
           options?: string[] | null
           placeholder?: string | null
+          section?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      custom_sections: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
         }
         Relationships: []
       }

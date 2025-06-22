@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,7 +52,8 @@ export const useCustomSections = () => {
   return useQuery({
     queryKey: ['custom-sections'],
     queryFn: async (): Promise<CustomSection[]> => {
-      const { data, error } = await supabase
+      // Usando any para contornar o problema de tipos temporariamente
+      const { data, error } = await (supabase as any)
         .from('custom_sections')
         .select('*')
         .order('display_order', { ascending: true });
@@ -141,7 +143,8 @@ export const useCreateCustomSection = () => {
 
   return useMutation({
     mutationFn: async (sectionData: Omit<CustomSection, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
+      // Usando any para contornar o problema de tipos temporariamente
+      const { data, error } = await (supabase as any)
         .from('custom_sections')
         .insert(sectionData)
         .select()
