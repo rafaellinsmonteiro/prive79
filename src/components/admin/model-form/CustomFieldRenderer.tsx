@@ -27,7 +27,13 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
     return String(value);
   };
 
+  const formatNumberValue = (value: any): string => {
+    if (value === null || value === undefined || value === '') return '';
+    return String(value);
+  };
+
   console.log(`🎨 CustomFieldRenderer - Rendering field: ${field.field_name} (${field.field_type})`);
+  console.log(`🎨 Field options:`, field.options);
 
   switch (field.field_type) {
     case 'textarea':
@@ -73,7 +79,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               <FormControl>
                 <Input
                   {...formField}
-                  value={formatValue(formField.value)}
+                  value={formatNumberValue(formField.value)}
                   onChange={(e) => {
                     const value = e.target.value;
                     formField.onChange(value === '' ? '' : Number(value));
@@ -111,7 +117,10 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
               <FormControl>
                 <Switch
                   checked={Boolean(formField.value)}
-                  onCheckedChange={formField.onChange}
+                  onCheckedChange={(checked) => {
+                    console.log(`🔧 Boolean field ${field.field_name} changed to:`, checked);
+                    formField.onChange(checked);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -132,7 +141,10 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
                 {field.label} {field.is_required && '*'}
               </FormLabel>
               <Select 
-                onValueChange={(value) => formField.onChange(value)}
+                onValueChange={(value) => {
+                  console.log(`🔧 Select field ${field.field_name} changed to:`, value);
+                  formField.onChange(value);
+                }}
                 value={formatValue(formField.value)}
               >
                 <FormControl>

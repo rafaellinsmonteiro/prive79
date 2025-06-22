@@ -20,10 +20,19 @@ const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsPro
     
     console.log(`🔍 IntegratedCustomFields - Field ${field.field_name}: active=${isActive}, section=${field.section}, forThisSection=${isForThisSection}, isSystem=${isSystemField}`);
     
-    return isActive && isForThisSection && !isSystemField;
+    // IMPORTANTE: Não excluir campo "eyes" se ele foi criado como campo personalizado
+    const isCustomEyesField = field.field_name === 'eyes' && field.section === sectionName;
+    
+    return isActive && isForThisSection && (!isSystemField || isCustomEyesField);
   }).sort((a, b) => a.display_order - b.display_order);
 
   console.log(`✅ IntegratedCustomFields - Found ${fieldsForSection.length} fields for section "${sectionName}"`);
+  console.log(`📝 Fields details:`, fieldsForSection.map(f => ({ 
+    name: f.field_name, 
+    label: f.label, 
+    type: f.field_type,
+    options: f.options 
+  })));
 
   if (fieldsForSection.length === 0) {
     return null;

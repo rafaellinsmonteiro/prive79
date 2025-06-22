@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import MediaManager from '@/components/admin/MediaManager';
 import { useCities } from '@/hooks/useCities';
 import { Form } from "@/components/ui/form";
 import { useAdminCategories } from '@/hooks/useAdminCategories';
+import { useCustomFields } from '@/hooks/useCustomFields';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import BasicInfoSection from './model-form/BasicInfoSection';
@@ -41,6 +41,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const { data: existingModel } = useModel(modelId || '');
   const { data: cities = [] } = useCities();
   const { data: categories = [] } = useAdminCategories();
+  const { data: customFields = [] } = useCustomFields();
   const { toast } = useToast();
   const { user, isAdmin, session } = useAuth();
 
@@ -89,12 +90,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   }, [user, isAdmin, session]);
 
   useEffect(() => {
-    if (existingModel) {
+    if (existingModel && customFields.length > 0) {
       console.log('🔄 FORM: Loading existing model data:', existingModel);
-      console.log('🔄 FORM: Raw visibility from database:', {
-        visibility_type: existingModel.visibility_type,
-        allowed_plan_ids: existingModel.allowed_plan_ids
-      });
+      console.log('🔄 FORM: Available custom fields:', customFields.map(f => f.field_name));
       
       // Primeiro, criar um objeto com todos os dados do modelo
       const formData: ModelFormData = {
@@ -123,11 +121,18 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           : [],
       };
       
-      console.log('🔄 FORM: Processed form data:', {
-        visibility_type: formData.visibility_type,
-        allowed_plan_ids: formData.allowed_plan_ids,
-        categories_count: formData.category_ids?.length || 0
+      // Adicionar campos personalizados
+      customFields.forEach(field => {
+        const customFieldKey = `custom_${field.field_name}`;
+        const modelValue = (existingModel as any)[field.field_name] || (existingModel as any)[customFieldKey];
+        
+        if (modelValue !== undefined && modelValue !== null) {
+          console.log(`🔧 Loading custom field ${field.field_name}:`, modelValue);
+          (formData as any)[customFieldKey] = modelValue;
+        }
       });
+      
+      console.log('🔄 FORM: Final form data with custom fields:', formData);
       
       // Resetar o formulário com todos os dados de uma vez
       reset(formData);
@@ -149,7 +154,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         }
       }, 100);
     }
-  }, [existingModel, reset, setValue, form]);
+  }, [existingModel, customFields, reset, setValue, form]);
 
   const onSubmit = async (data: ModelFormData) => {
     console.log('🚀 FORM SUBMISSION STARTED');
@@ -183,17 +188,18 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       
       Object.entries(formData).forEach(([key, value]) => {
         if (key.startsWith('custom_')) {
-          // Este é um campo personalizado, mas não vamos salvá-lo na tabela models
-          customFieldsData[key] = value;
-          console.log(`🔧 Custom field detected: ${key} = ${value}`);
+          // Campo personalizado - remover o prefixo custom_ e adicionar ao modelo
+          const fieldName = key.replace('custom_', '');
+          customFieldsData[fieldName] = value;
+          modelData[fieldName] = value; // Também adicionar ao modelData para salvar
+          console.log(`🔧 Custom field ${fieldName} = ${value}`);
         } else {
-          // Este é um campo padrão do modelo
+          // Campo padrão do modelo
           modelData[key] = value;
         }
       });
       
-      console.log('🔧 Model data (standard fields):', modelData);
-      console.log('🔧 Custom fields data (ignored for now):', customFieldsData);
+      console.log('🔧 Model data (with custom fields):', modelData);
       
       let modelResult;
       

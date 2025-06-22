@@ -2,13 +2,6 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { ModelFormData } from '../ModelForm';
 import IntegratedCustomFields from './IntegratedCustomFields';
@@ -48,31 +41,6 @@ const PhysicalCharacteristicsSection = ({ form }: PhysicalCharacteristicsSection
               <FormControl>
                 <Input {...field} placeholder="Ex: 60kg" className="bg-zinc-800 border-zinc-700 text-white" />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="eyes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Olhos</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                    <SelectValue placeholder="Selecione a cor dos olhos" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="castanhos" className="text-white">Castanhos</SelectItem>
-                  <SelectItem value="verdes" className="text-white">Verdes</SelectItem>
-                  <SelectItem value="azuis" className="text-white">Azuis</SelectItem>
-                  <SelectItem value="pretos" className="text-white">Pretos</SelectItem>
-                  <SelectItem value="mel" className="text-white">Mel</SelectItem>
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
