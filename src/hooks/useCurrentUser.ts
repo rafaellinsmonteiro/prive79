@@ -31,9 +31,26 @@ export const useCurrentUser = () => {
         return null;
       }
 
-      console.log('useCurrentUser - Fetching user data for:', user.id);
-      console.log('useCurrentUser - User email:', user.email);
+      console.log('useCurrentUser - Starting fetch with auth user:', {
+        id: user.id,
+        email: user.email,
+        aud: user.aud,
+        role: user.role
+      });
       
+      // Debug: Let's check what users exist in the system_users table
+      console.log('useCurrentUser - Checking all system_users...');
+      const { data: allUsers, error: allUsersError } = await supabase
+        .from('system_users')
+        .select('*');
+      
+      if (allUsersError) {
+        console.error('useCurrentUser - Error fetching all users:', allUsersError);
+      } else {
+        console.log('useCurrentUser - All system_users:', allUsers);
+        console.log('useCurrentUser - Looking for user_id:', user.id, 'or email:', user.email);
+      }
+
       // First get the user data - try by user_id first, then by email
       let { data: userData, error: userError } = await supabase
         .from('system_users')
@@ -41,6 +58,8 @@ export const useCurrentUser = () => {
         .eq('user_id', user.id)
         .eq('is_active', true)
         .maybeSingle();
+
+      console.log('useCurrentUser - Query by user_id result:', { userData, userError });
 
       // If not found by user_id, try by email
       if (!userData && user.email) {
@@ -51,6 +70,8 @@ export const useCurrentUser = () => {
           .eq('email', user.email)
           .eq('is_active', true)
           .maybeSingle();
+        
+        console.log('useCurrentUser - Query by email result:', { userByEmail, emailError });
         
         userData = userByEmail;
         userError = emailError;
@@ -63,6 +84,7 @@ export const useCurrentUser = () => {
 
       if (!userData) {
         console.log('useCurrentUser - No user data found for user_id:', user.id, 'or email:', user.email);
+        console.log('useCurrentUser - This means the user is not in system_users table or is_active = false');
         return null;
       }
 
@@ -83,6 +105,8 @@ export const useCurrentUser = () => {
           planData = plan;
           console.log('useCurrentUser - Found plan data:', planData);
         }
+      } else {
+        console.log('useCurrentUser - User has no plan_id:', userData.plan_id);
       }
 
       const result = {
@@ -96,7 +120,8 @@ export const useCurrentUser = () => {
         email: result.email,
         user_role: result.user_role,
         plan_id: result.plan_id,
-        plan_name: result.plan?.name
+        plan_name: result.plan?.name,
+        has_plan: !!result.plan
       });
 
       return result;

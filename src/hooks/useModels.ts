@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,6 +61,19 @@ export const useModels = (cityId?: string) => {
         userPlanId: currentUser?.plan_id 
       });
       
+      // Debug: Let's check what models exist and their visibility settings
+      console.log('useModels - Checking all models with visibility...');
+      const { data: allModelsDebug, error: debugError } = await supabase
+        .from('models')
+        .select('id, name, visibility_type, allowed_plan_ids, is_active')
+        .eq('is_active', true);
+      
+      if (debugError) {
+        console.error('useModels - Debug query error:', debugError);
+      } else {
+        console.log('useModels - All active models:', allModelsDebug);
+      }
+      
       // 1. Fetch models with city filter and visibility
       let modelsQuery = supabase
         .from('models')
@@ -91,7 +103,8 @@ export const useModels = (cityId?: string) => {
           visibility_type: model.visibility_type,
           allowed_plan_ids: model.allowed_plan_ids,
           userPlanId: currentUser?.plan_id,
-          currentUser: !!currentUser
+          currentUser: !!currentUser,
+          hasCurrentUserData: currentUser ? 'YES' : 'NO'
         });
 
         // If user is admin, show all models
@@ -125,7 +138,13 @@ export const useModels = (cityId?: string) => {
           console.log(`useModels - Plan access check for ${model.name}:`, {
             userPlan: currentUser.plan_id,
             allowedPlans: model.allowed_plan_ids,
-            hasAccess
+            hasAccess,
+            planComparison: model.allowed_plan_ids.map(planId => ({
+              planId,
+              matches: planId === currentUser.plan_id,
+              userPlanType: typeof currentUser.plan_id,
+              allowedPlanType: typeof planId
+            }))
           });
           return hasAccess;
         }
