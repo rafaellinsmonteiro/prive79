@@ -129,7 +129,31 @@ export const useAuth = () => {
     console.log('Starting sign out process');
     
     try {
-      // First, clear the local state immediately
+      // Try to sign out from Supabase FIRST
+      console.log('Attempting to sign out from Supabase');
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('Supabase sign out error:', error);
+        // Force clear local storage and state even if Supabase fails
+        localStorage.removeItem('sb-hhpcrtpevucuucoiodxh-auth-token');
+        setState({
+          user: null,
+          session: null,
+          loading: false,
+          isAdmin: false,
+          authComplete: true,
+        });
+        return { error: null }; // Return success to UI
+      }
+      
+      console.log('Supabase sign out successful');
+      // State will be cleared by onAuthStateChange listener
+      return { error: null };
+    } catch (error) {
+      console.error('Sign out exception:', error);
+      // Force clear everything on exception
+      localStorage.removeItem('sb-hhpcrtpevucuucoiodxh-auth-token');
       setState({
         user: null,
         session: null,
@@ -137,31 +161,6 @@ export const useAuth = () => {
         isAdmin: false,
         authComplete: true,
       });
-      
-      // Check if we have a session before trying to sign out
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('No active session found, logout complete');
-        return { error: null };
-      }
-      
-      // Try to sign out from Supabase
-      console.log('Attempting to sign out from Supabase');
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Supabase sign out error (but local state cleared):', error);
-        // Even if Supabase logout fails, we've cleared local state
-        // so the user appears logged out in the UI
-      } else {
-        console.log('Supabase sign out successful');
-      }
-      
-      return { error: null }; // Always return success since local state is cleared
-    } catch (error) {
-      console.error('Sign out exception (but local state cleared):', error);
-      // Even if there's an exception, local state is cleared
       return { error: null };
     }
   };
