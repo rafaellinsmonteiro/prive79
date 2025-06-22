@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,53 +15,95 @@ const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('');
+  const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState({
-    email: user?.email || '',
-    name: user?.user_metadata?.name || '',
-    whatsapp: user?.user_metadata?.whatsapp || '',
+    email: '',
+    name: '',
+    whatsapp: '',
     password: '',
     confirmPassword: '',
   });
 
-  // Buscar informações do plano do usuário
-  React.useEffect(() => {
-    const fetchUserPlan = async () => {
-      if (!user?.id) return;
-      
+  // Carregar informações do usuário quando o componente monta
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { data, error } = await supabase
-          .from('system_users')
-          .select(`
-            plan_id,
-            plans (
-              name,
-              description,
-              price
-            )
-          `)
-          .eq('user_id', user.id)
-          .single();
+        console.log('Carregando dados do usuário:', user.id);
+        
+        // Carregar dados básicos do auth
+        const basicInfo = {
+          email: user.email || '',
+          name: user.user_metadata?.name || '',
+          whatsapp: user.user_metadata?.whatsapp || '',
+          password: '',
+          confirmPassword: '',
+        };
 
-        if (error) {
-          console.log('Erro ao buscar plano:', error);
-          setUserPlan('Nenhum plano ativo');
-          return;
-        }
+        console.log('Dados básicos do auth:', basicInfo);
+        setUserInfo(basicInfo);
 
-        if (data?.plans) {
-          const plan = data.plans as any;
-          setUserPlan(`${plan.name} - R$ ${plan.price}`);
-        } else {
-          setUserPlan('Nenhum plano ativo');
-        }
+        // Buscar informações do plano
+        await fetchUserPlan();
+        
       } catch (error) {
-        console.error('Erro ao buscar plano:', error);
-        setUserPlan('Nenhum plano ativo');
+        console.error('Erro ao carregar dados do usuário:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar informações do usuário",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserPlan();
-  }, [user?.id]);
+    loadUserData();
+  }, [user, toast]);
+
+  // Buscar informações do plano do usuário
+  const fetchUserPlan = async () => {
+    if (!user?.id) return;
+    
+    try {
+      console.log('Buscando plano para usuário:', user.id);
+      
+      const { data, error } = await supabase
+        .from('system_users')
+        .select(`
+          plan_id,
+          plans (
+            name,
+            description,
+            price
+          )
+        `)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.log('Erro ao buscar plano:', error);
+        setUserPlan('Nenhum plano ativo');
+        return;
+      }
+
+      if (data?.plans) {
+        const plan = data.plans as any;
+        setUserPlan(`${plan.name} - R$ ${plan.price}`);
+        console.log('Plano encontrado:', plan);
+      } else {
+        setUserPlan('Nenhum plano ativo');
+        console.log('Nenhum plano encontrado para o usuário');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar plano:', error);
+      setUserPlan('Erro ao carregar plano');
+    }
+  };
 
   const handleSignOut = async () => {
     console.log('User profile - signing out');
@@ -119,9 +161,12 @@ const UserProfile = () => {
         updateData.password = userInfo.password;
       }
 
+      console.log('Atualizando usuário com dados:', updateData);
+
       const { error } = await supabase.auth.updateUser(updateData);
 
       if (error) {
+        console.error('Erro ao atualizar usuário:', error);
         toast({
           title: "Erro ao atualizar",
           description: error.message,
@@ -154,6 +199,7 @@ const UserProfile = () => {
   };
 
   const handleCancel = () => {
+    // Restaurar dados originais
     setUserInfo({
       email: user?.email || '',
       name: user?.user_metadata?.name || '',
@@ -164,8 +210,24 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
+  if (loading) {
+    return (
+      <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
+        <CardContent className="p-6">
+          <div className="text-center text-zinc-400">Carregando...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!user) {
-    return null;
+    return (
+      <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
+        <CardContent className="p-6">
+          <div className="text-center text-zinc-400">Usuário não encontrado</div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -278,7 +340,7 @@ const UserProfile = () => {
             Plano Ativo
           </Label>
           <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-zinc-100">
-            {userPlan}
+            {userPlan || 'Carregando...'}
           </div>
         </div>
 
