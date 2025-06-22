@@ -38,13 +38,23 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    // Check if user is admin
-    const { data: isAdmin, error: adminError } = await supabaseAdmin.rpc('is_admin')
-    if (adminError || !isAdmin) {
+    // Check if user is admin in system_users table
+    const { data: systemUser, error: adminError } = await supabaseAdmin
+      .from('system_users')
+      .select('user_role')
+      .eq('user_id', user.id)
+      .eq('user_role', 'admin')
+      .eq('is_active', true)
+      .single()
+
+    if (adminError || !systemUser) {
+      console.log('Admin check failed:', adminError, 'systemUser:', systemUser)
       throw new Error('User is not admin')
     }
 
     const { email, password, name, user_role, plan_id, is_active } = await req.json()
+
+    console.log('Creating user:', { email, name, user_role })
 
     // Create user in auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -58,8 +68,11 @@ serve(async (req) => {
     })
 
     if (authError) {
+      console.error('Auth user creation failed:', authError)
       throw new Error(`Auth user creation failed: ${authError.message}`)
     }
+
+    console.log('Auth user created:', authData.user.id)
 
     // Create user in system_users table
     const { data: systemData, error: systemError } = await supabaseAdmin
@@ -76,10 +89,13 @@ serve(async (req) => {
       .single()
 
     if (systemError) {
+      console.error('System user creation failed:', systemError)
       // Cleanup auth user if system user creation fails
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
       throw new Error(`System user creation failed: ${systemError.message}`)
     }
+
+    console.log('System user created:', systemData.id)
 
     return new Response(
       JSON.stringify({ success: true, user: systemData }),
