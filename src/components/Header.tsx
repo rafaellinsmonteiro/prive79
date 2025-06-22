@@ -10,7 +10,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, ChevronDown, LogIn } from "lucide-react";
+import { Menu, MapPin, ChevronDown, LogIn, User } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
@@ -199,7 +199,7 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Área direita com Seletor de Cidades e Login */}
+          {/* Área direita com Seletor de Cidades e Login/Profile */}
           <div className="flex items-center space-x-4">
             {/* Seletor de Cidades */}
             <DropdownMenu>
@@ -226,11 +226,17 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Ícone de Login - mostra quando não há usuário ou quando auth ainda não completou */}
-            {shouldShowLoginIcon && (
+            {/* Login/Profile */}
+            {shouldShowLoginIcon ? (
               <a href="/login">
                 <Button variant="ghost" size="icon" className="text-zinc-400 hover:bg-white hover:text-black">
                   <LogIn className="h-4 w-4" />
+                </Button>
+              </a>
+            ) : (
+              <a href="/profile">
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:bg-white hover:text-black">
+                  <User className="h-4 w-4" />
                 </Button>
               </a>
             )}

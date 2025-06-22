@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import ModelPage from "./pages/ModelPage";
 import CityPage from "./pages/CityPage";
 import CategoryPage from "./pages/CategoryPage";
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/modelo/:id" element={<ModelPage />} />
             <Route path="/cidade/:cityId" element={<CityPage />} />
