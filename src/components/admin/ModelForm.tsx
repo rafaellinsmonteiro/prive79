@@ -94,32 +94,31 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       });
       
       // Primeiro, criar um objeto com todos os dados do modelo
-      const formData: Partial<ModelFormData> = {};
-      
-      // Copiar todos os campos básicos
-      const modelKeys = Object.keys(form.getValues()) as Array<keyof ModelFormData>;
-      modelKeys.forEach((key) => {
-        if (key !== 'category_ids' && key !== 'visibility_type' && key !== 'allowed_plan_ids') {
-          const value = existingModel[key as keyof Model];
-          if (value !== undefined && value !== null) {
-            formData[key] = value as any;
-          }
-        }
-      });
-      
-      // Configurar categorias
-      if (existingModel.categories) {
-        formData.category_ids = existingModel.categories.map(c => c.id);
-      }
-      
-      // Configurar visibilidade com valores seguros
-      const visibilityType = existingModel.visibility_type || 'public';
-      const allowedPlanIds = Array.isArray(existingModel.allowed_plan_ids) 
-        ? existingModel.allowed_plan_ids 
-        : [];
-      
-      formData.visibility_type = visibilityType;
-      formData.allowed_plan_ids = allowedPlanIds;
+      const formData: ModelFormData = {
+        name: existingModel.name || '',
+        age: existingModel.age || 18,
+        city_id: existingModel.city_id || undefined,
+        neighborhood: existingModel.neighborhood || '',
+        height: existingModel.height || '',
+        weight: existingModel.weight || '',
+        silicone: !!existingModel.silicone,
+        shoe_size: existingModel.shoe_size || '',
+        bust: existingModel.bust || '',
+        waist: existingModel.waist || '',
+        hip: existingModel.hip || '',
+        body_type: existingModel.body_type || '',
+        eyes: existingModel.eyes || '',
+        languages: existingModel.languages || '',
+        description: existingModel.description || '',
+        whatsapp_number: existingModel.whatsapp_number || '',
+        is_active: existingModel.is_active !== false,
+        display_order: existingModel.display_order || 0,
+        category_ids: existingModel.categories ? existingModel.categories.map(c => c.id) : [],
+        visibility_type: existingModel.visibility_type || 'public',
+        allowed_plan_ids: Array.isArray(existingModel.allowed_plan_ids) 
+          ? existingModel.allowed_plan_ids 
+          : [],
+      };
       
       console.log('🔄 FORM: Processed form data:', {
         visibility_type: formData.visibility_type,
@@ -128,7 +127,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       });
       
       // Resetar o formulário com todos os dados de uma vez
-      reset(formData as ModelFormData);
+      reset(formData);
       
       // Forçar trigger para garantir que os valores sejam aplicados
       setTimeout(() => {
@@ -139,11 +138,11 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         });
         
         // Se ainda não estiver correto, forçar os valores individualmente
-        if (currentValues.visibility_type !== visibilityType || 
-            JSON.stringify(currentValues.allowed_plan_ids) !== JSON.stringify(allowedPlanIds)) {
+        if (currentValues.visibility_type !== formData.visibility_type || 
+            JSON.stringify(currentValues.allowed_plan_ids) !== JSON.stringify(formData.allowed_plan_ids)) {
           console.log('🔧 FORM: Force setting visibility values...');
-          setValue('visibility_type', visibilityType, { shouldDirty: true, shouldTouch: true });
-          setValue('allowed_plan_ids', allowedPlanIds, { shouldDirty: true, shouldTouch: true });
+          setValue('visibility_type', formData.visibility_type, { shouldDirty: true, shouldTouch: true });
+          setValue('allowed_plan_ids', formData.allowed_plan_ids, { shouldDirty: true, shouldTouch: true });
         }
       }, 100);
     }

@@ -94,10 +94,15 @@ export const useCurrentUser = () => {
       if (!userData) {
         console.log('useCurrentUser - No user data found for user_id:', user.id, 'or email:', user.email);
         console.log('useCurrentUser - This means the user is not in system_users table or is_active = false');
+        
+        // Alert to help with debugging
+        alert(`Usuário não encontrado no sistema. Email: ${user.email}, ID: ${user.id}`);
+        
         return null;
       }
 
       console.log('useCurrentUser - Found user data:', userData);
+      alert(`Usuário encontrado! Plan ID: ${userData.plan_id}`);
 
       let planData = null;
       if (userData.plan_id) {
@@ -110,12 +115,15 @@ export const useCurrentUser = () => {
 
         if (planError) {
           console.error('useCurrentUser - Error fetching plan data:', planError);
+          alert(`Erro ao carregar plano: ${planError.message}`);
         } else {
           planData = plan;
           console.log('useCurrentUser - Found plan data:', planData);
+          alert(`Plano encontrado: ${planData?.name || 'Sem nome'}`);
         }
       } else {
         console.log('useCurrentUser - User has no plan_id:', userData.plan_id);
+        alert('Usuário não possui plan_id definido');
       }
 
       const result = {
