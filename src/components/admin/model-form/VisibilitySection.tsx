@@ -14,8 +14,9 @@ const VisibilitySection = ({ form }: VisibilitySectionProps) => {
   const allowedPlanIds = watch('allowed_plan_ids') || [];
 
   const handleVisibilityChange = (type: string, planIds: string[]) => {
-    setValue('visibility_type', type);
-    setValue('allowed_plan_ids', planIds);
+    console.log('VisibilitySection - Updating visibility:', { type, planIds });
+    setValue('visibility_type', type, { shouldDirty: true });
+    setValue('allowed_plan_ids', planIds, { shouldDirty: true });
   };
 
   return (

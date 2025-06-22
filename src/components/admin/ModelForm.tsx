@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,6 +85,8 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
 
   useEffect(() => {
     if (existingModel) {
+      console.log('ModelForm - Loading existing model data:', existingModel);
+      
       const modelKeys = Object.keys(form.getValues());
       modelKeys.forEach((key) => {
         if (key !== 'id' && key !== 'created_at' && key !== 'updated_at' && key !== 'photos' && key !== 'categories' && key !== 'category_ids') {
@@ -93,9 +96,20 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           }
         }
       });
+      
+      // Set categories
       if (existingModel.categories) {
         setValue('category_ids', existingModel.categories.map(c => c.id));
       }
+      
+      // Set visibility settings with proper defaults
+      setValue('visibility_type', existingModel.visibility_type || 'public');
+      setValue('allowed_plan_ids', existingModel.allowed_plan_ids || []);
+      
+      console.log('ModelForm - Set visibility values:', {
+        visibility_type: existingModel.visibility_type || 'public',
+        allowed_plan_ids: existingModel.allowed_plan_ids || []
+      });
     }
   }, [existingModel, setValue, form]);
 
