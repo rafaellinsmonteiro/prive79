@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder, useDeleteCustomSection } from '@/hooks/useCustomFields';
 import { useSystemFieldsInitializer } from '@/hooks/useSystemFieldsInitializer';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List, Database } from 'lucide-react';
+import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List, Database, RefreshCw } from 'lucide-react';
 import CustomFieldForm from './CustomFieldForm';
 import SectionManager from './SectionManager';
 import {
@@ -22,11 +22,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 
 const CustomFieldsManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [showSectionManager, setShowSectionManager] = useState(false);
   const [editingField, setEditingField] = useState<any>(null);
+  const [isClearing, setIsClearing] = useState(false);
   
   const { data: customFields = [], isLoading } = useCustomFields();
   const { data: customSections = [] } = useCustomSections();
@@ -49,23 +51,58 @@ const CustomFieldsManager = () => {
     console.log('🔍 CustomFieldsManager - Sections:', customSections.map(s => s.name));
   }, [customFields, customSections]);
 
-  // Verificar se existem campos/seções do sistema, se não existirem, criar
-  useEffect(() => {
-    const hasSystemFields = customFields.some(field => 
-      ['name', 'age', 'height', 'weight'].includes(field.field_name)
-    );
-    
-    const hasSystemSections = customSections.some(section =>
-      ['Informações Básicas', 'Características Físicas'].includes(section.name)
-    );
-    
-    console.log('🔍 System check:', { hasSystemFields, hasSystemSections, fieldsCount: customFields.length, sectionsCount: customSections.length });
-    
-    if (!isLoading && (!hasSystemFields || !hasSystemSections)) {
-      console.log('🚀 Initializing system data automatically...');
-      initializeSystemData();
+  const clearAllCustomData = async () => {
+    if (!confirm('Tem certeza que deseja limpar TODOS os campos e seções personalizados? Esta ação não pode ser desfeita.')) {
+      return;
     }
-  }, [customFields, customSections, isLoading, initializeSystemData]);
+
+    setIsClearing(true);
+    try {
+      console.log('🧹 Limpando todos os campos e seções personalizados...');
+      
+      // Primeiro, limpar todos os campos
+      const { error: fieldsError } = await supabase
+        .from('custom_fields')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (fieldsError) {
+        throw fieldsError;
+      }
+
+      // Depois, limpar todas as seções
+      const { error: sectionsError } = await supabase
+        .from('custom_sections')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (sectionsError) {
+        throw sectionsError;
+      }
+
+      console.log('✅ Dados limpos com sucesso. Recriando campos do sistema...');
+      
+      // Esperar um pouco para garantir que as tabelas foram limpas
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recriar os campos do sistema
+      await initializeSystemData();
+      
+      toast({
+        title: "Sucesso",
+        description: "Todos os dados foram limpos e os campos do sistema foram recriados!",
+      });
+    } catch (error) {
+      console.error('❌ Erro ao limpar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao limpar dados. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   const allSections = customSections
     .filter(section => section.is_active)
@@ -241,6 +278,23 @@ const CustomFieldsManager = () => {
         <h1 className="text-2xl font-bold text-white">Gerenciamento de Campos e Seções</h1>
         <div className="flex space-x-2">
           <Button
+            onClick={clearAllCustomData}
+            disabled={isClearing}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            {isClearing ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Limpando...
+              </>
+            ) : (
+              <>
+                <Trash className="h-4 w-4 mr-2" />
+                Limpar Tudo
+              </>
+            )}
+          </Button>
+          <Button
             onClick={() => initializeSystemData()}
             className="bg-purple-600 hover:bg-purple-700"
           >
@@ -277,6 +331,7 @@ const CustomFieldsManager = () => {
         ).length}</p>
       </div>
 
+      {/* ... keep existing code (showForm and showSectionManager conditions) */}
       {(showForm || showSectionManager) && (
         <div className="space-y-4">
           {showForm && (
@@ -300,6 +355,7 @@ const CustomFieldsManager = () => {
         </div>
       )}
 
+      {/* ... keep existing code (Card with Tabs for sections and fields) */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
           <CardTitle className="text-white">Organização de Seções e Campos</CardTitle>
