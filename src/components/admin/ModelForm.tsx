@@ -18,6 +18,7 @@ import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristics
 import OtherInfoSection from './model-form/OtherInfoSection';
 import SettingsSection from './model-form/SettingsSection';
 import VisibilitySection from './model-form/VisibilitySection';
+import CustomFieldsSection from './model-form/CustomFieldsSection';
 
 interface ModelFormProps {
   modelId?: string;
@@ -29,6 +30,8 @@ export type ModelFormData = Omit<Model, 'id' | 'created_at' | 'updated_at' | 'ph
   category_ids: string[];
   visibility_type?: string;
   allowed_plan_ids?: string[];
+  // Campos personalizados dinâmicos
+  [key: string]: any;
 };
 
 const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
@@ -305,6 +308,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <CategoriesSection form={form} categories={categories || []} />
             <PhysicalCharacteristicsSection form={form} />
             <OtherInfoSection form={form} />
+            <CustomFieldsSection form={form} />
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
 

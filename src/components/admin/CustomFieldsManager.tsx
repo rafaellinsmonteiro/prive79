@@ -112,6 +112,7 @@ const CustomFieldsManager = () => {
         description: "Ordem dos campos atualizada com sucesso!",
       });
     } catch (error) {
+      console.error('Erro ao reordenar campos:', error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar ordem dos campos.",
