@@ -19,6 +19,9 @@ const MediaCard = ({ media }: MediaCardProps) => {
 
   const mediaUrl = `/midia/${media.media_type}/${media.id}`;
 
+  // Fallback thumbnail URL
+  const fallbackThumbnail = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop';
+
   return (
     <Link to={mediaUrl}>
       <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer group">
@@ -27,9 +30,10 @@ const MediaCard = ({ media }: MediaCardProps) => {
             {media.media_type === 'video' ? (
               <div className="relative">
                 <img
-                  src={media.thumbnail_url || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop'}
+                  src={imageError ? fallbackThumbnail : (media.thumbnail_url || fallbackThumbnail)}
                   alt={media.title || `Vídeo de ${media.model_name}`}
                   className="w-full h-48 object-cover"
+                  onError={handleImageError}
                 />
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                   <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
@@ -39,7 +43,7 @@ const MediaCard = ({ media }: MediaCardProps) => {
               </div>
             ) : (
               <img
-                src={imageError ? 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' : media.media_url}
+                src={imageError ? fallbackThumbnail : media.media_url}
                 alt={media.title || `Mídia de ${media.model_name}`}
                 className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                 onError={handleImageError}

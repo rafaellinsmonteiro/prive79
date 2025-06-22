@@ -194,7 +194,7 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
         const { data: videosData, error: videosError } = await videosQuery
           .order('created_at', { ascending: false });
 
-        console.log('useGalleryMedia - Raw videos data:', videosData);
+        console.log('useGalleryMedia - Raw videos data with thumbnails:', videosData);
 
         if (videosError) {
           console.error('Erro ao buscar vídeos da galeria:', videosError);
@@ -210,6 +210,7 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
               visibility_type: video.visibility_type,
               allowed_plan_ids: video.allowed_plan_ids,
               userPlanId: currentUser?.plan_id,
+              thumbnail_url: video.thumbnail_url,
               hasAccess
             });
             return hasAccess;
@@ -222,7 +223,7 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
             model_id: video.model_id,
             media_url: video.video_url,
             media_type: 'video' as MediaType,
-            thumbnail_url: video.thumbnail_url || undefined,
+            thumbnail_url: video.thumbnail_url,
             title: video.title || undefined,
             model_name: video.models.name,
             city_name: video.models.cities?.name,
