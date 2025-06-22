@@ -72,13 +72,19 @@ const AdvancedFilters = ({ onFiltersChange }: AdvancedFiltersProps) => {
                   Cidade
                 </label>
                 <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Todas as cidades" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as cidades</SelectItem>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="all" className="text-white hover:bg-zinc-700 focus:bg-zinc-700">
+                      Todas as cidades
+                    </SelectItem>
                     {cities.map((city) => (
-                      <SelectItem key={city.id} value={city.id}>
+                      <SelectItem 
+                        key={city.id} 
+                        value={city.id}
+                        className="text-white hover:bg-zinc-700 focus:bg-zinc-700"
+                      >
                         {city.name}
                       </SelectItem>
                     ))}
@@ -91,14 +97,14 @@ const AdvancedFilters = ({ onFiltersChange }: AdvancedFiltersProps) => {
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
                   Idade: {ageRange[0]} - {ageRange[1]} anos
                 </label>
-                <div className="px-2">
+                <div className="px-2 mt-4">
                   <Slider
                     value={ageRange}
                     onValueChange={(value) => setAgeRange(value as [number, number])}
                     min={18}
                     max={50}
                     step={1}
-                    className="mt-2"
+                    className="w-full"
                   />
                 </div>
               </div>
