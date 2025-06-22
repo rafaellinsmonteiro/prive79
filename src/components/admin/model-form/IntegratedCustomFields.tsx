@@ -12,7 +12,7 @@ interface IntegratedCustomFieldsProps {
 const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsProps) => {
   const { data: customFields = [] } = useCustomFields();
   
-  // Filtrar campos personalizados ativos para a seção específica
+  // Filtrar TODOS os campos personalizados ativos para a seção específica
   const fieldsForSection = customFields.filter(field => {
     const isActive = field.is_active;
     const isForThisSection = field.section === sectionName;
@@ -32,6 +32,7 @@ const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsPro
   })));
 
   if (fieldsForSection.length === 0) {
+    console.log(`⚠️ No fields found for section "${sectionName}"`);
     return null;
   }
 

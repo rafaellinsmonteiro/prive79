@@ -1,11 +1,18 @@
 
-import { UseFormReturn } from 'react-hook-form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { City } from '@/hooks/useCities';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { UseFormReturn } from 'react-hook-form';
 import { ModelFormData } from '../ModelForm';
+import { City } from '@/hooks/useCities';
+import IntegratedCustomFields from './IntegratedCustomFields';
 
 interface BasicInfoSectionProps {
   form: UseFormReturn<ModelFormData>;
@@ -13,81 +20,64 @@ interface BasicInfoSectionProps {
 }
 
 const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
-  // Ultra-comprehensive filtering to prevent Select.Item errors
-  const validCities = cities.filter(city => {
-    const hasValidId = city?.id && typeof city.id === 'string' && city.id.trim() !== '' && city.id !== 'undefined' && city.id !== 'null';
-    const hasValidName = city?.name && typeof city.name === 'string' && city.name.trim() !== '';
-    
-    if (!hasValidId || !hasValidName) {
-      console.warn('BasicInfoSection: Filtering invalid city', { city, hasValidId, hasValidName });
-      return false;
-    }
-    return true;
-  });
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
         Informações Básicas
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-white">Nome *</Label>
-          <Input
-            id="name"
-            {...form.register('name', { required: 'Nome é obrigatório' })}
-            className="bg-zinc-800 border-zinc-700 text-white"
-            placeholder="Nome da modelo"
-          />
-          {form.formState.errors.name && (
-            <p className="text-red-400 text-sm">{form.formState.errors.name.message}</p>
+        {/* Campos padrão do sistema */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Nome *</FormLabel>
+              <FormControl>
+                <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="age" className="text-white">Idade *</Label>
-          <Input
-            id="age"
-            type="number"
-            {...form.register('age', { 
-              required: 'Idade é obrigatória',
-              min: { value: 18, message: 'Idade mínima é 18 anos' },
-              max: { value: 65, message: 'Idade máxima é 65 anos' }
-            })}
-            className="bg-zinc-800 border-zinc-700 text-white"
-          />
-          {form.formState.errors.age && (
-            <p className="text-red-400 text-sm">{form.formState.errors.age.message}</p>
+        <FormField
+          control={form.control}
+          name="age"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Idade *</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  className="bg-zinc-800 border-zinc-700 text-white" 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
-        
+        />
+
         <FormField
           control={form.control}
           name="city_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-white">Cidade</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                value={field.value || undefined}
-              >
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Selecione uma cidade" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                  {validCities.length > 0 ? (
-                    validCities.map((city) => (
-                      <SelectItem key={city.id} value={city.id}>
-                        {city.name} - {city.state}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-cities-available" disabled>
-                      Nenhuma cidade disponível
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.id} className="text-white">
+                      {city.name}
                     </SelectItem>
-                  )}
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -95,26 +85,52 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
           )}
         />
 
-        <div className="space-y-2">
-          <Label htmlFor="neighborhood" className="text-white">Bairro</Label>
-          <Input
-            id="neighborhood"
-            {...form.register('neighborhood')}
-            className="bg-zinc-800 border-zinc-700 text-white"
-            placeholder="Ex: Jardins"
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="neighborhood"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Bairro</FormLabel>
+              <FormControl>
+                <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="whatsapp_number" className="text-white">WhatsApp</Label>
-          <Input
-            id="whatsapp_number"
-            {...form.register('whatsapp_number')}
-            placeholder="5511999999999"
-            className="bg-zinc-800 border-zinc-700 text-white"
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="whatsapp_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">WhatsApp</FormLabel>
+              <FormControl>
+                <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Campos personalizados integrados da seção "Informações Básicas" */}
+        <IntegratedCustomFields form={form} sectionName="Informações Básicas" />
       </div>
+
+      {/* Descrição - campo grande que fica em linha separada */}
+      <FormField
+        control={form.control}
+        name="description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white">Descrição</FormLabel>
+            <FormControl>
+              <Textarea {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 };
