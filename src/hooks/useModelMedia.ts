@@ -15,6 +15,8 @@ export interface ModelMedia {
   thumbnail_url?: string;
   title?: string;
   is_featured_in_reels?: boolean;
+  visibility_type?: string;
+  allowed_plan_ids?: string[];
 }
 
 export const useModelMedia = (modelId?: string) => {
@@ -56,7 +58,9 @@ export const useModelMedia = (modelId?: string) => {
         media_type: 'photo' as MediaType,
         is_primary: photo.is_primary || false,
         display_order: photo.display_order || 0,
-        created_at: photo.created_at
+        created_at: photo.created_at,
+        visibility_type: photo.visibility_type || 'public',
+        allowed_plan_ids: photo.allowed_plan_ids || []
       }));
 
       // Converter vídeos para o formato ModelMedia
@@ -69,7 +73,10 @@ export const useModelMedia = (modelId?: string) => {
         display_order: video.display_order || 0,
         created_at: video.created_at,
         thumbnail_url: video.thumbnail_url || undefined,
-        is_featured_in_reels: video.is_featured_in_reels || false
+        is_featured_in_reels: video.is_featured_in_reels || false,
+        title: video.title || undefined,
+        visibility_type: video.visibility_type || 'public',
+        allowed_plan_ids: video.allowed_plan_ids || []
       }));
 
       // Combinar e ordenar por display_order
