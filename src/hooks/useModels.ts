@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { Category } from "./useCategories";
 
 export interface ModelPhoto {
@@ -46,12 +47,18 @@ export interface Model {
 }
 
 export const useModels = (cityId?: string) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { data: currentUser } = useCurrentUser();
   
   return useQuery({
-    queryKey: ['models', cityId, isAdmin],
+    queryKey: ['models', cityId, isAdmin, currentUser?.plan_id],
     queryFn: async (): Promise<Model[]> => {
-      console.log('useModels - Starting fetch with params:', { cityId, isAdmin });
+      console.log('useModels - Starting fetch with params:', { 
+        cityId, 
+        isAdmin, 
+        userId: user?.id,
+        userPlanId: currentUser?.plan_id 
+      });
       
       // 1. Fetch models with city filter and visibility
       let modelsQuery = supabase
@@ -68,7 +75,6 @@ export const useModels = (cityId?: string) => {
         .order('display_order', { ascending: true });
 
       console.log('useModels - Raw models data:', modelsData);
-      console.log('useModels - Models error:', modelsError);
 
       if (modelsError) {
         console.error('Error fetching models:', modelsError);
@@ -76,26 +82,13 @@ export const useModels = (cityId?: string) => {
       }
       if (!modelsData) return [];
 
-      // Debug specific model
-      const maduSilva = modelsData.find(m => m.name.includes('Madu Silva') || m.name.includes('Madu'));
-      if (maduSilva) {
-        console.log('useModels - Found Madu Silva:', {
-          id: maduSilva.id,
-          name: maduSilva.name,
-          is_active: maduSilva.is_active,
-          visibility_type: maduSilva.visibility_type,
-          allowed_plan_ids: maduSilva.allowed_plan_ids
-        });
-      } else {
-        console.log('useModels - Madu Silva not found in raw data');
-      }
-
-      // Filter models based on visibility - admins can see all models
+      // Filter models based on visibility and user plan
       const filteredModels = modelsData.filter(model => {
         console.log(`useModels - Checking visibility for model ${model.name}:`, {
           isAdmin,
           visibility_type: model.visibility_type,
-          allowed_plan_ids: model.allowed_plan_ids
+          allowed_plan_ids: model.allowed_plan_ids,
+          userPlanId: currentUser?.plan_id
         });
 
         // If user is admin, show all models
@@ -110,10 +103,28 @@ export const useModels = (cityId?: string) => {
           return true;
         }
         
-        // If visibility_type is 'plans', for now show it to all users since we don't have plan checking implemented
+        // If visibility_type is 'plans', check user's plan
         if (model.visibility_type === 'plans') {
-          console.log(`useModels - Plan-restricted model ${model.name} - showing to all users for now (plan checking not implemented)`);
-          return true; // Changed from false to true temporarily
+          // If no plan restrictions, show to everyone
+          if (!model.allowed_plan_ids || model.allowed_plan_ids.length === 0) {
+            console.log(`useModels - Plan-restricted model ${model.name} has no plan restrictions - showing`);
+            return true;
+          }
+          
+          // Check if user has a valid plan
+          if (!currentUser?.plan_id) {
+            console.log(`useModels - User has no plan, denying access to ${model.name}`);
+            return false;
+          }
+          
+          // Check if user's plan is in the allowed plans
+          const hasAccess = model.allowed_plan_ids.includes(currentUser.plan_id);
+          console.log(`useModels - Plan access check for ${model.name}:`, {
+            userPlan: currentUser.plan_id,
+            allowedPlans: model.allowed_plan_ids,
+            hasAccess
+          });
+          return hasAccess;
         }
         
         console.log(`useModels - Access denied for ${model.name} (unknown visibility type)`);
@@ -175,7 +186,7 @@ export const useModels = (cityId?: string) => {
           .map(mc => categoriesMap.get(mc.category_id))
           .filter(Boolean) as Category[];
 
-        // Filter photos based on visibility - admins can see all photos
+        // Filter photos based on visibility and user plan
         const allPhotos = (photosData ?? []).filter(photo => photo.model_id === model.id);
         const visiblePhotos = allPhotos.filter(photo => {
           // If user is admin, show all photos
@@ -188,8 +199,22 @@ export const useModels = (cityId?: string) => {
             return true;
           }
           
-          // For now, hide photos that require specific plans
-          // TODO: Implement user plan checking when authentication is added
+          // If visibility_type is 'plans', check user's plan
+          if (photo.visibility_type === 'plans') {
+            // If no plan restrictions, show to everyone
+            if (!photo.allowed_plan_ids || photo.allowed_plan_ids.length === 0) {
+              return true;
+            }
+            
+            // Check if user has a valid plan
+            if (!currentUser?.plan_id) {
+              return false;
+            }
+            
+            // Check if user's plan is in the allowed plans
+            return photo.allowed_plan_ids.includes(currentUser.plan_id);
+          }
+          
           return false;
         });
 
@@ -202,21 +227,24 @@ export const useModels = (cityId?: string) => {
       });
 
       console.log('useModels - Final models count:', finalModels.length);
-      console.log('useModels - Final model names:', finalModels.map(m => m.name));
-
       return finalModels;
     },
   });
 };
 
 export const useModel = (id: string) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { data: currentUser } = useCurrentUser();
   
   return useQuery({
-    queryKey: ['model', id, isAdmin],
+    queryKey: ['model', id, isAdmin, currentUser?.plan_id],
     queryFn: async (): Promise<Model | null> => {
       console.log('useModel - Starting fetch for ID:', id);
-      console.log('useModel - Current admin status:', isAdmin);
+      console.log('useModel - Current user status:', { 
+        isAdmin, 
+        userId: user?.id,
+        userPlanId: currentUser?.plan_id 
+      });
       
       if (!id) {
         console.log('useModel - No ID provided, returning null');
@@ -224,7 +252,6 @@ export const useModel = (id: string) => {
       }
       
       // 1. Fetch model
-      console.log('useModel - Fetching model data...');
       const { data: modelData, error: modelError } = await supabase
         .from('models')
         .select('*, cities(name)')
@@ -232,7 +259,6 @@ export const useModel = (id: string) => {
         .maybeSingle();
 
       console.log('useModel - Raw model data:', modelData);
-      console.log('useModel - Model error:', modelError);
 
       if (modelError) {
         console.error('useModel - Error fetching model:', modelError);
@@ -244,29 +270,38 @@ export const useModel = (id: string) => {
         return null;
       }
 
-      // Debug specific model if it's Madu Silva
-      if (modelData.name && (modelData.name.includes('Madu Silva') || modelData.name.includes('Madu'))) {
-        console.log('useModel - Found Madu Silva model:', {
-          id: modelData.id,
-          name: modelData.name,
-          is_active: modelData.is_active,
-          visibility_type: modelData.visibility_type,
-          allowed_plan_ids: modelData.allowed_plan_ids
-        });
-      }
-
-      // Check model visibility - admins can see all models
+      // Check model visibility and user plan
       console.log('useModel - Checking model visibility:', {
         isAdmin,
         visibility_type: modelData.visibility_type,
-        allowed_plan_ids: modelData.allowed_plan_ids
+        allowed_plan_ids: modelData.allowed_plan_ids,
+        userPlanId: currentUser?.plan_id
       });
 
       if (!isAdmin && modelData.visibility_type === 'plans') {
-        console.log('useModel - Plan-restricted model - allowing access for now (plan checking not implemented)');
-        // Temporarily allow access to plan-restricted models for all users
-        // TODO: Implement user plan checking when authentication is added
-        // return null;
+        // If no plan restrictions, allow access
+        if (!modelData.allowed_plan_ids || modelData.allowed_plan_ids.length === 0) {
+          console.log('useModel - Plan-restricted model has no plan restrictions - allowing access');
+        } else {
+          // Check if user has a valid plan
+          if (!currentUser?.plan_id) {
+            console.log('useModel - User has no plan, denying access');
+            return null;
+          }
+          
+          // Check if user's plan is in the allowed plans
+          const hasAccess = modelData.allowed_plan_ids.includes(currentUser.plan_id);
+          console.log('useModel - Plan access check:', {
+            userPlan: currentUser.plan_id,
+            allowedPlans: modelData.allowed_plan_ids,
+            hasAccess
+          });
+          
+          if (!hasAccess) {
+            console.log('useModel - Access denied - user plan not in allowed plans');
+            return null;
+          }
+        }
       }
 
       console.log('useModel - Access granted, proceeding with fetch...');
@@ -286,9 +321,6 @@ export const useModel = (id: string) => {
           .eq('model_id', id)
           .order('display_order', { ascending: true })
       ]);
-
-      console.log('useModel - Categories data:', mcData);
-      console.log('useModel - Photos data:', photosData);
 
       if (mcError) {
         console.error('Error fetching model_categories for single model:', mcError);
@@ -312,7 +344,6 @@ export const useModel = (id: string) => {
           throw catError;
         }
         categories = categoriesData ?? [];
-        console.log('useModel - Categories:', categories);
       }
       
       const modelWithCity = modelData as any;
@@ -324,7 +355,7 @@ export const useModel = (id: string) => {
         locationParts.push(modelWithCity.neighborhood);
       }
 
-      // Filter photos based on visibility - admins can see all photos
+      // Filter photos based on visibility and user plan
       const allPhotos = photosData || [];
       const visiblePhotos = allPhotos.filter(photo => {
         // If user is admin, show all photos
@@ -337,8 +368,22 @@ export const useModel = (id: string) => {
           return true;
         }
         
-        // For now, hide photos that require specific plans
-        // TODO: Implement user plan checking when authentication is added
+        // If visibility_type is 'plans', check user's plan
+        if (photo.visibility_type === 'plans') {
+          // If no plan restrictions, show to everyone
+          if (!photo.allowed_plan_ids || photo.allowed_plan_ids.length === 0) {
+            return true;
+          }
+          
+          // Check if user has a valid plan
+          if (!currentUser?.plan_id) {
+            return false;
+          }
+          
+          // Check if user's plan is in the allowed plans
+          return photo.allowed_plan_ids.includes(currentUser.plan_id);
+        }
+        
         return false;
       });
 

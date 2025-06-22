@@ -3,6 +3,7 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, MapPin } from "lucide-react";
@@ -10,15 +11,49 @@ import { GalleryMedia } from "@/hooks/useGalleryMedia";
 
 const MediaPage = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { data: currentUser } = useCurrentUser();
 
   if (!id || !type || (type !== 'photo' && type !== 'video')) {
     return <Navigate to="/galeria" replace />;
   }
 
   const { data: media, isLoading, error } = useQuery({
-    queryKey: ['media', id, type, isAdmin],
+    queryKey: ['media', id, type, isAdmin, currentUser?.plan_id],
     queryFn: async (): Promise<GalleryMedia | null> => {
+      console.log('MediaPage - Fetching media:', { id, type, isAdmin, userPlanId: currentUser?.plan_id });
+      
+      // Helper function to check media access
+      const hasMediaAccess = (mediaItem: any): boolean => {
+        // If user is admin, show all media
+        if (isAdmin) {
+          return true;
+        }
+        
+        // If visibility_type is null or 'public', show the media
+        if (!mediaItem.visibility_type || mediaItem.visibility_type === 'public') {
+          return true;
+        }
+        
+        // If visibility_type is 'plans', check user's plan
+        if (mediaItem.visibility_type === 'plans') {
+          // If no plan restrictions, show to everyone
+          if (!mediaItem.allowed_plan_ids || mediaItem.allowed_plan_ids.length === 0) {
+            return true;
+          }
+          
+          // Check if user has a valid plan
+          if (!currentUser?.plan_id) {
+            return false;
+          }
+          
+          // Check if user's plan is in the allowed plans
+          return mediaItem.allowed_plan_ids.includes(currentUser.plan_id);
+        }
+        
+        return false;
+      };
+
       if (type === 'photo') {
         const { data, error } = await supabase
           .from('model_photos')
@@ -42,9 +77,10 @@ const MediaPage = () => {
         if (error) throw error;
         if (!data) return null;
 
-        // Verificar visibilidade - admins podem ver todas as fotos
-        if (!isAdmin && data.visibility_type === 'plans') {
-          return null; // Esconder para usuários não-admin
+        // Verificar visibilidade com base no plano do usuário
+        if (!hasMediaAccess(data)) {
+          console.log('MediaPage - Access denied for photo:', id);
+          return null;
         }
 
         return {
@@ -84,9 +120,10 @@ const MediaPage = () => {
         if (error) throw error;
         if (!data) return null;
 
-        // Verificar visibilidade - admins podem ver todos os vídeos
-        if (!isAdmin && data.visibility_type === 'plans') {
-          return null; // Esconder para usuários não-admin
+        // Verificar visibilidade com base no plano do usuário
+        if (!hasMediaAccess(data)) {
+          console.log('MediaPage - Access denied for video:', id);
+          return null;
         }
 
         return {
@@ -125,7 +162,9 @@ const MediaPage = () => {
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="text-red-400">Mídia não encontrada</div>
+            <div className="text-red-400">
+              {!media ? 'Mídia não encontrada ou acesso negado' : 'Mídia não encontrada'}
+            </div>
           </div>
         </div>
       </div>

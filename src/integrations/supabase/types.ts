@@ -600,6 +600,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_system_users_plan"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "system_users_plan_id_fkey"
             columns: ["plan_id"]
             isOneToOne: false
@@ -613,8 +620,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_plan: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_plan_access: {
+        Args: { _user_id: string; _allowed_plan_ids: string[] }
         Returns: boolean
       }
     }
