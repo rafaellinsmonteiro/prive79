@@ -26,31 +26,37 @@ serve(async (req) => {
       }
     )
 
-    // Verify that the request is from an admin user
+    // Verify that the request is from an authenticated user
     const authHeader = req.headers.get('Authorization')?.replace('Bearer ', '')
     if (!authHeader) {
       throw new Error('No authorization header')
     }
 
-    // Verify the user is an admin
+    // Verify the user token
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(authHeader)
     if (userError || !user) {
+      console.error('Invalid token:', userError)
       throw new Error('Invalid token')
     }
 
-    // Check if user is admin in system_users table
-    const { data: systemUser, error: adminError } = await supabaseAdmin
-      .from('system_users')
-      .select('user_role')
-      .eq('user_id', user.id)
-      .eq('user_role', 'admin')
-      .eq('is_active', true)
-      .single()
+    console.log('Authenticated user:', user.id, user.email)
 
-    if (adminError || !systemUser) {
-      console.log('Admin check failed:', adminError, 'systemUser:', systemUser)
+    // Use the existing is_admin() function to check admin privileges
+    const { data: isAdmin, error: adminError } = await supabaseAdmin.rpc('is_admin')
+    
+    console.log('Admin check result:', { isAdmin, adminError })
+    
+    if (adminError) {
+      console.error('Admin function error:', adminError)
+      throw new Error(`Admin check failed: ${adminError.message}`)
+    }
+    
+    if (!isAdmin) {
+      console.log('User is not admin:', user.email)
       throw new Error('User is not admin')
     }
+
+    console.log('Admin verification successful for user:', user.email)
 
     const { email, password, name, user_role, plan_id, is_active } = await req.json()
 
