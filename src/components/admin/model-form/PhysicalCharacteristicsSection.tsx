@@ -1,7 +1,4 @@
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { UseFormReturn } from 'react-hook-form';
 import { ModelFormData } from '../ModelForm';
 import IntegratedCustomFields from './IntegratedCustomFields';
@@ -17,53 +14,7 @@ const PhysicalCharacteristicsSection = ({ form }: PhysicalCharacteristicsSection
         Características Físicas
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Apenas campos básicos que não são personalizáveis */}
-        <FormField
-          control={form.control}
-          name="height"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Altura</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 1.70" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="weight"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Peso</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 60kg" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="silicone"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-700 p-4">
-              <FormLabel className="text-white">Silicone</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Campos personalizados integrados */}
+        {/* TODOS os campos desta seção vêm do sistema de campos personalizados */}
         <IntegratedCustomFields form={form} sectionName="Características Físicas" />
       </div>
     </div>

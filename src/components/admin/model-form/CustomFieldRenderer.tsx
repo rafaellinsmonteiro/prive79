@@ -20,7 +20,6 @@ interface CustomFieldRendererProps {
 }
 
 const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
-  // Para todos os campos personalizados, usar o nome direto do campo
   const fieldName = field.field_name as keyof ModelFormData;
 
   const formatValue = (value: any): string => {
@@ -34,8 +33,6 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
   };
 
   console.log(`🎨 CustomFieldRenderer - Rendering field: ${field.field_name} (${field.field_type})`);
-  console.log(`🎨 Field name used: ${String(fieldName)}`);
-  console.log(`🎨 Field options:`, field.options);
 
   switch (field.field_type) {
     case 'textarea':
