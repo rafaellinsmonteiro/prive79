@@ -27,33 +27,48 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
   console.log('🔍 CustomFieldsSection - Active fields:', customFields.filter(f => f.is_active).length);
   console.log('🔍 CustomFieldsSection - Total sections loaded:', customSections.length);
   
-  // Obter apenas seções ativas e ordenadas
+  // Define system sections that should not be displayed as custom sections
+  const systemSections = [
+    'Informações Básicas',
+    'Características Físicas', 
+    'Atendimento',
+    'Outras Informações',
+    'Controle de Acesso',
+    'Configurações'
+  ];
+  
+  // Get only active sections that are not system sections, ordered by display_order
   const activeSections = customSections
-    .filter(section => section.is_active)
+    .filter(section => section.is_active && !systemSections.includes(section.name))
     .sort((a, b) => a.display_order - b.display_order);
   
-  console.log('🔍 CustomFieldsSection - Active sections:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
+  console.log('🔍 CustomFieldsSection - Active custom sections:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
   
-  // Agrupar campos por seção, apenas campos ativos
-  const fieldsBySection = customFields
-    .filter(field => field.is_active)
-    .reduce((acc, field) => {
-      const section = field.section || 'Campos Personalizados';
-      if (!acc[section]) {
-        acc[section] = [];
-      }
-      acc[section].push(field);
-      return acc;
-    }, {} as Record<string, typeof customFields>);
+  // Group fields by section, only active fields that are not system fields
+  const customFieldsOnly = customFields.filter(field => 
+    field.is_active && !systemSections.some(sysSection => 
+      field.section === sysSection || 
+      ['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name)
+    )
+  );
+  
+  const fieldsBySection = customFieldsOnly.reduce((acc, field) => {
+    const section = field.section || 'Campos Personalizados';
+    if (!acc[section]) {
+      acc[section] = [];
+    }
+    acc[section].push(field);
+    return acc;
+  }, {} as Record<string, typeof customFieldsOnly>);
 
-  // Ordenar campos dentro de cada seção
+  // Sort fields within each section
   Object.keys(fieldsBySection).forEach(sectionName => {
     fieldsBySection[sectionName].sort((a, b) => a.display_order - b.display_order);
   });
 
-  console.log('🔍 CustomFieldsSection - Fields by section:', Object.keys(fieldsBySection));
+  console.log('🔍 CustomFieldsSection - Custom fields by section:', Object.keys(fieldsBySection));
 
-  const renderField = (field: typeof customFields[0]) => {
+  const renderField = (field: typeof customFieldsOnly[0]) => {
     const fieldName = `custom_${field.field_name}` as keyof ModelFormData;
 
     switch (field.field_type) {
@@ -71,7 +86,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Textarea
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -100,7 +115,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => {
                       const value = e.target.value;
                       formField.onChange(value === '' ? '' : Number(value));
@@ -160,7 +175,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 </FormLabel>
                 <Select 
                   onValueChange={(value) => formField.onChange(value)}
-                  value={formField.value ? String(formField.value) : ''}
+                  value={formField.value != null ? String(formField.value) : ''}
                 >
                   <FormControl>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
@@ -198,7 +213,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="date"
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -227,7 +242,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="email"
                     placeholder={field.placeholder || ''}
@@ -257,7 +272,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="url"
                     placeholder={field.placeholder || ''}
@@ -287,7 +302,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value != null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -304,9 +319,9 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     }  
   };
 
-  // Se não há campos personalizados ativos, não exibir nada
-  const hasActiveFields = customFields.some(field => field.is_active);
-  if (!hasActiveFields) {
+  // If no custom fields are active, don't display anything
+  const hasActiveCustomFields = customFieldsOnly.length > 0;
+  if (!hasActiveCustomFields) {
     console.log('⚠️ CustomFieldsSection - No active custom fields to display');
     return null;
   }
@@ -318,7 +333,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
       {activeSections.map((section) => {
         const fieldsInSection = fieldsBySection[section.name] || [];
         
-        // Só exibir seção se tiver campos
+        // Only display section if it has fields
         if (fieldsInSection.length === 0) {
           console.log(`⚠️ CustomFieldsSection - Section "${section.name}" skipped (no fields)`);
           return null;
@@ -337,6 +352,18 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
           </div>
         );
       })}
+      
+      {/* Show fields in default section if they exist */}
+      {fieldsBySection['Campos Personalizados'] && fieldsBySection['Campos Personalizados'].length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+            Campos Personalizados
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {fieldsBySection['Campos Personalizados'].map(renderField)}
+          </div>
+        </div>
+      )}
     </>
   );
 };

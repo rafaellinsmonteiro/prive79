@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
 import { useAdminCustomFields, useAdminCustomSections, useDeleteCustomField, useDeleteCustomSection } from '@/hooks/useAdminCustomFields';
+import { useCreateCustomField, useUpdateCustomField, useCreateCustomSection, useUpdateCustomSection } from '@/hooks/useCustomFields';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import DraggableCustomFieldsList from './DraggableCustomFieldsList';
 import CustomFieldForm from './CustomFieldForm';
 import SectionManager from './SectionManager';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,11 @@ const CustomFieldsManager = () => {
   const { data: customSections = [], isLoading: isLoadingSections } = useAdminCustomSections();
   const deleteCustomField = useDeleteCustomField();
   const deleteCustomSection = useDeleteCustomSection();
+  const createCustomField = useCreateCustomField();
+  const updateCustomField = useUpdateCustomField();
+  const createCustomSection = useCreateCustomSection();
+  const updateCustomSection = useUpdateCustomSection();
+  const { toast } = useToast();
 
   const handleEditField = (id: string) => {
     setEditingFieldId(id);
@@ -54,6 +61,46 @@ const CustomFieldsManager = () => {
   const handleCloseSectionForm = () => {
     setEditingSectionId(null);
     setIsSectionFormOpen(false);
+  };
+
+  const handleFieldSubmit = async (fieldData: any) => {
+    try {
+      if (editingFieldId) {
+        await updateCustomField.mutateAsync({ id: editingFieldId, ...fieldData });
+        toast({ title: "Campo atualizado com sucesso!" });
+      } else {
+        await createCustomField.mutateAsync(fieldData);
+        toast({ title: "Campo criado com sucesso!" });
+      }
+      handleCloseFieldForm();
+    } catch (error) {
+      console.error('Error saving field:', error);
+      toast({ 
+        title: "Erro ao salvar campo", 
+        description: "Tente novamente.",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const handleSectionSubmit = async (sectionData: any) => {
+    try {
+      if (editingSectionId) {
+        await updateCustomSection.mutateAsync({ id: editingSectionId, ...sectionData });
+        toast({ title: "Seção atualizada com sucesso!" });
+      } else {
+        await createCustomSection.mutateAsync(sectionData);
+        toast({ title: "Seção criada com sucesso!" });
+      }
+      handleCloseSectionForm();
+    } catch (error) {
+      console.error('Error saving section:', error);
+      toast({ 
+        title: "Erro ao salvar seção", 
+        description: "Tente novamente.",
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleClearAll = async () => {
@@ -79,11 +126,12 @@ const CustomFieldsManager = () => {
       }
     }
   
-    alert('All custom fields and sections have been cleared.');
+    toast({ title: "Todos os campos e seções foram removidos." });
   };
 
   // Get the field object for editing
   const editingField = editingFieldId ? customFields.find(f => f.id === editingFieldId) : undefined;
+  const editingSection = editingSectionId ? customSections.find(s => s.id === editingSectionId) : undefined;
 
   return (
     <div className="space-y-6">
@@ -108,7 +156,8 @@ const CustomFieldsManager = () => {
                 </DialogTitle>
               </DialogHeader>
               <SectionManager
-                sectionId={editingSectionId}
+                section={editingSection}
+                onSubmit={handleSectionSubmit}
                 onCancel={handleCloseSectionForm}
               />
             </DialogContent>
@@ -128,9 +177,9 @@ const CustomFieldsManager = () => {
               </DialogHeader>
               <CustomFieldForm
                 field={editingField}
-                onSubmit={handleCloseFieldForm}
+                onSubmit={handleFieldSubmit}
                 onCancel={handleCloseFieldForm}
-                loading={false}
+                loading={createCustomField.isPending || updateCustomField.isPending}
                 availableSections={customSections.map(s => s.name)}
               />
             </DialogContent>

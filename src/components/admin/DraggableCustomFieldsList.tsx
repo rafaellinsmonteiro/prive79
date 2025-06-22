@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, GripVertical } from 'lucide-react';
 import { CustomField, CustomSection } from '@/hooks/useCustomFields';
 import { useUpdateSectionOrder, useUpdateFieldOrder } from '@/hooks/useCustomFields';
+import { useToast } from '@/hooks/use-toast';
 
 interface DraggableCustomFieldsListProps {
   fields: CustomField[];
@@ -26,14 +27,16 @@ const DraggableCustomFieldsList = ({
   const [localFields, setLocalFields] = useState(fields);
   const updateSectionOrder = useUpdateSectionOrder();
   const updateFieldOrder = useUpdateFieldOrder();
+  const { toast } = useToast();
 
   // Update local state when props change
-  if (sections !== localSections) {
+  useEffect(() => {
     setLocalSections(sections);
-  }
-  if (fields !== localFields) {
+  }, [sections]);
+
+  useEffect(() => {
     setLocalFields(fields);
-  }
+  }, [fields]);
 
   if (loading) {
     return (
@@ -55,7 +58,7 @@ const DraggableCustomFieldsList = ({
     return acc;
   }, {} as Record<string, CustomField[]>);
 
-  const handleSectionDragEnd = (result: DropResult) => {
+  const handleSectionDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(localSections);
@@ -69,10 +72,22 @@ const DraggableCustomFieldsList = ({
     }));
 
     setLocalSections(items);
-    updateSectionOrder.mutate(updates);
+    
+    try {
+      await updateSectionOrder.mutateAsync(updates);
+      toast({ title: "Ordem das seções atualizada!" });
+    } catch (error) {
+      console.error('Error updating section order:', error);
+      toast({ 
+        title: "Erro ao atualizar ordem", 
+        variant: "destructive" 
+      });
+      // Revert on error
+      setLocalSections(sections);
+    }
   };
 
-  const handleFieldDragEnd = (result: DropResult, sectionName: string) => {
+  const handleFieldDragEnd = async (result: DropResult, sectionName: string) => {
     if (!result.destination) return;
 
     const sectionFields = Array.from(fieldsBySection[sectionName]);
@@ -93,7 +108,19 @@ const DraggableCustomFieldsList = ({
     });
 
     setLocalFields(updatedFields);
-    updateFieldOrder.mutate(updates);
+
+    try {
+      await updateFieldOrder.mutateAsync(updates);
+      toast({ title: "Ordem dos campos atualizada!" });
+    } catch (error) {
+      console.error('Error updating field order:', error);
+      toast({ 
+        title: "Erro ao atualizar ordem", 
+        variant: "destructive" 
+      });
+      // Revert on error
+      setLocalFields(fields);
+    }
   };
 
   return (

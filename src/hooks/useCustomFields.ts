@@ -96,6 +96,7 @@ export const useCreateCustomField = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
     },
   });
 };
@@ -105,6 +106,7 @@ export const useUpdateCustomField = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CustomField> & { id: string }) => {
+      console.log('📝 Updating custom field:', { id, updates });
       const { data, error } = await supabase
         .from('custom_fields')
         .update(updates)
@@ -113,14 +115,16 @@ export const useUpdateCustomField = () => {
         .single();
 
       if (error) {
-        console.error('Error updating custom field:', error);
+        console.error('❌ Error updating custom field:', error);
         throw error;
       }
 
+      console.log('✅ Custom field updated:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
     },
   });
 };
@@ -130,18 +134,22 @@ export const useDeleteCustomField = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('🗑️ Deleting custom field:', id);
       const { error } = await supabase
         .from('custom_fields')
         .delete()
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting custom field:', error);
+        console.error('❌ Error deleting custom field:', error);
         throw error;
       }
+
+      console.log('✅ Custom field deleted');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
     },
   });
 };
@@ -168,6 +176,7 @@ export const useCreateCustomSection = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
     },
   });
 };
@@ -192,7 +201,9 @@ export const useDeleteCustomSection = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
     },
   });
 };
@@ -220,6 +231,7 @@ export const useUpdateCustomSection = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
     },
   });
 };
