@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAdminCustomFields, useAdminCustomSections, useDeleteCustomField, useDeleteCustomSection } from '@/hooks/useAdminCustomFields';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import CustomFieldsList from './CustomFieldsList';
+import DraggableCustomFieldsList from './DraggableCustomFieldsList';
 import CustomFieldForm from './CustomFieldForm';
 import SectionManager from './SectionManager';
 import {
@@ -79,7 +79,6 @@ const CustomFieldsManager = () => {
       }
     }
   
-    // Optionally, you can show a toast message to indicate completion
     alert('All custom fields and sections have been cleared.');
   };
 
@@ -109,6 +108,7 @@ const CustomFieldsManager = () => {
                 </DialogTitle>
               </DialogHeader>
               <SectionManager
+                sectionId={editingSectionId}
                 onCancel={handleCloseSectionForm}
               />
             </DialogContent>
@@ -128,7 +128,7 @@ const CustomFieldsManager = () => {
               </DialogHeader>
               <CustomFieldForm
                 field={editingField}
-                onSubmit={() => {}}
+                onSubmit={handleCloseFieldForm}
                 onCancel={handleCloseFieldForm}
                 loading={false}
                 availableSections={customSections.map(s => s.name)}
@@ -138,7 +138,7 @@ const CustomFieldsManager = () => {
         </div>
       </div>
 
-      <CustomFieldsList
+      <DraggableCustomFieldsList
         fields={customFields}
         sections={customSections}
         loading={isLoadingFields || isLoadingSections}
