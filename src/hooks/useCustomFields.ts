@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,7 +30,10 @@ export const useCustomFields = () => {
         throw error;
       }
 
-      return data || [];
+      return (data || []).map(field => ({
+        ...field,
+        field_type: field.field_type as 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'date' | 'email' | 'url'
+      }));
     },
   });
 };
