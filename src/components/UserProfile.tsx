@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -184,6 +185,50 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
+  useEffect(() => {
+    console.log('UserProfile - useEffect triggered:', {
+      hasUser: !!user,
+      currentUser,
+      currentUserLoading
+    });
+
+    const loadUserData = async () => {
+      if (!user) {
+        console.log('UserProfile - No user, setting loading to false');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log('UserProfile - Loading user data for:', user.id);
+        
+        // Carregar dados básicos do auth
+        const basicInfo = {
+          email: user.email || '',
+          name: user.user_metadata?.name || '',
+          whatsapp: user.user_metadata?.whatsapp || '',
+          password: '',
+          confirmPassword: '',
+        };
+
+        console.log('UserProfile - Basic auth info:', basicInfo);
+        setUserInfo(basicInfo);
+        
+      } catch (error) {
+        console.error('UserProfile - Error loading user data:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar informações do usuário",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [user, toast]);
+
   if (loading || currentUserLoading) {
     console.log('UserProfile - Showing loading state');
     return (
@@ -221,156 +266,166 @@ const UserProfile = () => {
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-zinc-300">
-            Nome
-          </Label>
-          <Input
-            id="name"
-            type="text"
-            value={userInfo.name}
-            onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-            disabled={!isEditing}
-            placeholder="Digite seu nome"
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
-          />
-        </div>
+      <CardContent>
+        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-zinc-300">
+              Nome
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              value={userInfo.name}
+              onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+              disabled={!isEditing}
+              placeholder="Digite seu nome"
+              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
+              autoComplete="name"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-zinc-300">
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={userInfo.email}
-            onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-            disabled={!isEditing}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-zinc-300">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={userInfo.email}
+              onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+              disabled={!isEditing}
+              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
+              autoComplete="email"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="whatsapp" className="text-zinc-300">
-            WhatsApp
-          </Label>
-          <Input
-            id="whatsapp"
-            type="tel"
-            value={userInfo.whatsapp}
-            onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
-            disabled={!isEditing}
-            placeholder="(11) 99999-9999"
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp" className="text-zinc-300">
+              WhatsApp
+            </Label>
+            <Input
+              id="whatsapp"
+              type="tel"
+              value={userInfo.whatsapp}
+              onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
+              disabled={!isEditing}
+              placeholder="(11) 99999-9999"
+              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 disabled:opacity-60"
+              autoComplete="tel"
+            />
+          </div>
 
-        {isEditing && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">
-                Nova Senha (opcional)
-              </Label>
-              <div className="relative">
+          {isEditing && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-zinc-300">
+                  Nova Senha (opcional)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={userInfo.password}
+                    onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
+                    placeholder="Digite uma nova senha"
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 pr-10"
+                    autoComplete="new-password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-zinc-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-zinc-400" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-zinc-300">
+                  Confirmar Nova Senha
+                </Label>
                 <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={userInfo.password}
-                  onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
-                  placeholder="Digite uma nova senha"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 pr-10"
+                  id="confirmPassword"
+                  type="password"
+                  value={userInfo.confirmPassword}
+                  onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
+                  placeholder="Confirme a nova senha"
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                  autoComplete="new-password"
                 />
+              </div>
+            </>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-zinc-300">
+              Plano Ativo
+            </Label>
+            <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-zinc-100">
+              {currentUserError ? (
+                <span className="text-red-400">Erro ao carregar plano</span>
+              ) : currentUser?.plan ? (
+                <span className="text-green-400">
+                  {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
+                </span>
+              ) : currentUser ? (
+                <span className="text-yellow-400">Nenhum plano ativo</span>
+              ) : (
+                <span className="text-zinc-500">Carregando...</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            {!isEditing ? (
+              <>
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setIsEditing(true)}
+                  variant="outline"
+                  className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-zinc-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-zinc-400" />
-                  )}
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Editar Informações
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSignOut}
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <div className="flex space-x-2">
+                <Button
+                  type="submit"
+                  className="flex-1"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                >
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-zinc-300">
-                Confirmar Nova Senha
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={userInfo.confirmPassword}
-                onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
-                placeholder="Confirme a nova senha"
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              />
-            </div>
-          </>
-        )}
-
-        <div className="space-y-2">
-          <Label className="text-zinc-300">
-            Plano Ativo
-          </Label>
-          <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-zinc-100">
-            {currentUserError ? (
-              <span className="text-red-400">Erro ao carregar plano</span>
-            ) : currentUser?.plan ? (
-              <span className="text-green-400">
-                {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
-              </span>
-            ) : currentUser ? (
-              <span className="text-yellow-400">Nenhum plano ativo</span>
-            ) : (
-              <span className="text-zinc-500">Carregando...</span>
             )}
           </div>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          {!isEditing ? (
-            <>
-              <Button
-                onClick={() => setIsEditing(true)}
-                variant="outline"
-                className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Editar Informações
-              </Button>
-              <Button
-                onClick={handleSignOut}
-                variant="destructive"
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            </>
-          ) : (
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleSave}
-                className="flex-1"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Salvar
-              </Button>
-              <Button
-                onClick={handleCancel}
-                variant="outline"
-                className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
+        </form>
       </CardContent>
     </Card>
   );
