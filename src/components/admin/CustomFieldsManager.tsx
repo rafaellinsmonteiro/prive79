@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder } from '@/hooks/useCustomFields';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, Settings, GripVertical, FolderPlus } from 'lucide-react';
+import { Plus, Edit, Trash, Settings, GripVertical, FolderPlus, Folder, List } from 'lucide-react';
 import CustomFieldForm from './CustomFieldForm';
 import SystemFieldEditForm from './SystemFieldEditForm';
 import SectionManager from './SectionManager';
@@ -16,6 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 
 interface SystemField {
   id: string;
@@ -31,6 +37,14 @@ interface SystemField {
 
 interface CombinedField extends SystemField {
   isCustomField?: boolean;
+}
+
+interface SectionItem {
+  id: string;
+  name: string;
+  type: 'section';
+  display_order: number;
+  isSystemSection?: boolean;
 }
 
 const CustomFieldsManager = () => {
@@ -66,15 +80,27 @@ const CustomFieldsManager = () => {
     { id: 'description', name: 'description', label: 'Descrição', type: 'textarea', required: false, section: 'Outras Informações', description: 'Descrição detalhada', display_order: 31, isSystemField: true },
   ];
 
-  // Combinar seções padrão com seções personalizadas
-  const allSections = [
-    'Informações Básicas',
-    'Características Físicas',
-    'Configurações',
-    'Outras Informações',
-    ...customSections.map(section => section.name)
+  // Criar seções do sistema baseadas nos campos do sistema
+  const systemSections: SectionItem[] = [
+    { id: 'informacoes-basicas', name: 'Informações Básicas', type: 'section' as const, display_order: 1, isSystemSection: true },
+    { id: 'caracteristicas-fisicas', name: 'Características Físicas', type: 'section' as const, display_order: 2, isSystemSection: true },
+    { id: 'configuracoes', name: 'Configurações', type: 'section' as const, display_order: 3, isSystemSection: true },
+    { id: 'outras-informacoes', name: 'Outras Informações', type: 'section' as const, display_order: 4, isSystemSection: true },
   ];
 
+  // Combinar seções do sistema com seções personalizadas
+  const allSections: SectionItem[] = [
+    ...systemSections,
+    ...customSections.filter(section => section.is_active).map(section => ({
+      id: section.id,
+      name: section.name,
+      type: 'section' as const,
+      display_order: section.display_order + 100,
+      isSystemSection: false
+    }))
+  ].sort((a, b) => a.display_order - b.display_order);
+
+  // Combinar campos do sistema com campos personalizados
   const combinedFields: CombinedField[] = [
     ...systemFields,
     ...customFields.map(field => ({
@@ -98,7 +124,6 @@ const CustomFieldsManager = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Preparar updates para reordenação
     const updates = items.map((item, index) => ({
       id: item.id,
       display_order: index + 1,
@@ -223,7 +248,7 @@ const CustomFieldsManager = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Gerenciamento de Campos</h1>
+        <h1 className="text-2xl font-bold text-white">Gerenciamento de Campos e Seções</h1>
         <div className="flex space-x-2">
           <Button
             onClick={() => setShowSectionManager(true)}
@@ -256,7 +281,7 @@ const CustomFieldsManager = () => {
                 setEditingField(null);
               }}
               loading={createCustomField.isPending || updateCustomField.isPending}
-              availableSections={allSections}
+              availableSections={allSections.map(s => s.name)}
             />
           )}
           
@@ -279,106 +304,176 @@ const CustomFieldsManager = () => {
 
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Todos os Campos - Arrastar e Soltar para Reordenar
-          </CardTitle>
+          <CardTitle className="text-white">Organização de Seções e Campos</CardTitle>
         </CardHeader>
         <CardContent>
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="fields">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-zinc-700">
-                        <TableHead className="text-zinc-300 w-10"></TableHead>
-                        <TableHead className="text-zinc-300">Nome do Campo</TableHead>
-                        <TableHead className="text-zinc-300">Rótulo</TableHead>
-                        <TableHead className="text-zinc-300">Tipo</TableHead>
-                        <TableHead className="text-zinc-300">Seção</TableHead>
-                        <TableHead className="text-zinc-300">Obrigatório</TableHead>
-                        <TableHead className="text-zinc-300">Origem</TableHead>
-                        <TableHead className="text-zinc-300">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {combinedFields.map((field, index) => (
-                        <Draggable key={field.id} draggableId={field.id} index={index}>
-                          {(provided, snapshot) => (
-                            <TableRow 
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
-                            >
-                              <TableCell {...provided.dragHandleProps} className="text-zinc-400">
-                                <GripVertical className="h-4 w-4" />
-                              </TableCell>
-                              <TableCell className="text-white font-mono text-sm">
-                                {field.name}
-                              </TableCell>
-                              <TableCell className="text-white">
-                                {field.label}
-                              </TableCell>
-                              <TableCell className="text-zinc-300">
-                                {getFieldTypeName(field.type)}
-                              </TableCell>
-                              <TableCell className="text-zinc-300">
-                                {field.section}
-                              </TableCell>
-                              <TableCell className="text-zinc-300">
-                                {field.required ? 'Sim' : 'Não'}
-                              </TableCell>
-                              <TableCell className="text-zinc-300">
-                                {field.isSystemField ? (
-                                  <span className="text-blue-400">Sistema</span>
-                                ) : (
-                                  <span className="text-green-400">Personalizado</span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      if (field.isSystemField) {
-                                        handleEditSystemField(field);
-                                      } else {
-                                        const customField = customFields.find(cf => cf.id === field.id);
-                                        if (customField) {
-                                          setEditingField(customField);
-                                          setShowForm(true);
-                                        }
-                                      }
-                                    }}
-                                    className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  {field.isCustomField && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDeleteField(field.id)}
-                                      className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
-                                    >
-                                      <Trash className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
+          <Tabs defaultValue="sections" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
+              <TabsTrigger value="sections" className="data-[state=active]:bg-zinc-700">
+                <Folder className="h-4 w-4 mr-2" />
+                Seções
+              </TabsTrigger>
+              <TabsTrigger value="fields" className="data-[state=active]:bg-zinc-700">
+                <List className="h-4 w-4 mr-2" />
+                Campos
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="sections" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                  Todas as Seções
+                </h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-zinc-700">
+                      <TableHead className="text-zinc-300">Nome da Seção</TableHead>
+                      <TableHead className="text-zinc-300">Ordem</TableHead>
+                      <TableHead className="text-zinc-300">Origem</TableHead>
+                      <TableHead className="text-zinc-300">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allSections.map((section) => (
+                      <TableRow key={section.id} className="border-zinc-700 hover:bg-zinc-800/50">
+                        <TableCell className="text-white font-medium">
+                          <div className="flex items-center gap-2">
+                            <Folder className="h-4 w-4 text-zinc-400" />
+                            {section.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-zinc-300">
+                          {section.display_order}
+                        </TableCell>
+                        <TableCell className="text-zinc-300">
+                          {section.isSystemSection ? (
+                            <span className="text-blue-400">Sistema</span>
+                          ) : (
+                            <span className="text-green-400">Personalizada</span>
                           )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            {!section.isSystemSection && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="fields" className="mt-4">
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="fields">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                          Todos os Campos - Arrastar e Soltar para Reordenar
+                        </h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-zinc-700">
+                              <TableHead className="text-zinc-300 w-10"></TableHead>
+                              <TableHead className="text-zinc-300">Nome do Campo</TableHead>
+                              <TableHead className="text-zinc-300">Rótulo</TableHead>
+                              <TableHead className="text-zinc-300">Tipo</TableHead>
+                              <TableHead className="text-zinc-300">Seção</TableHead>
+                              <TableHead className="text-zinc-300">Obrigatório</TableHead>
+                              <TableHead className="text-zinc-300">Origem</TableHead>
+                              <TableHead className="text-zinc-300">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {combinedFields.map((field, index) => (
+                              <Draggable key={field.id} draggableId={field.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <TableRow 
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
+                                  >
+                                    <TableCell {...provided.dragHandleProps} className="text-zinc-400">
+                                      <GripVertical className="h-4 w-4" />
+                                    </TableCell>
+                                    <TableCell className="text-white font-mono text-sm">
+                                      {field.name}
+                                    </TableCell>
+                                    <TableCell className="text-white">
+                                      {field.label}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {getFieldTypeName(field.type)}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {field.section}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {field.required ? 'Sim' : 'Não'}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-300">
+                                      {field.isSystemField ? (
+                                        <span className="text-blue-400">Sistema</span>
+                                      ) : (
+                                        <span className="text-green-400">Personalizado</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex space-x-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            if (field.isSystemField) {
+                                              handleEditSystemField(field);
+                                            } else {
+                                              const customField = customFields.find(cf => cf.id === field.id);
+                                              if (customField) {
+                                                setEditingField(customField);
+                                                setShowForm(true);
+                                              }
+                                            }
+                                          }}
+                                          className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        {field.isCustomField && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteField(field.id)}
+                                            className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
+                                          >
+                                            <Trash className="h-4 w-4" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
