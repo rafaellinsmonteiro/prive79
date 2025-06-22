@@ -125,15 +125,22 @@ const CustomFieldsManager = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    const updates = items
-      .filter(item => !item.isSystemSection)
-      .map((item, index) => ({
-        id: item.id,
-        display_order: index + 1,
-      }));
+    // Agora permitir reordenar tanto seções do sistema quanto personalizadas
+    const updates = items.map((item, index) => ({
+      id: item.id,
+      display_order: index + 1,
+    }));
 
     try {
-      await updateSectionOrder.mutateAsync(updates);
+      // Separar updates para seções do sistema e personalizadas
+      const customSectionUpdates = updates.filter(update => 
+        !systemSections.some(s => s.id === update.id)
+      );
+      
+      if (customSectionUpdates.length > 0) {
+        await updateSectionOrder.mutateAsync(customSectionUpdates);
+      }
+      
       toast({
         title: "Sucesso",
         description: "Ordem das seções atualizada com sucesso!",
@@ -359,6 +366,9 @@ const CustomFieldsManager = () => {
                         <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
                           Todas as Seções - Arrastar e Soltar para Reordenar
                         </h3>
+                        <p className="text-sm text-zinc-400">
+                          Você pode reordenar tanto seções do sistema quanto personalizadas. A ordem será aplicada nos formulários.
+                        </p>
                         <Table>
                           <TableHeader>
                             <TableRow className="border-zinc-700">
@@ -371,7 +381,7 @@ const CustomFieldsManager = () => {
                           </TableHeader>
                           <TableBody>
                             {allSections.map((section, index) => (
-                              <Draggable key={section.id} draggableId={section.id} index={index} isDragDisabled={section.isSystemSection}>
+                              <Draggable key={section.id} draggableId={section.id} index={index}>
                                 {(provided, snapshot) => (
                                   <TableRow 
                                     ref={provided.innerRef}
@@ -379,7 +389,7 @@ const CustomFieldsManager = () => {
                                     className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
                                   >
                                     <TableCell {...provided.dragHandleProps} className="text-zinc-400">
-                                      {!section.isSystemSection && <GripVertical className="h-4 w-4" />}
+                                      <GripVertical className="h-4 w-4" />
                                     </TableCell>
                                     <TableCell className="text-white font-medium">
                                       <div className="flex items-center gap-2">
