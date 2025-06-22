@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client with service role key
+    // Create Supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -32,7 +32,7 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Verify the user token
+    // Verify the user token using admin client
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(authHeader)
     if (userError || !user) {
       console.error('Invalid token:', userError)
@@ -41,19 +41,32 @@ serve(async (req) => {
 
     console.log('Authenticated user:', user.id, user.email)
 
-    // Use the existing is_admin() function to check admin privileges
-    const { data: isAdmin, error: adminError } = await supabaseAdmin.rpc('is_admin')
+    // Check if user is admin using direct query instead of RPC
+    // This bypasses any RLS issues with the is_admin() function
+    const { data: adminCheck, error: adminError } = await supabaseAdmin
+      .from('admin_users')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
     
-    console.log('Admin check result:', { isAdmin, adminError })
+    console.log('Admin check result:', { adminCheck, adminError })
     
-    if (adminError) {
-      console.error('Admin function error:', adminError)
-      throw new Error(`Admin check failed: ${adminError.message}`)
-    }
-    
-    if (!isAdmin) {
-      console.log('User is not admin:', user.email)
-      throw new Error('User is not admin')
+    // If no admin record found, also check by email as fallback
+    if (adminError || !adminCheck) {
+      const { data: adminCheckByEmail, error: adminEmailError } = await supabaseAdmin
+        .from('admin_users')
+        .select('*')
+        .eq('email', user.email)
+        .eq('is_active', true)
+        .single()
+      
+      console.log('Admin check by email result:', { adminCheckByEmail, adminEmailError })
+      
+      if (adminEmailError || !adminCheckByEmail) {
+        console.log('User is not admin:', user.email)
+        throw new Error('User is not admin')
+      }
     }
 
     console.log('Admin verification successful for user:', user.email)
