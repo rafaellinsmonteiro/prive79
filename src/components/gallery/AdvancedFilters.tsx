@@ -17,25 +17,25 @@ interface AdvancedFiltersProps {
 
 const AdvancedFilters = ({ onFiltersChange }: AdvancedFiltersProps) => {
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
   const [ageRange, setAgeRange] = useState<[number, number]>([18, 45]);
   
   const { data: cities = [] } = useCities();
 
   useEffect(() => {
     onFiltersChange({
-      city: selectedCity || undefined,
+      city: selectedCity === 'all' ? undefined : selectedCity,
       minAge: ageRange[0],
       maxAge: ageRange[1]
     });
   }, [selectedCity, ageRange, onFiltersChange]);
 
   const clearFilters = () => {
-    setSelectedCity('');
+    setSelectedCity('all');
     setAgeRange([18, 45]);
   };
 
-  const hasActiveFilters = selectedCity || ageRange[0] !== 18 || ageRange[1] !== 45;
+  const hasActiveFilters = selectedCity !== 'all' || ageRange[0] !== 18 || ageRange[1] !== 45;
 
   return (
     <div className="mb-6">
@@ -76,7 +76,7 @@ const AdvancedFilters = ({ onFiltersChange }: AdvancedFiltersProps) => {
                     <SelectValue placeholder="Todas as cidades" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as cidades</SelectItem>
+                    <SelectItem value="all">Todas as cidades</SelectItem>
                     {cities.map((city) => (
                       <SelectItem key={city.id} value={city.id}>
                         {city.name}
