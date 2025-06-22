@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +26,7 @@ const AdminDashboard = () => {
     // Redirect to login if user is not authenticated and auth check is complete
     if (authComplete && !user) {
       console.log('User not authenticated, redirecting to login');
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
     
     // Show access denied if user is authenticated but not admin
@@ -37,32 +36,31 @@ const AdminDashboard = () => {
   }, [user, isAdmin, loading, authComplete, navigate]);
 
   const handleSignOut = async () => {
+    console.log('Admin dashboard - initiating logout');
+    
+    // Show loading toast
+    const loadingToast = toast.loading('Fazendo logout...');
+    
     try {
-      console.log('Admin dashboard - handling sign out');
-      
-      // Show loading toast
-      toast.loading('Fazendo logout...');
-      
-      const { error } = await signOut();
+      // Call signOut (which now handles everything internally)
+      await signOut();
       
       // Dismiss loading toast
-      toast.dismiss();
+      toast.dismiss(loadingToast);
       
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Erro ao fazer logout');
-      } else {
-        console.log('Sign out successful, redirecting to login');
-        toast.success('Logout realizado com sucesso');
-        // Force navigation after a small delay to ensure state is updated
-        setTimeout(() => {
-          navigate('/login', { replace: true });
-        }, 100);
-      }
+      // Show success message
+      toast.success('Logout realizado com sucesso');
+      
+      console.log('Logout completed, navigating to login');
+      
+      // Navigate immediately since state is already cleared
+      navigate('/login', { replace: true });
+      
     } catch (error) {
-      console.error('Sign out exception:', error);
-      toast.dismiss();
-      toast.error('Erro ao fazer logout');
+      console.error('Unexpected logout error:', error);
+      toast.dismiss(loadingToast);
+      toast.success('Logout realizado'); // Still show success since we clear local state
+      navigate('/login', { replace: true });
     }
   };
 
