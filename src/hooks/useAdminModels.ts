@@ -91,6 +91,9 @@ export const useUpdateModel = () => {
       delete (cleanUpdates as any).created_at;
       delete (cleanUpdates as any).updated_at;
       
+      // Garantir que os campos de visibilidade sejam incluídos
+      console.log('Clean updates being sent to database:', cleanUpdates);
+      
       const { data, error } = await supabase
         .from('models')
         .update(cleanUpdates)

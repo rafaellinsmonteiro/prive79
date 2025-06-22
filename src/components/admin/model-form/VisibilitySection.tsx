@@ -13,10 +13,15 @@ const VisibilitySection = ({ form }: VisibilitySectionProps) => {
   const visibilityType = watch('visibility_type') || 'public';
   const allowedPlanIds = watch('allowed_plan_ids') || [];
 
+  console.log('VisibilitySection - Current values:', { visibilityType, allowedPlanIds });
+
   const handleVisibilityChange = (type: string, planIds: string[]) => {
     console.log('VisibilitySection - Updating visibility:', { type, planIds });
-    setValue('visibility_type', type, { shouldDirty: true });
-    setValue('allowed_plan_ids', planIds, { shouldDirty: true });
+    setValue('visibility_type', type, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    setValue('allowed_plan_ids', planIds, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    
+    // Forçar re-render
+    form.trigger(['visibility_type', 'allowed_plan_ids']);
   };
 
   return (
@@ -31,6 +36,12 @@ const VisibilitySection = ({ form }: VisibilitySectionProps) => {
         onVisibilityChange={handleVisibilityChange}
         label="Visibilidade do Modelo"
       />
+      
+      {/* Debug info */}
+      <div className="text-xs text-zinc-500 p-2 bg-zinc-800 rounded">
+        <p>Debug - Tipo: {visibilityType}</p>
+        <p>Debug - Planos: {JSON.stringify(allowedPlanIds)}</p>
+      </div>
     </div>
   );
 };
