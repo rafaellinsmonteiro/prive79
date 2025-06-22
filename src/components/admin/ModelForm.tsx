@@ -68,11 +68,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       category_ids: [],
       visibility_type: 'public',
       allowed_plan_ids: [],
-      // Campos personalizados integrados
-      olhos: '',
-      tatuagem: false,
-      cabelo: '',
-      etnia: '',
+      
     }
   });
 
