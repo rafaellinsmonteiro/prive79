@@ -27,6 +27,8 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
     return String(value);
   };
 
+  console.log(`🎨 CustomFieldRenderer - Rendering field: ${field.field_name} (${field.field_type})`);
+
   switch (field.field_type) {
     case 'textarea':
       return (
