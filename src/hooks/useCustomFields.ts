@@ -67,7 +67,20 @@ export const useCustomSections = () => {
       }
 
       console.log('✅ useCustomSections - Fetched sections:', data?.length || 0);
-      console.log('🔍 useCustomSections - Section details:', data?.map(s => ({ name: s.name, active: s.is_active })));
+      console.log('🔍 useCustomSections - Section details:', data?.map(s => ({ 
+        id: s.id, 
+        name: s.name, 
+        active: s.is_active, 
+        order: s.display_order 
+      })));
+      
+      // Log specifically looking for "Atendimento" section
+      const atendimentoSection = data?.find(s => s.name === 'Atendimento');
+      if (atendimentoSection) {
+        console.log('🎯 Found "Atendimento" section:', atendimentoSection);
+      } else {
+        console.log('⚠️ "Atendimento" section NOT found in database results');
+      }
 
       return data || [];
     },
