@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,6 +51,7 @@ const Login = () => {
   if (user && authComplete) {
     return null;
   }
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -72,7 +73,9 @@ const Login = () => {
       // Don't set loading to false here - let useEffect handle the redirect
     }
   };
-  return <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+
+  return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
@@ -88,23 +91,45 @@ const Login = () => {
               <Label htmlFor="email" className="text-zinc-300">
                 Email
               </Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Digite seu email" required className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                placeholder="Digite seu email" 
+                required 
+                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                autoComplete="email"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-zinc-300">
                 Senha
               </Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Digite sua senha" required className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500" />
+              <Input 
+                id="password" 
+                type="password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="Digite sua senha" 
+                required 
+                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                autoComplete="current-password"
+              />
             </div>
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Entrando..." : <>
+              {loading ? "Entrando..." : (
+                <>
                   <LogIn className="h-4 w-4 mr-2" />
                   Entrar
-                </>}
+                </>
+              )}
             </Button>
           </form>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 };
+
 export default Login;

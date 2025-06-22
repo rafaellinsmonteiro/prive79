@@ -52,7 +52,12 @@ export const CategoryForm = ({ category, onSubmit, onCancel, isLoading }: Catego
             <FormItem>
               <FormLabel className="text-white">Nome da Categoria</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Loiras" {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+                <Input 
+                  placeholder="Ex: Loiras" 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  autoComplete="off"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -65,7 +70,13 @@ export const CategoryForm = ({ category, onSubmit, onCancel, isLoading }: Catego
             <FormItem>
               <FormLabel className="text-white">Ordem de Exibição</FormLabel>
               <FormControl>
-                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} className="bg-zinc-800 border-zinc-700 text-white" />
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  autoComplete="off"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

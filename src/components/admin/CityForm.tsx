@@ -53,7 +53,12 @@ export const CityForm = ({ city, onSubmit, onCancel, isLoading }: CityFormProps)
             <FormItem>
               <FormLabel className="text-white">Nome da Cidade</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Aracaju" {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+                <Input 
+                  placeholder="Ex: Aracaju" 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  autoComplete="address-level2"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,7 +71,12 @@ export const CityForm = ({ city, onSubmit, onCancel, isLoading }: CityFormProps)
             <FormItem>
               <FormLabel className="text-white">UF</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: SE" {...field} className="bg-zinc-800 border-zinc-700 text-white" />
+                <Input 
+                  placeholder="Ex: SE" 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  autoComplete="address-level1"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

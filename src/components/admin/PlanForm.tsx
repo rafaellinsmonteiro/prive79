@@ -114,6 +114,7 @@ const PlanForm = ({ planId, onSuccess }: PlanFormProps) => {
           id="name"
           {...register('name')}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="off"
         />
         {errors.name && (
           <p className="text-red-500 text-sm">{errors.name.message}</p>
@@ -126,6 +127,7 @@ const PlanForm = ({ planId, onSuccess }: PlanFormProps) => {
           id="description"
           {...register('description')}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="off"
         />
       </div>
 
@@ -137,6 +139,7 @@ const PlanForm = ({ planId, onSuccess }: PlanFormProps) => {
           step="0.01"
           {...register('price', { valueAsNumber: true })}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="off"
         />
         {errors.price && (
           <p className="text-red-500 text-sm">{errors.price.message}</p>
@@ -150,6 +153,7 @@ const PlanForm = ({ planId, onSuccess }: PlanFormProps) => {
           type="number"
           {...register('display_order', { valueAsNumber: true })}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="off"
         />
         {errors.display_order && (
           <p className="text-red-500 text-sm">{errors.display_order.message}</p>

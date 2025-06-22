@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -125,6 +126,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           id="name"
           {...register('name')}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="name"
         />
         {errors.name && (
           <p className="text-red-500 text-sm">{errors.name.message}</p>
@@ -138,6 +140,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           type="email"
           {...register('email')}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="email"
         />
         {errors.email && (
           <p className="text-red-500 text-sm">{errors.email.message}</p>
@@ -150,6 +153,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           id="phone"
           {...register('phone')}
           className="bg-zinc-800 border-zinc-700 text-white"
+          autoComplete="tel"
         />
       </div>
 
@@ -163,6 +167,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           {...register('password')}
           className="bg-zinc-800 border-zinc-700 text-white"
           placeholder={userId ? 'Digite nova senha (opcional)' : 'Digite a senha'}
+          autoComplete={userId ? 'new-password' : 'new-password'}
         />
         {errors.password && (
           <p className="text-red-500 text-sm">{errors.password.message}</p>
