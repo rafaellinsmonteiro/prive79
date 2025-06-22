@@ -4,10 +4,20 @@ import { useGalleryMedia } from '@/hooks/useGalleryMedia';
 import Header from '@/components/Header';
 import MediaCard from '@/components/gallery/MediaCard';
 import GalleryFilters from '@/components/gallery/GalleryFilters';
+import AdvancedFilters from '@/components/gallery/AdvancedFilters';
 
 const GalleryPage = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'photo' | 'video'>('all');
-  const { data: allMedia = [], isLoading, error } = useGalleryMedia(activeFilter);
+  const [advancedFilters, setAdvancedFilters] = useState<{
+    city?: string;
+    minAge?: number;
+    maxAge?: number;
+  }>({});
+
+  const { data: allMedia = [], isLoading, error } = useGalleryMedia({
+    mediaType: activeFilter,
+    ...advancedFilters
+  });
 
   // Calcular contadores para os filtros
   const photoCount = allMedia.filter(m => m.media_type === 'photo').length;
@@ -64,10 +74,13 @@ const GalleryPage = () => {
           videoCount={videoCount}
         />
 
+        {/* Filtros Avançados */}
+        <AdvancedFilters onFiltersChange={setAdvancedFilters} />
+
         {/* Grade de mídia */}
         {allMedia.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-zinc-400">Nenhuma mídia encontrada.</p>
+            <p className="text-zinc-400">Nenhuma mídia encontrada com os filtros selecionados.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

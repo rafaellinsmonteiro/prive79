@@ -14,6 +14,7 @@ import CityPage from "./pages/CityPage";
 import CategoryPage from "./pages/CategoryPage";
 import ReelsPage from "./pages/ReelsPage";
 import GalleryPage from "./pages/GalleryPage";
+import MediaPage from "./pages/MediaPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/categoria/:categoryId" element={<CategoryPage />} />
             <Route path="/reels" element={<ReelsPage />} />
             <Route path="/galeria" element={<GalleryPage />} />
+            <Route path="/midia/:type/:id" element={<MediaPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
