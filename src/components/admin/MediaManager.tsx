@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -412,16 +411,16 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-300">Exibir no Perfil</span>
                       <Switch
-                        checked={photo.show_in_profile || false}
-                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_profile', photo.show_in_profile || false)}
+                        checked={(photo as any).show_in_profile !== false}
+                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_profile', (photo as any).show_in_profile !== false)}
                         disabled={isProcessing}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-300">Exibir na Galeria</span>
                       <Switch
-                        checked={photo.show_in_gallery || false}
-                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_gallery', photo.show_in_gallery || false)}
+                        checked={(photo as any).show_in_gallery !== false}
+                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_gallery', (photo as any).show_in_gallery !== false)}
                         disabled={isProcessing}
                       />
                     </div>
@@ -569,16 +568,16 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-300">Perfil</span>
                       <Switch
-                        checked={video.show_in_profile || false}
-                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_profile', video.show_in_profile || false)}
+                        checked={(video as any).show_in_profile !== false}
+                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_profile', (video as any).show_in_profile !== false)}
                         disabled={isProcessing}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-300">Galeria</span>
                       <Switch
-                        checked={video.show_in_gallery || false}
-                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_gallery', video.show_in_gallery || false)}
+                        checked={(video as any).show_in_gallery !== false}
+                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_gallery', (video as any).show_in_gallery !== false)}
                         disabled={isProcessing}
                       />
                     </div>

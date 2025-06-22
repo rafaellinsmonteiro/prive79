@@ -218,6 +218,8 @@ export type Database = {
           is_primary: boolean | null
           model_id: string
           photo_url: string
+          show_in_gallery: boolean | null
+          show_in_profile: boolean | null
         }
         Insert: {
           created_at?: string
@@ -226,6 +228,8 @@ export type Database = {
           is_primary?: boolean | null
           model_id: string
           photo_url: string
+          show_in_gallery?: boolean | null
+          show_in_profile?: boolean | null
         }
         Update: {
           created_at?: string
@@ -234,6 +238,8 @@ export type Database = {
           is_primary?: boolean | null
           model_id?: string
           photo_url?: string
+          show_in_gallery?: boolean | null
+          show_in_profile?: boolean | null
         }
         Relationships: [
           {
@@ -284,6 +290,8 @@ export type Database = {
           is_active: boolean | null
           is_featured_in_reels: boolean | null
           model_id: string
+          show_in_gallery: boolean | null
+          show_in_profile: boolean | null
           thumbnail_url: string | null
           title: string | null
           updated_at: string
@@ -297,6 +305,8 @@ export type Database = {
           is_active?: boolean | null
           is_featured_in_reels?: boolean | null
           model_id: string
+          show_in_gallery?: boolean | null
+          show_in_profile?: boolean | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string
@@ -310,6 +320,8 @@ export type Database = {
           is_active?: boolean | null
           is_featured_in_reels?: boolean | null
           model_id?: string
+          show_in_gallery?: boolean | null
+          show_in_profile?: boolean | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string
