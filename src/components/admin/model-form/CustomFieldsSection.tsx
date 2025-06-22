@@ -26,6 +26,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
   console.log('🔍 CustomFieldsSection - Field names:', customFields.map(f => f.field_name));
   console.log('🔍 CustomFieldsSection - Active fields:', customFields.filter(f => f.is_active).length);
   console.log('🔍 CustomFieldsSection - Total sections loaded:', customSections.length);
+  console.log('🔍 CustomFieldsSection - All sections:', customSections.map(s => ({ name: s.name, active: s.is_active })));
   
   // Define system sections that should not be displayed as custom sections
   const systemSections = [
@@ -37,12 +38,12 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     'Configurações'
   ];
   
-  // Get only active sections that are not system sections, ordered by display_order
+  // Get all active sections, ordered by display_order (not filtering out system sections anymore)
   const activeSections = customSections
-    .filter(section => section.is_active && !systemSections.includes(section.name))
+    .filter(section => section.is_active)
     .sort((a, b) => a.display_order - b.display_order);
   
-  console.log('🔍 CustomFieldsSection - Active custom sections:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
+  console.log('🔍 CustomFieldsSection - Active sections for display:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
   
   // Group fields by section, only active fields that are not system fields
   const customFieldsOnly = customFields.filter(field => 
@@ -115,7 +116,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                     onChange={(e) => {
                       const value = e.target.value;
                       formField.onChange(value === '' ? '' : Number(value));
@@ -175,7 +176,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 </FormLabel>
                 <Select 
                   onValueChange={(value) => formField.onChange(value)}
-                  value={formField.value ? String(formField.value) : ''}
+                  value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                 >
                   <FormControl>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
@@ -213,7 +214,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="date"
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -242,7 +243,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="email"
                     placeholder={field.placeholder || ''}
@@ -272,7 +273,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     type="url"
                     placeholder={field.placeholder || ''}
@@ -302,7 +303,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                 <FormControl>
                   <Input
                     {...formField}
-                    value={formField.value ? String(formField.value) : ''}
+                    value={formField.value !== undefined && formField.value !== null ? String(formField.value) : ''}
                     onChange={(e) => formField.onChange(e.target.value)}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
