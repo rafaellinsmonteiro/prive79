@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -210,6 +209,78 @@ export const useUploadFile = () => {
 
       console.log('File uploaded successfully:', publicUrl);
       return publicUrl;
+    },
+  });
+};
+
+export const useUpdatePhotoVisibility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      photoId, 
+      field, 
+      value 
+    }: { 
+      photoId: string; 
+      field: 'show_in_profile' | 'show_in_gallery'; 
+      value: boolean; 
+    }) => {
+      console.log('Updating photo visibility:', { photoId, field, value });
+      
+      const { error } = await supabase
+        .from('model_photos')
+        .update({ [field]: value })
+        .eq('id', photoId);
+
+      if (error) {
+        console.error('Error updating photo visibility:', error);
+        throw error;
+      }
+      
+      console.log('Photo visibility updated successfully');
+    },
+    onSuccess: (_, variables) => {
+      // Get modelId from the photo data to invalidate the correct queries
+      queryClient.invalidateQueries({ queryKey: ['model-media'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};
+
+export const useUpdateVideoVisibility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      videoId, 
+      field, 
+      value 
+    }: { 
+      videoId: string; 
+      field: 'show_in_profile' | 'show_in_gallery'; 
+      value: boolean; 
+    }) => {
+      console.log('Updating video visibility:', { videoId, field, value });
+      
+      const { error } = await supabase
+        .from('model_videos')
+        .update({ [field]: value })
+        .eq('id', videoId);
+
+      if (error) {
+        console.error('Error updating video visibility:', error);
+        throw error;
+      }
+      
+      console.log('Video visibility updated successfully');
+    },
+    onSuccess: (_, variables) => {
+      // Get modelId from the video data to invalidate the correct queries
+      queryClient.invalidateQueries({ queryKey: ['model-media'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 };

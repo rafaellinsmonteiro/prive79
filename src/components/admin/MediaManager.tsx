@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,9 @@ import {
   useDeletePhoto,
   useDeleteVideo,
   useSetPrimaryPhoto,
-  useUploadFile
+  useUploadFile,
+  useUpdatePhotoVisibility,
+  useUpdateVideoVisibility
 } from '@/hooks/useMediaMutations';
 import { useToggleVideoInReels } from '@/hooks/useReelsMedia';
 import {
@@ -49,6 +52,8 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
   const setPrimaryPhotoMutation = useSetPrimaryPhoto();
   const uploadFileMutation = useUploadFile();
   const toggleVideoInReels = useToggleVideoInReels();
+  const updatePhotoVisibility = useUpdatePhotoVisibility();
+  const updateVideoVisibility = useUpdateVideoVisibility();
 
   const photos = mediaItems.filter(item => item.media_type === 'photo');
   const videos = mediaItems.filter(item => item.media_type === 'video');
@@ -253,6 +258,22 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
     });
   };
 
+  const handlePhotoVisibilityToggle = (photoId: string, field: 'show_in_profile' | 'show_in_gallery', currentValue: boolean) => {
+    updatePhotoVisibility.mutate({
+      photoId,
+      field,
+      value: !currentValue
+    });
+  };
+
+  const handleVideoVisibilityToggle = (videoId: string, field: 'show_in_profile' | 'show_in_gallery', currentValue: boolean) => {
+    updateVideoVisibility.mutate({
+      videoId,
+      field,
+      value: !currentValue
+    });
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Carregando mídias...</div>;
   }
@@ -263,7 +284,9 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                      deleteVideoMutation.isPending || 
                      setPrimaryPhotoMutation.isPending ||
                      uploadFileMutation.isPending ||
-                     toggleVideoInReels.isPending;
+                     toggleVideoInReels.isPending ||
+                     updatePhotoVisibility.isPending ||
+                     updateVideoVisibility.isPending;
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -327,59 +350,81 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
             </div>
 
             {/* Lista de fotos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {photos.map((photo, index) => (
-                <div key={photo.id} className="relative group">
-                  <img
-                    src={photo.media_url}
-                    alt={`Foto ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://placeholder.com/400x600';
-                    }}
-                  />
-                  {photo.is_primary && (
-                    <Badge className="absolute top-2 left-2 bg-yellow-600">
-                      <Star className="h-3 w-3 mr-1" />
-                      Principal
-                    </Badge>
-                  )}
-                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                    {!photo.is_primary && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleSetPrimary(photo.id)}
-                        disabled={isProcessing}
-                      >
-                        <Star className="h-3 w-3" />
-                      </Button>
+                <div key={photo.id} className="bg-zinc-800 rounded-lg p-4">
+                  <div className="relative group mb-4">
+                    <img
+                      src={photo.media_url}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://placeholder.com/400x600';
+                      }}
+                    />
+                    {photo.is_primary && (
+                      <Badge className="absolute top-2 left-2 bg-yellow-600">
+                        <Star className="h-3 w-3 mr-1" />
+                        Principal
+                      </Badge>
                     )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive" disabled={isProcessing}>
-                          <Trash2 className="h-3 w-3" />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                      {!photo.is_primary && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleSetPrimary(photo.id)}
+                          disabled={isProcessing}
+                        >
+                          <Star className="h-3 w-3" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir esta foto? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteMedia(photo.id, 'photo')}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive" disabled={isProcessing}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir esta foto? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteMedia(photo.id, 'photo')}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+
+                  {/* Controles de visibilidade */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-300">Exibir no Perfil</span>
+                      <Switch
+                        checked={photo.show_in_profile || false}
+                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_profile', photo.show_in_profile || false)}
+                        disabled={isProcessing}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-300">Exibir na Galeria</span>
+                      <Switch
+                        checked={photo.show_in_gallery || false}
+                        onCheckedChange={() => handlePhotoVisibilityToggle(photo.id, 'show_in_gallery', photo.show_in_gallery || false)}
+                        disabled={isProcessing}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -468,61 +513,83 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
             {/* Lista de vídeos */}
             <div className="space-y-4">
               {videos.map((video, index) => (
-                <div key={video.id} className="flex items-center gap-4 p-4 border border-zinc-700 rounded-lg">
-                  {video.thumbnail_url ? (
-                    <img
-                      src={video.thumbnail_url}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-20 h-16 object-cover rounded"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        target.nextElementSibling?.setAttribute('style', 'display: flex');
-                      }}
-                    />
-                  ) : null}
-                  <div className="w-20 h-16 bg-zinc-800 rounded flex items-center justify-center" style={{ display: video.thumbnail_url ? 'none' : 'flex' }}>
-                    <Video className="h-6 w-6 text-zinc-500" />
+                <div key={video.id} className="bg-zinc-800 rounded-lg p-4">
+                  <div className="flex items-start gap-4 mb-4">
+                    {video.thumbnail_url ? (
+                      <img
+                        src={video.thumbnail_url}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-24 h-20 object-cover rounded flex-shrink-0"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.setAttribute('style', 'display: flex');
+                        }}
+                      />
+                    ) : null}
+                    <div className="w-24 h-20 bg-zinc-700 rounded flex items-center justify-center flex-shrink-0" style={{ display: video.thumbnail_url ? 'none' : 'flex' }}>
+                      <Video className="h-6 w-6 text-zinc-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium mb-1">
+                        {video.title || `Vídeo ${index + 1}`}
+                      </p>
+                      <p className="text-zinc-400 text-sm truncate mb-2">{video.media_url}</p>
+                      <div className="flex gap-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" disabled={isProcessing}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteMedia(video.id, 'video')}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-white font-medium">
-                      {video.title || `Vídeo ${index + 1}`}
-                    </p>
-                    <p className="text-zinc-400 text-sm truncate">{video.media_url}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">Reels</span>
+
+                  {/* Controles de visibilidade */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-300">Perfil</span>
+                      <Switch
+                        checked={video.show_in_profile || false}
+                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_profile', video.show_in_profile || false)}
+                        disabled={isProcessing}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-300">Galeria</span>
+                      <Switch
+                        checked={video.show_in_gallery || false}
+                        onCheckedChange={() => handleVideoVisibilityToggle(video.id, 'show_in_gallery', video.show_in_gallery || false)}
+                        disabled={isProcessing}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-300">Reels</span>
                       <Switch
                         checked={video.is_featured_in_reels || false}
                         onCheckedChange={() => handleToggleReels(video.id, video.is_featured_in_reels || false)}
                         disabled={isProcessing}
                       />
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive" disabled={isProcessing}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteMedia(video.id, 'video')}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
               ))}
