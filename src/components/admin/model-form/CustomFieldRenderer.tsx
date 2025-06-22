@@ -41,12 +41,13 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <FormControl>
                 <Input
                   placeholder={field.placeholder || ''}
                   value={String(formField.value || '')}
                   onChange={(e) => formField.onChange(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                 />
               </FormControl>
               {field.help_text && (
@@ -65,13 +66,14 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder={field.placeholder || ''}
                   value={String(formField.value || '')}
                   onChange={(e) => formField.onChange(e.target.value)}
                   rows={4}
+                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                 />
               </FormControl>
               {field.help_text && (
@@ -90,13 +92,14 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   placeholder={field.placeholder || ''}
                   value={String(formField.value || '')}
                   onChange={(e) => formField.onChange(e.target.value ? Number(e.target.value) : '')}
+                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                 />
               </FormControl>
               {field.help_text && (
@@ -114,7 +117,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           control={form.control}
           name={formFieldName as any}
           render={({ field: formField }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
               <FormControl>
                 <Checkbox
                   checked={!!formField.value}
@@ -122,7 +125,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>{field.label}</FormLabel>
+                <FormLabel className="text-white font-medium">{field.label}</FormLabel>
                 {field.help_text && (
                   <p className="text-sm text-zinc-400">{field.help_text}</p>
                 )}
@@ -139,19 +142,19 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <Select 
                 value={String(formField.value || '')} 
                 onValueChange={formField.onChange}
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="bg-zinc-800 border-zinc-700">
                   {field.options?.map((option) => (
-                    <SelectItem key={option} value={option}>
+                    <SelectItem key={option} value={option} className="text-white hover:bg-zinc-700">
                       {option}
                     </SelectItem>
                   ))}
@@ -173,9 +176,9 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <FormControl>
-                <div className="space-y-2">
+                <div className="space-y-2 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
                   {field.options?.map((option) => (
                     <div key={option} className="flex items-center space-x-2">
                       <input
@@ -210,12 +213,13 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
           name={formFieldName as any}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel>{field.label}</FormLabel>
+              <FormLabel className="text-white font-medium">{field.label}</FormLabel>
               <FormControl>
                 <Input
                   type="date"
                   value={String(formField.value || '')}
                   onChange={(e) => formField.onChange(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </FormControl>
               {field.help_text && (
