@@ -4,13 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type Plan = Tables<'plans'> & {
-  categories?: { id: string; name: string; }[];
+  categories?: {
+    id: string;
+    name: string;
+    created_at: string;
+    display_order: number;
+  }[];
 };
 
 export const useAdminPlans = () => {
   return useQuery({
     queryKey: ['admin-plans'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Plan[]> => {
       const { data, error } = await supabase
         .from('plans')
         .select(`
@@ -18,7 +23,9 @@ export const useAdminPlans = () => {
           plan_categories!inner (
             categories (
               id,
-              name
+              name,
+              created_at,
+              display_order
             )
           )
         `)
