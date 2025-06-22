@@ -23,11 +23,20 @@ export interface CurrentUserData {
 export const useCurrentUser = () => {
   const { user, session } = useAuth();
   
+  console.log('useCurrentUser - Hook called with:', {
+    hasUser: !!user,
+    hasSession: !!session,
+    userId: user?.id,
+    userEmail: user?.email
+  });
+  
   return useQuery({
     queryKey: ['current-user', user?.id],
     queryFn: async (): Promise<CurrentUserData | null> => {
+      console.log('useCurrentUser - Query function starting...');
+      
       if (!user || !session) {
-        console.log('useCurrentUser - No user or session');
+        console.log('useCurrentUser - No user or session, returning null');
         return null;
       }
 

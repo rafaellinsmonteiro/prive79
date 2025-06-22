@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,10 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 const UserProfile = () => {
   const { user, signOut, isAdmin } = useAuth();
+  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useCurrentUser();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [userPlan, setUserPlan] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState({
     email: '',
@@ -24,16 +24,33 @@ const UserProfile = () => {
     confirmPassword: '',
   });
 
+  console.log('UserProfile - Component rendered with:', {
+    hasUser: !!user,
+    userId: user?.id,
+    userEmail: user?.email,
+    currentUser,
+    currentUserLoading,
+    currentUserError,
+    isAdmin
+  });
+
   // Carregar informações do usuário quando o componente monta
   useEffect(() => {
+    console.log('UserProfile - useEffect triggered:', {
+      hasUser: !!user,
+      currentUser,
+      currentUserLoading
+    });
+
     const loadUserData = async () => {
       if (!user) {
+        console.log('UserProfile - No user, setting loading to false');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('Carregando dados do usuário:', user.id);
+        console.log('UserProfile - Loading user data for:', user.id);
         
         // Carregar dados básicos do auth
         const basicInfo = {
@@ -44,14 +61,11 @@ const UserProfile = () => {
           confirmPassword: '',
         };
 
-        console.log('Dados básicos do auth:', basicInfo);
+        console.log('UserProfile - Basic auth info:', basicInfo);
         setUserInfo(basicInfo);
-
-        // Buscar informações do plano
-        await fetchUserPlan();
         
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
+        console.error('UserProfile - Error loading user data:', error);
         toast({
           title: "Erro",
           description: "Erro ao carregar informações do usuário",
@@ -64,74 +78,6 @@ const UserProfile = () => {
 
     loadUserData();
   }, [user, toast]);
-
-  // Buscar informações do plano do usuário
-  const fetchUserPlan = async () => {
-    if (!user?.id) return;
-    
-    try {
-      console.log('Buscando plano para usuário:', user.id);
-      console.log('Email do usuário:', user.email);
-      
-      // Primeiro buscar na tabela system_users pelo user_id
-      let { data: systemUserData, error: systemUserError } = await supabase
-        .from('system_users')
-        .select(`
-          plan_id,
-          plans (
-            name,
-            description,
-            price
-          )
-        `)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      console.log('Resultado busca por user_id:', systemUserData, systemUserError);
-
-      // Se não encontrar por user_id, tentar buscar por email
-      if (!systemUserData && !systemUserError) {
-        console.log('Tentando buscar por email:', user.email);
-        const { data: emailData, error: emailError } = await supabase
-          .from('system_users')
-          .select(`
-            plan_id,
-            plans (
-              name,
-              description,
-              price
-            )
-          `)
-          .eq('email', user.email)
-          .maybeSingle();
-
-        systemUserData = emailData;
-        systemUserError = emailError;
-        console.log('Resultado busca por email:', systemUserData, systemUserError);
-      }
-
-      if (systemUserError) {
-        console.log('Erro ao buscar plano:', systemUserError);
-        setUserPlan('Erro ao carregar plano');
-        return;
-      }
-
-      if (systemUserData?.plans) {
-        const plan = systemUserData.plans as any;
-        setUserPlan(`${plan.name} - R$ ${plan.price}`);
-        console.log('Plano encontrado:', plan);
-      } else if (systemUserData?.plan_id) {
-        console.log('System user encontrado mas sem dados do plano, plan_id:', systemUserData.plan_id);
-        setUserPlan('Plano não encontrado');
-      } else {
-        setUserPlan('Nenhum plano ativo');
-        console.log('Nenhum plano encontrado para o usuário');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar plano:', error);
-      setUserPlan('Erro ao carregar plano');
-    }
-  };
 
   const handleSignOut = async () => {
     console.log('User profile - signing out');
@@ -238,7 +184,8 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
-  if (loading) {
+  if (loading || currentUserLoading) {
+    console.log('UserProfile - Showing loading state');
     return (
       <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
         <CardContent className="p-6">
@@ -249,6 +196,7 @@ const UserProfile = () => {
   }
 
   if (!user) {
+    console.log('UserProfile - No user found');
     return (
       <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
         <CardContent className="p-6">
@@ -257,6 +205,8 @@ const UserProfile = () => {
       </Card>
     );
   }
+
+  console.log('UserProfile - Rendering profile with currentUser:', currentUser);
 
   return (
     <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
@@ -368,7 +318,17 @@ const UserProfile = () => {
             Plano Ativo
           </Label>
           <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-zinc-100">
-            {userPlan || 'Carregando...'}
+            {currentUserError ? (
+              <span className="text-red-400">Erro ao carregar plano</span>
+            ) : currentUser?.plan ? (
+              <span className="text-green-400">
+                {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
+              </span>
+            ) : currentUser ? (
+              <span className="text-yellow-400">Nenhum plano ativo</span>
+            ) : (
+              <span className="text-zinc-500">Carregando...</span>
+            )}
           </div>
         </div>
 
