@@ -3,10 +3,21 @@ import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, GripVertical } from 'lucide-react';
+import { Edit, GripVertical, Trash2 } from 'lucide-react';
 import { CustomField, CustomSection } from '@/hooks/useCustomFields';
 import { useUpdateSectionOrder, useUpdateFieldOrder } from '@/hooks/useCustomFields';
+import { useDeleteCustomField, useDeleteCustomSection } from '@/hooks/useAdminCustomFields';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface DraggableCustomFieldsListProps {
   fields: CustomField[];
@@ -25,8 +36,13 @@ const DraggableCustomFieldsList = ({
 }: DraggableCustomFieldsListProps) => {
   const [localSections, setLocalSections] = useState(sections);
   const [localFields, setLocalFields] = useState(fields);
+  const [deleteFieldId, setDeleteFieldId] = useState<string | null>(null);
+  const [deleteSectionId, setDeleteSectionId] = useState<string | null>(null);
+  
   const updateSectionOrder = useUpdateSectionOrder();
   const updateFieldOrder = useUpdateFieldOrder();
+  const deleteCustomField = useDeleteCustomField();
+  const deleteCustomSection = useDeleteCustomSection();
   const { toast } = useToast();
 
   // Update local state when props change
@@ -123,6 +139,34 @@ const DraggableCustomFieldsList = ({
     }
   };
 
+  const handleDeleteField = async (fieldId: string) => {
+    try {
+      await deleteCustomField.mutateAsync(fieldId);
+      toast({ title: "Campo excluído com sucesso!" });
+      setDeleteFieldId(null);
+    } catch (error) {
+      console.error('Error deleting field:', error);
+      toast({ 
+        title: "Erro ao excluir campo", 
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const handleDeleteSection = async (sectionId: string) => {
+    try {
+      await deleteCustomSection.mutateAsync(sectionId);
+      toast({ title: "Seção excluída com sucesso!" });
+      setDeleteSectionId(null);
+    } catch (error) {
+      console.error('Error deleting section:', error);
+      toast({ 
+        title: "Erro ao excluir seção", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <DragDropContext onDragEnd={handleSectionDragEnd}>
@@ -157,6 +201,14 @@ const DraggableCustomFieldsList = ({
                                   className="text-zinc-400 hover:text-white"
                                 >
                                   <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setDeleteSectionId(section.id)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </CardTitle>
@@ -204,14 +256,24 @@ const DraggableCustomFieldsList = ({
                                                   </span>
                                                 </div>
                                               </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => onEdit(field.id)}
-                                                className="text-zinc-400 hover:text-white"
-                                              >
-                                                <Edit className="h-4 w-4" />
-                                              </Button>
+                                              <div className="flex gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => onEdit(field.id)}
+                                                  className="text-zinc-400 hover:text-white"
+                                                >
+                                                  <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => setDeleteFieldId(field.id)}
+                                                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                              </div>
                                             </div>
                                           )}
                                         </Draggable>
@@ -277,14 +339,24 @@ const DraggableCustomFieldsList = ({
                                 </span>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEdit(field.id)}
-                              className="text-zinc-400 hover:text-white"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEdit(field.id)}
+                                className="text-zinc-400 hover:text-white"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteFieldId(field.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </Draggable>
@@ -297,6 +369,50 @@ const DraggableCustomFieldsList = ({
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Field Confirmation Dialog */}
+      <AlertDialog open={!!deleteFieldId} onOpenChange={() => setDeleteFieldId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão do Campo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir este campo personalizado? 
+              Esta ação não pode ser desfeita e todos os dados associados serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteFieldId && handleDeleteField(deleteFieldId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Excluir Campo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Section Confirmation Dialog */}
+      <AlertDialog open={!!deleteSectionId} onOpenChange={() => setDeleteSectionId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão da Seção</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir esta seção? 
+              Esta ação não pode ser desfeita e todos os campos associados à seção serão movidos para "Campos Personalizados".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteSectionId && handleDeleteSection(deleteSectionId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Excluir Seção
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

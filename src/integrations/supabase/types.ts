@@ -447,6 +447,7 @@ export type Database = {
           shoe_size: string | null
           silicone: boolean | null
           tatuagem: boolean | null
+          testedecampo: string | null
           updated_at: string
           visibility_type: string | null
           waist: string | null
@@ -478,6 +479,7 @@ export type Database = {
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
+          testedecampo?: string | null
           updated_at?: string
           visibility_type?: string | null
           waist?: string | null
@@ -509,6 +511,7 @@ export type Database = {
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
+          testedecampo?: string | null
           updated_at?: string
           visibility_type?: string | null
           waist?: string | null
