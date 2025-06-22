@@ -51,6 +51,8 @@ export const useModels = (cityId?: string) => {
   return useQuery({
     queryKey: ['models', cityId, isAdmin],
     queryFn: async (): Promise<Model[]> => {
+      console.log('useModels - Starting fetch with params:', { cityId, isAdmin });
+      
       // 1. Fetch models with city filter and visibility
       let modelsQuery = supabase
         .from('models')
@@ -65,28 +67,57 @@ export const useModels = (cityId?: string) => {
       const { data: modelsData, error: modelsError } = await modelsQuery
         .order('display_order', { ascending: true });
 
+      console.log('useModels - Raw models data:', modelsData);
+      console.log('useModels - Models error:', modelsError);
+
       if (modelsError) {
         console.error('Error fetching models:', modelsError);
         throw modelsError;
       }
       if (!modelsData) return [];
 
+      // Debug specific model
+      const maduSilva = modelsData.find(m => m.name.includes('Madu Silva') || m.name.includes('Madu'));
+      if (maduSilva) {
+        console.log('useModels - Found Madu Silva:', {
+          id: maduSilva.id,
+          name: maduSilva.name,
+          is_active: maduSilva.is_active,
+          visibility_type: maduSilva.visibility_type,
+          allowed_plan_ids: maduSilva.allowed_plan_ids
+        });
+      } else {
+        console.log('useModels - Madu Silva not found in raw data');
+      }
+
       // Filter models based on visibility - admins can see all models
       const filteredModels = modelsData.filter(model => {
+        console.log(`useModels - Checking visibility for model ${model.name}:`, {
+          isAdmin,
+          visibility_type: model.visibility_type,
+          allowed_plan_ids: model.allowed_plan_ids
+        });
+
         // If user is admin, show all models
         if (isAdmin) {
+          console.log(`useModels - Admin access granted for ${model.name}`);
           return true;
         }
         
         // If visibility_type is null or 'public', show the model
         if (!model.visibility_type || model.visibility_type === 'public') {
+          console.log(`useModels - Public access granted for ${model.name}`);
           return true;
         }
         
         // For now, hide models that require specific plans since we don't have user plan info
         // TODO: Implement user plan checking when authentication is added
+        console.log(`useModels - Access denied for ${model.name} (requires plan)`);
         return false;
       });
+
+      console.log('useModels - Filtered models count:', filteredModels.length);
+      console.log('useModels - Filtered model names:', filteredModels.map(m => m.name));
 
       const modelIds = filteredModels.map(m => m.id);
       if (modelIds.length === 0) return [];
@@ -129,7 +160,7 @@ export const useModels = (cityId?: string) => {
       (categoriesData ?? []).forEach(cat => categoriesMap.set(cat.id, cat as Category));
 
       // 3. Join data in JavaScript and filter photos based on visibility
-      return filteredModels.map(model => {
+      const finalModels = filteredModels.map(model => {
         const modelWithCity = model as any;
         const locationParts = [];
         if (modelWithCity.cities?.name) locationParts.push(modelWithCity.cities.name);
@@ -165,6 +196,11 @@ export const useModels = (cityId?: string) => {
           categories: catsForModel,
         } as Model;
       });
+
+      console.log('useModels - Final models count:', finalModels.length);
+      console.log('useModels - Final model names:', finalModels.map(m => m.name));
+
+      return finalModels;
     },
   });
 };

@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +32,8 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
   return useQuery({
     queryKey: ['gallery-media', mediaType, city, minAge, maxAge, isAdmin],
     queryFn: async (): Promise<GalleryMedia[]> => {
+      console.log('useGalleryMedia - Starting fetch with params:', { mediaType, city, minAge, maxAge, isAdmin });
+      
       const allMedia: GalleryMedia[] = [];
 
       // Buscar fotos se mediaType for 'all' ou 'photo'
@@ -72,27 +73,53 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
         const { data: photosData, error: photosError } = await photosQuery
           .order('created_at', { ascending: false });
 
+        console.log('useGalleryMedia - Raw photos data:', photosData);
+
         if (photosError) {
           console.error('Erro ao buscar fotos da galeria:', photosError);
           throw photosError;
         }
 
         if (photosData) {
+          // Debug specific model photos
+          const maduPhotos = photosData.filter(photo => photo.models.name.includes('Madu Silva') || photo.models.name.includes('Madu'));
+          if (maduPhotos.length > 0) {
+            console.log('useGalleryMedia - Found Madu Silva photos:', maduPhotos.map(p => ({
+              id: p.id,
+              model_name: p.models.name,
+              visibility_type: p.visibility_type,
+              allowed_plan_ids: p.allowed_plan_ids
+            })));
+          } else {
+            console.log('useGalleryMedia - No Madu Silva photos found in raw data');
+          }
+
           // Filtrar fotos com base na visibilidade - admins podem ver todas
           const visiblePhotos = photosData.filter(photo => {
+            console.log(`useGalleryMedia - Checking photo visibility for ${photo.models.name}:`, {
+              isAdmin,
+              visibility_type: photo.visibility_type,
+              allowed_plan_ids: photo.allowed_plan_ids
+            });
+
             // Se o usuário é admin, mostrar todas as fotos
             if (isAdmin) {
+              console.log(`useGalleryMedia - Admin access granted for ${photo.models.name} photo`);
               return true;
             }
             
             // Se visibility_type é null ou 'public', mostrar a foto
             if (!photo.visibility_type || photo.visibility_type === 'public') {
+              console.log(`useGalleryMedia - Public access granted for ${photo.models.name} photo`);
               return true;
             }
             
             // Por enquanto, esconder fotos que requerem planos específicos
+            console.log(`useGalleryMedia - Access denied for ${photo.models.name} photo (requires plan)`);
             return false;
           });
+
+          console.log('useGalleryMedia - Visible photos count:', visiblePhotos.length);
 
           const photoItems: GalleryMedia[] = visiblePhotos.map(photo => ({
             id: photo.id,
@@ -150,6 +177,8 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
         const { data: videosData, error: videosError } = await videosQuery
           .order('created_at', { ascending: false });
 
+        console.log('useGalleryMedia - Raw videos data:', videosData);
+
         if (videosError) {
           console.error('Erro ao buscar vídeos da galeria:', videosError);
           throw videosError;
@@ -158,19 +187,30 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
         if (videosData) {
           // Filtrar vídeos com base na visibilidade - admins podem ver todos
           const visibleVideos = videosData.filter(video => {
+            console.log(`useGalleryMedia - Checking video visibility for ${video.models.name}:`, {
+              isAdmin,
+              visibility_type: video.visibility_type,
+              allowed_plan_ids: video.allowed_plan_ids
+            });
+
             // Se o usuário é admin, mostrar todos os vídeos
             if (isAdmin) {
+              console.log(`useGalleryMedia - Admin access granted for ${video.models.name} video`);
               return true;
             }
             
             // Se visibility_type é null ou 'public', mostrar o vídeo
             if (!video.visibility_type || video.visibility_type === 'public') {
+              console.log(`useGalleryMedia - Public access granted for ${video.models.name} video`);
               return true;
             }
             
             // Por enquanto, esconder vídeos que requerem planos específicos
+            console.log(`useGalleryMedia - Access denied for ${video.models.name} video (requires plan)`);
             return false;
           });
+
+          console.log('useGalleryMedia - Visible videos count:', visibleVideos.length);
 
           const videoItems: GalleryMedia[] = visibleVideos.map(video => ({
             id: video.id,
@@ -189,6 +229,9 @@ export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
           allMedia.push(...videoItems);
         }
       }
+
+      console.log('useGalleryMedia - Final media count:', allMedia.length);
+      console.log('useGalleryMedia - Final media model names:', [...new Set(allMedia.map(m => m.model_name))]);
 
       // Ordenar por data de criação (mais recentes primeiro)
       return allMedia.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
