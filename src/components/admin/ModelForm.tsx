@@ -154,8 +154,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const onSubmit = async (data: ModelFormData) => {
     console.log('🚀 FORM SUBMISSION STARTED');
     console.log('📊 Raw form data:', data);
-    console.log('👀 Visibility type:', data.visibility_type);
-    console.log('📋 Allowed plan IDs:', data.allowed_plan_ids);
     
     if (!user || !session) {
       toast({
@@ -177,14 +175,25 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
 
     setLoading(true);
     try {
-      const { category_ids, ...modelData } = data;
+      const { category_ids, ...formData } = data;
       
-      console.log('🔧 Processing model data...');
-      console.log('🔧 Model data after removing category_ids:', modelData);
-      console.log('🔧 Visibility in model data:', {
-        visibility_type: modelData.visibility_type,
-        allowed_plan_ids: modelData.allowed_plan_ids
+      // Separar campos personalizados dos campos do modelo
+      const modelData: any = {};
+      const customFieldsData: any = {};
+      
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key.startsWith('custom_')) {
+          // Este é um campo personalizado, mas não vamos salvá-lo na tabela models
+          customFieldsData[key] = value;
+          console.log(`🔧 Custom field detected: ${key} = ${value}`);
+        } else {
+          // Este é um campo padrão do modelo
+          modelData[key] = value;
+        }
       });
+      
+      console.log('🔧 Model data (standard fields):', modelData);
+      console.log('🔧 Custom fields data (ignored for now):', customFieldsData);
       
       let modelResult;
       
@@ -193,10 +202,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         const updateData = { id: modelId, ...modelData };
         
         console.log('📤 Sending update data to mutation:', updateData);
-        console.log('📤 Visibility being sent:', {
-          visibility_type: updateData.visibility_type,
-          allowed_plan_ids: updateData.allowed_plan_ids
-        });
         
         await updateModel.mutateAsync(updateData as any);
         modelResult = { id: modelId };
@@ -269,6 +274,8 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         errorMessage = error.message;
       } else if (error.message?.includes('categories')) {
         errorMessage = "Erro ao configurar categorias. Modelo salvo com sucesso.";
+      } else if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+        errorMessage = "Erro: campo personalizado não reconhecido. Tente novamente.";
       }
       
       toast({
