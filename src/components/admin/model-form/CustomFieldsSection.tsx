@@ -21,6 +21,10 @@ interface CustomFieldsSectionProps {
 const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
   const { data: customFields = [] } = useCustomFields();
   
+  console.log('🔍 CustomFieldsSection - Total fields loaded:', customFields.length);
+  console.log('🔍 CustomFieldsSection - Field names:', customFields.map(f => f.field_name));
+  console.log('🔍 CustomFieldsSection - Active fields:', customFields.filter(f => f.is_active).length);
+  
   // Agrupar campos por seção
   const fieldsBySection = customFields.reduce((acc, field) => {
     if (!field.is_active) return acc;
@@ -32,6 +36,8 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     acc[section].push(field);
     return acc;
   }, {} as Record<string, typeof customFields>);
+
+  console.log('🔍 CustomFieldsSection - Sections found:', Object.keys(fieldsBySection));
 
   const renderField = (field: typeof customFields[0]) => {
     const fieldName = `custom_${field.field_name}` as keyof ModelFormData;
@@ -52,6 +58,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Textarea
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
@@ -80,6 +87,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     type="number"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -174,6 +182,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     type="date"
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
@@ -202,6 +211,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     type="email"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -231,6 +241,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     type="url"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -260,6 +271,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value ? String(formField.value) : ''}
+                    onChange={(e) => formField.onChange(e.target.value)}
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
@@ -275,7 +287,12 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     }
   };
 
-  if (Object.keys(fieldsBySection).length === 0) return null;
+  if (Object.keys(fieldsBySection).length === 0) {
+    console.log('⚠️ CustomFieldsSection - No sections to display');
+    return null;
+  }
+
+  console.log('✅ CustomFieldsSection - Rendering sections:', Object.keys(fieldsBySection));
 
   return (
     <>

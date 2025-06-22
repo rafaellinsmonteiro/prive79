@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder } from '@/hooks/useCustomFields';
+import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder, useDeleteCustomSection } from '@/hooks/useCustomFields';
 import { useSystemFieldsInitializer } from '@/hooks/useSystemFieldsInitializer';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List, Database } from 'lucide-react';
@@ -33,10 +33,21 @@ const CustomFieldsManager = () => {
   const createCustomField = useCreateCustomField();
   const updateCustomField = useUpdateCustomField();
   const deleteCustomField = useDeleteCustomField();
+  const deleteCustomSection = useDeleteCustomSection();
   const updateFieldOrder = useUpdateFieldOrder();
   const updateSectionOrder = useUpdateSectionOrder();
   const { toast } = useToast();
   const { initializeSystemData } = useSystemFieldsInitializer();
+
+  // Debug dos dados carregados
+  useEffect(() => {
+    console.log('🔍 CustomFieldsManager - Fields loaded:', customFields.length);
+    console.log('🔍 CustomFieldsManager - System fields found:', customFields.filter(f => 
+      ['name', 'age', 'height', 'weight', 'whatsapp_number', 'neighborhood'].includes(f.field_name)
+    ).map(f => f.field_name));
+    console.log('🔍 CustomFieldsManager - Sections loaded:', customSections.length);
+    console.log('🔍 CustomFieldsManager - Sections:', customSections.map(s => s.name));
+  }, [customFields, customSections]);
 
   // Verificar se existem campos/seções do sistema, se não existirem, criar
   useEffect(() => {
@@ -44,8 +55,14 @@ const CustomFieldsManager = () => {
       ['name', 'age', 'height', 'weight'].includes(field.field_name)
     );
     
-    if (!isLoading && customFields.length === 0 && customSections.length === 0) {
-      console.log('Inicializando campos e seções do sistema...');
+    const hasSystemSections = customSections.some(section =>
+      ['Informações Básicas', 'Características Físicas'].includes(section.name)
+    );
+    
+    console.log('🔍 System check:', { hasSystemFields, hasSystemSections, fieldsCount: customFields.length, sectionsCount: customSections.length });
+    
+    if (!isLoading && (!hasSystemFields || !hasSystemSections)) {
+      console.log('🚀 Initializing system data automatically...');
       initializeSystemData();
     }
   }, [customFields, customSections, isLoading, initializeSystemData]);
@@ -167,6 +184,35 @@ const CustomFieldsManager = () => {
     }
   };
 
+  const handleDeleteSection = async (id: string, sectionName: string) => {
+    const fieldsInSection = customFields.filter(field => field.section === sectionName);
+    
+    if (fieldsInSection.length > 0) {
+      toast({
+        title: "Erro",
+        description: `Não é possível excluir a seção "${sectionName}" porque ela contém ${fieldsInSection.length} campo(s). Remova ou mova os campos primeiro.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (confirm(`Tem certeza que deseja excluir a seção "${sectionName}"?`)) {
+      try {
+        await deleteCustomSection.mutateAsync(id);
+        toast({
+          title: "Sucesso",
+          description: "Seção excluída com sucesso!",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir seção.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const getFieldTypeName = (type: string) => {
     const types: { [key: string]: string } = {
       'text': 'Texto',
@@ -219,6 +265,16 @@ const CustomFieldsManager = () => {
             Novo Campo
           </Button>
         </div>
+      </div>
+
+      {/* Debug info */}
+      <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border border-yellow-400">
+        <p className="font-bold">🐛 DEBUG INFO:</p>
+        <p>Campos carregados: {customFields.length}</p>
+        <p>Seções carregadas: {customSections.length}</p>
+        <p>Campos do sistema encontrados: {customFields.filter(f => 
+          ['name', 'age', 'height', 'weight', 'whatsapp_number', 'neighborhood'].includes(f.field_name)
+        ).length}</p>
       </div>
 
       {(showForm || showSectionManager) && (
@@ -276,45 +332,60 @@ const CustomFieldsManager = () => {
                               <TableHead className="text-zinc-300 w-10"></TableHead>
                               <TableHead className="text-zinc-300">Nome da Seção</TableHead>
                               <TableHead className="text-zinc-300">Ordem</TableHead>
+                              <TableHead className="text-zinc-300">Campos</TableHead>
                               <TableHead className="text-zinc-300">Ações</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {allSections.map((section, index) => (
-                              <Draggable key={section.id} draggableId={section.id} index={index}>
-                                {(provided, snapshot) => (
-                                  <TableRow 
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
-                                  >
-                                    <TableCell {...provided.dragHandleProps} className="text-zinc-400">
-                                      <GripVertical className="h-4 w-4" />
-                                    </TableCell>
-                                    <TableCell className="text-white font-medium">
-                                      <div className="flex items-center gap-2">
-                                        <Folder className="h-4 w-4 text-zinc-400" />
-                                        {section.name}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-zinc-300">
-                                      {section.display_order}
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex space-x-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                )}
-                              </Draggable>
-                            ))}
+                            {allSections.map((section, index) => {
+                              const fieldsInSection = customFields.filter(field => field.section === section.name);
+                              return (
+                                <Draggable key={section.id} draggableId={section.id} index={index}>
+                                  {(provided, snapshot) => (
+                                    <TableRow 
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      className={`border-zinc-700 ${snapshot.isDragging ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
+                                    >
+                                      <TableCell {...provided.dragHandleProps} className="text-zinc-400">
+                                        <GripVertical className="h-4 w-4" />
+                                      </TableCell>
+                                      <TableCell className="text-white font-medium">
+                                        <div className="flex items-center gap-2">
+                                          <Folder className="h-4 w-4 text-zinc-400" />
+                                          {section.name}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-zinc-300">
+                                        {section.display_order}
+                                      </TableCell>
+                                      <TableCell className="text-zinc-300">
+                                        {fieldsInSection.length} campo(s)
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex space-x-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteSection(section.id, section.name)}
+                                            className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
+                                          >
+                                            <Trash className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
                             {provided.placeholder}
                           </TableBody>
                         </Table>

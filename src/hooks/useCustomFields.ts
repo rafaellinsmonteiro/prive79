@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,15 +29,19 @@ export const useCustomFields = () => {
   return useQuery({
     queryKey: ['custom-fields'],
     queryFn: async (): Promise<CustomField[]> => {
+      console.log('🔍 useCustomFields - Fetching custom fields...');
       const { data, error } = await supabase
         .from('custom_fields')
         .select('*')
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching custom fields:', error);
+        console.error('❌ Error fetching custom fields:', error);
         throw error;
       }
+
+      console.log('✅ useCustomFields - Fetched fields:', data?.length || 0);
+      console.log('🔍 useCustomFields - Field details:', data?.map(f => ({ name: f.field_name, section: f.section, active: f.is_active })));
 
       return (data || []).map(field => ({
         ...field,
@@ -52,15 +55,19 @@ export const useCustomSections = () => {
   return useQuery({
     queryKey: ['custom-sections'],
     queryFn: async (): Promise<CustomSection[]> => {
+      console.log('🔍 useCustomSections - Fetching custom sections...');
       const { data, error } = await supabase
         .from('custom_sections')
         .select('*')
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching custom sections:', error);
+        console.error('❌ Error fetching custom sections:', error);
         throw error;
       }
+
+      console.log('✅ useCustomSections - Fetched sections:', data?.length || 0);
+      console.log('🔍 useCustomSections - Section details:', data?.map(s => ({ name: s.name, active: s.is_active })));
 
       return data || [];
     },
@@ -72,6 +79,7 @@ export const useCreateCustomField = () => {
 
   return useMutation({
     mutationFn: async (fieldData: Omit<CustomField, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('➕ Creating custom field:', fieldData);
       const { data, error } = await supabase
         .from('custom_fields')
         .insert(fieldData)
@@ -79,10 +87,11 @@ export const useCreateCustomField = () => {
         .single();
 
       if (error) {
-        console.error('Error creating custom field:', error);
+        console.error('❌ Error creating custom field:', error);
         throw error;
       }
 
+      console.log('✅ Custom field created:', data);
       return data;
     },
     onSuccess: () => {
@@ -142,6 +151,7 @@ export const useCreateCustomSection = () => {
 
   return useMutation({
     mutationFn: async (sectionData: Omit<CustomSection, 'id' | 'created_at'>) => {
+      console.log('➕ Creating custom section:', sectionData);
       const { data, error } = await supabase
         .from('custom_sections')
         .insert(sectionData)
@@ -149,14 +159,40 @@ export const useCreateCustomSection = () => {
         .single();
 
       if (error) {
-        console.error('Error creating custom section:', error);
+        console.error('❌ Error creating custom section:', error);
         throw error;
       }
 
+      console.log('✅ Custom section created:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    },
+  });
+};
+
+export const useDeleteCustomSection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      console.log('🗑️ Deleting custom section:', id);
+      const { error } = await supabase
+        .from('custom_sections')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('❌ Error deleting custom section:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom section deleted');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
     },
   });
 };

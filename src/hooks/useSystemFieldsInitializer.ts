@@ -49,35 +49,54 @@ export const useSystemFieldsInitializer = () => {
     try {
       console.log('🚀 Iniciando criação das seções do sistema...');
       
-      // Criar seções do sistema
+      // Criar seções do sistema sequencialmente
       for (const section of systemSections) {
         console.log('📁 Criando seção:', section.name);
         try {
           await createCustomSection.mutateAsync(section);
-          console.log('✅ Seção criada:', section.name);
-        } catch (error) {
-          console.error('❌ Erro ao criar seção:', section.name, error);
+          console.log('✅ Seção criada com sucesso:', section.name);
+          // Pequeno delay para evitar conflitos
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error: any) {
+          if (error?.message?.includes('duplicate') || error?.code === '23505') {
+            console.log('⚠️ Seção já existe:', section.name);
+          } else {
+            console.error('❌ Erro ao criar seção:', section.name, error);
+          }
         }
       }
 
       console.log('🚀 Iniciando criação dos campos do sistema...');
       
-      // Criar campos do sistema
+      // Criar campos do sistema sequencialmente
       for (const field of systemFields) {
         console.log('🏷️ Criando campo:', field.field_name);
         try {
-          await createCustomField.mutateAsync({
+          const fieldData = {
             ...field,
             is_active: true,
             help_text: field.description,
-          });
-          console.log('✅ Campo criado:', field.field_name);
-        } catch (error) {
-          console.error('❌ Erro ao criar campo:', field.field_name, error);
+          };
+          
+          // Remover a propriedade description pois não existe na tabela
+          const { description, ...finalFieldData } = fieldData;
+          
+          await createCustomField.mutateAsync(finalFieldData);
+          console.log('✅ Campo criado com sucesso:', field.field_name);
+          // Pequeno delay para evitar conflitos
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error: any) {
+          if (error?.message?.includes('duplicate') || error?.code === '23505') {
+            console.log('⚠️ Campo já existe:', field.field_name);
+          } else {
+            console.error('❌ Erro ao criar campo:', field.field_name, error);
+            console.error('❌ Dados do campo:', field);
+            console.error('❌ Erro completo:', error);
+          }
         }
       }
 
-      console.log('🎉 Campos e seções do sistema criados com sucesso!');
+      console.log('🎉 Processo de inicialização dos campos e seções concluído!');
     } catch (error) {
       console.error('💥 Erro geral ao criar campos e seções do sistema:', error);
     }
