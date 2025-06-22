@@ -21,7 +21,6 @@ interface CustomFieldRendererProps {
 
 const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
   // Para campos personalizados integrados, usar o nome direto do campo
-  // Para outros campos personalizados, usar o prefixo custom_
   const isIntegratedField = ['olhos', 'tatuagem', 'cabelo', 'etnia'].includes(field.field_name);
   const fieldName = isIntegratedField ? field.field_name as keyof ModelFormData : `custom_${field.field_name}` as keyof ModelFormData;
 

@@ -435,6 +435,7 @@ export type Database = {
           display_order: number | null
           etnia: string | null
           eyes: string | null
+          grava: boolean | null
           height: string | null
           hip: string | null
           id: string
@@ -465,6 +466,7 @@ export type Database = {
           display_order?: number | null
           etnia?: string | null
           eyes?: string | null
+          grava?: boolean | null
           height?: string | null
           hip?: string | null
           id?: string
@@ -495,6 +497,7 @@ export type Database = {
           display_order?: number | null
           etnia?: string | null
           eyes?: string | null
+          grava?: boolean | null
           height?: string | null
           hip?: string | null
           id?: string

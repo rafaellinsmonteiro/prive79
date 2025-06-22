@@ -97,9 +97,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   useEffect(() => {
     if (existingModel && customFields.length > 0) {
       console.log('🔄 FORM: Loading existing model data:', existingModel);
-      console.log('🔄 FORM: Available custom fields:', customFields.map(f => f.field_name));
+      console.log('🔄 FORM: Available custom fields:', customFields.map(f => ({ name: f.field_name, type: f.field_type })));
       
-      // Primeiro, criar um objeto com todos os dados do modelo
+      // Criar objeto com todos os dados do modelo
       const formData: ModelFormData = {
         name: existingModel.name || '',
         age: existingModel.age || 18,
@@ -126,54 +126,30 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           : [],
       };
       
-      // Adicionar campos personalizados integrados
-      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
-      integratedFields.forEach(fieldName => {
-        const modelValue = (existingModel as any)[fieldName];
-        if (modelValue !== undefined && modelValue !== null) {
-          console.log(`🔧 Loading integrated field ${fieldName}:`, modelValue);
-          (formData as any)[fieldName] = modelValue;
-        }
-      });
-      
-      // Adicionar outros campos personalizados
+      // Carregar TODOS os campos personalizados do banco de dados
       customFields.forEach(field => {
-        if (!integratedFields.includes(field.field_name)) {
-          const customFieldKey = `custom_${field.field_name}`;
-          const modelValue = (existingModel as any)[field.field_name] || (existingModel as any)[customFieldKey];
+        const modelValue = (existingModel as any)[field.field_name];
+        
+        if (modelValue !== undefined && modelValue !== null) {
+          console.log(`🔧 Loading field ${field.field_name} (${field.field_type}):`, modelValue);
           
-          if (modelValue !== undefined && modelValue !== null) {
-            console.log(`🔧 Loading custom field ${field.field_name}:`, modelValue);
-            (formData as any)[customFieldKey] = modelValue;
+          // Para campos integrados (olhos, tatuagem, etc) usar nome direto
+          const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+          if (integratedFields.includes(field.field_name)) {
+            (formData as any)[field.field_name] = modelValue;
+          } else {
+            // Para outros campos personalizados usar custom_ prefix
+            (formData as any)[`custom_${field.field_name}`] = modelValue;
           }
         }
       });
       
-      console.log('🔄 FORM: Final form data with custom fields:', formData);
+      console.log('🔄 FORM: Final form data with ALL custom fields:', formData);
       
-      // Resetar o formulário com todos os dados de uma vez
+      // Resetar o formulário
       reset(formData);
-      
-      // Forçar trigger para garantir que os valores sejam aplicados
-      setTimeout(() => {
-        const currentValues = form.getValues();
-        console.log('🔄 FORM: Values after reset:', {
-          visibility_type: currentValues.visibility_type,
-          allowed_plan_ids: currentValues.allowed_plan_ids,
-          olhos: currentValues.olhos,
-          tatuagem: currentValues.tatuagem
-        });
-        
-        // Se ainda não estiver correto, forçar os valores individualmente
-        if (currentValues.visibility_type !== formData.visibility_type || 
-            JSON.stringify(currentValues.allowed_plan_ids) !== JSON.stringify(formData.allowed_plan_ids)) {
-          console.log('🔧 FORM: Force setting visibility values...');
-          setValue('visibility_type', formData.visibility_type, { shouldDirty: true, shouldTouch: true });
-          setValue('allowed_plan_ids', formData.allowed_plan_ids, { shouldDirty: true, shouldTouch: true });
-        }
-      }, 100);
     }
-  }, [existingModel, customFields, reset, setValue, form]);
+  }, [existingModel, customFields, reset]);
 
   const onSubmit = async (data: ModelFormData) => {
     console.log('🚀 FORM SUBMISSION STARTED');
@@ -201,26 +177,24 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     try {
       const { category_ids, ...formData } = data;
       
-      // Separar campos personalizados dos campos do modelo
+      // Processar TODOS os campos - incluindo campos personalizados
       const modelData: any = {};
-      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
       
+      // Primeiro adicionar todos os campos padrão do modelo
       Object.entries(formData).forEach(([key, value]) => {
         if (key.startsWith('custom_')) {
-          // Campo personalizado - remover o prefixo custom_ e adicionar ao modelo
+          // Campo personalizado - remover o prefixo custom_
           const fieldName = key.replace('custom_', '');
           modelData[fieldName] = value;
           console.log(`🔧 Custom field ${fieldName} = ${value}`);
         } else {
           // Campo padrão do modelo (incluindo campos integrados)
           modelData[key] = value;
-          if (integratedFields.includes(key)) {
-            console.log(`🔧 Integrated field ${key} = ${value}`);
-          }
+          console.log(`🔧 Standard field ${key} = ${value}`);
         }
       });
       
-      console.log('🔧 Model data (with all fields):', modelData);
+      console.log('🔧 Final model data (all fields):', modelData);
       
       let modelResult;
       
@@ -346,7 +320,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
 
-            {/* Debug info mais visível */}
+            {/* Debug info */}
             <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border-2 border-yellow-400">
               <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
               <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
