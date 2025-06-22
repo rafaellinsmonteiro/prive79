@@ -37,22 +37,46 @@ export const useCreateUser = () => {
       console.log('Creating user with data:', userData);
       
       try {
-        // Criar apenas na tabela system_users
-        // O usuário poderá se registrar depois usando o email e senha fornecidos
         const { password, ...systemUserData } = userData;
         
+        // Primeiro, criar o usuário no sistema de autenticação do Supabase
+        console.log('Creating auth user for:', systemUserData.email);
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: systemUserData.email,
+          password: password,
+          email_confirm: true, // Auto-confirma o email para não precisar de verificação
+          user_metadata: {
+            name: systemUserData.name,
+            user_role: systemUserData.user_role,
+          }
+        });
+
+        if (authError) {
+          console.error('Auth user creation failed:', authError);
+          throw new Error(`Erro ao criar usuário de autenticação: ${authError.message}`);
+        }
+
+        console.log('Auth user created:', authData.user?.id);
+
+        // Agora criar o registro na tabela system_users com o user_id
         const { data: systemData, error: systemError } = await supabase
           .from('system_users')
           .insert({
             ...systemUserData,
-            // Não definimos user_id ainda - será preenchido quando o usuário fizer login
+            user_id: authData.user?.id,
           })
           .select()
           .single();
 
         if (systemError) {
           console.error('System user creation failed:', systemError);
-          throw new Error(`Erro ao criar usuário: ${systemError.message}`);
+          // Se falhar ao criar o system_user, tentar limpar o usuário de auth criado
+          try {
+            await supabase.auth.admin.deleteUser(authData.user?.id || '');
+          } catch (cleanupError) {
+            console.error('Failed to cleanup auth user:', cleanupError);
+          }
+          throw new Error(`Erro ao criar usuário no sistema: ${systemError.message}`);
         }
 
         console.log('System user created:', systemData);
