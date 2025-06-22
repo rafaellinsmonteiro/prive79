@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -37,50 +36,30 @@ export const useCreateUser = () => {
       console.log('Creating user with data:', userData);
       
       try {
-        const { password, ...systemUserData } = userData;
-        
-        // Primeiro, criar o usuário no sistema de autenticação do Supabase
-        console.log('Creating auth user for:', systemUserData.email);
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: systemUserData.email,
-          password: password,
-          email_confirm: true, // Auto-confirma o email para não precisar de verificação
-          user_metadata: {
-            name: systemUserData.name,
-            user_role: systemUserData.user_role,
-          }
+        // Get current session to send auth token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Não autenticado');
+        }
+
+        // Call the Edge Function to create user
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(userData),
         });
 
-        if (authError) {
-          console.error('Auth user creation failed:', authError);
-          throw new Error(`Erro ao criar usuário de autenticação: ${authError.message}`);
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao criar usuário');
         }
 
-        console.log('Auth user created:', authData.user?.id);
-
-        // Agora criar o registro na tabela system_users com o user_id
-        const { data: systemData, error: systemError } = await supabase
-          .from('system_users')
-          .insert({
-            ...systemUserData,
-            user_id: authData.user?.id,
-          })
-          .select()
-          .single();
-
-        if (systemError) {
-          console.error('System user creation failed:', systemError);
-          // Se falhar ao criar o system_user, tentar limpar o usuário de auth criado
-          try {
-            await supabase.auth.admin.deleteUser(authData.user?.id || '');
-          } catch (cleanupError) {
-            console.error('Failed to cleanup auth user:', cleanupError);
-          }
-          throw new Error(`Erro ao criar usuário no sistema: ${systemError.message}`);
-        }
-
-        console.log('System user created:', systemData);
-        return systemData;
+        console.log('User created successfully:', result.user);
+        return result.user;
       } catch (error) {
         console.error('User creation failed:', error);
         throw error;
