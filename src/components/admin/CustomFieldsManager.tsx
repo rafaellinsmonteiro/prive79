@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder, useDeleteCustomSection } from '@/hooks/useCustomFields';
+import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder, useDeleteCustomSection, useCreateCustomSection, useUpdateCustomSection } from '@/hooks/useCustomFields';
 import { useSystemFieldsInitializer } from '@/hooks/useSystemFieldsInitializer';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List, Database, RefreshCw } from 'lucide-react';
@@ -28,6 +29,7 @@ const CustomFieldsManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [showSectionManager, setShowSectionManager] = useState(false);
   const [editingField, setEditingField] = useState<any>(null);
+  const [editingSection, setEditingSection] = useState<any>(null);
   const [isClearing, setIsClearing] = useState(false);
   
   const { data: customFields = [], isLoading } = useCustomFields();
@@ -250,6 +252,11 @@ const CustomFieldsManager = () => {
     }
   };
 
+  const handleEditSection = (section: any) => {
+    setEditingSection(section);
+    setShowSectionManager(true);
+  };
+
   const getFieldTypeName = (type: string) => {
     const types: { [key: string]: string } = {
       'text': 'Texto',
@@ -302,7 +309,10 @@ const CustomFieldsManager = () => {
             Recriar Sistema
           </Button>
           <Button
-            onClick={() => setShowSectionManager(true)}
+            onClick={() => {
+              setEditingSection(null);
+              setShowSectionManager(true);
+            }}
             className="bg-green-600 hover:bg-green-700"
           >
             <FolderPlus className="h-4 w-4 mr-2" />
@@ -331,7 +341,6 @@ const CustomFieldsManager = () => {
         ).length}</p>
       </div>
 
-      {/* ... keep existing code (showForm and showSectionManager conditions) */}
       {(showForm || showSectionManager) && (
         <div className="space-y-4">
           {showForm && (
@@ -349,13 +358,16 @@ const CustomFieldsManager = () => {
 
           {showSectionManager && (
             <SectionManager
-              onCancel={() => setShowSectionManager(false)}
+              section={editingSection}
+              onCancel={() => {
+                setShowSectionManager(false);
+                setEditingSection(null);
+              }}
             />
           )}
         </div>
       )}
 
-      {/* ... keep existing code (Card with Tabs for sections and fields) */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
           <CardTitle className="text-white">Organização de Seções e Campos</CardTitle>
@@ -423,6 +435,7 @@ const CustomFieldsManager = () => {
                                           <Button
                                             variant="ghost"
                                             size="sm"
+                                            onClick={() => handleEditSection(section)}
                                             className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
                                           >
                                             <Edit className="h-4 w-4" />

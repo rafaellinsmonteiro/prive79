@@ -101,7 +101,10 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   <Input
                     {...formField}
                     value={formField.value != null ? String(formField.value) : ''}
-                    onChange={(e) => formField.onChange(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      formField.onChange(value === '' ? '' : Number(value));
+                    }}
                     type="number"
                     placeholder={field.placeholder || ''}
                     className="bg-zinc-800 border-zinc-700 text-white"
@@ -156,7 +159,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
                   {field.label} {field.is_required && '*'}
                 </FormLabel>
                 <Select 
-                  onValueChange={formField.onChange} 
+                  onValueChange={(value) => formField.onChange(value)}
                   value={formField.value != null ? String(formField.value) : ''}
                 >
                   <FormControl>
@@ -301,9 +304,10 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     }
   };
 
-  // Se não há seções ativas, não exibir nada
-  if (activeSections.length === 0) {
-    console.log('⚠️ CustomFieldsSection - No active sections to display');
+  // Se não há campos personalizados ativos, não exibir nada
+  const hasActiveFields = customFields.some(field => field.is_active);
+  if (!hasActiveFields) {
+    console.log('⚠️ CustomFieldsSection - No active custom fields to display');
     return null;
   }
 

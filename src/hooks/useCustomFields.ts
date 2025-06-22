@@ -197,6 +197,33 @@ export const useDeleteCustomSection = () => {
   });
 };
 
+export const useUpdateCustomSection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<CustomSection> & { id: string }) => {
+      console.log('📝 Updating custom section:', { id, updates });
+      const { data, error } = await supabase
+        .from('custom_sections')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error updating custom section:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom section updated:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    },
+  });
+};
+
 export const useUpdateSectionOrder = () => {
   const queryClient = useQueryClient();
 
