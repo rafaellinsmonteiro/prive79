@@ -1,30 +1,46 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type SystemUser = Tables<'system_users'> & {
-  plans?: Tables<'plans'>;
+  plans?: Tables<'plans'> | null;
 };
 
 export const useAdminUsers = () => {
   return useQuery({
     queryKey: ['admin-users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<SystemUser[]> => {
+      console.log('Fetching admin users...');
+      
+      // First get all users
+      const { data: users, error: usersError } = await supabase
         .from('system_users')
-        .select(`
-          *,
-          plans:plan_id (
-            id,
-            name,
-            price
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as SystemUser[];
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        throw usersError;
+      }
+
+      // Then get plans separately and join them
+      const { data: plans, error: plansError } = await supabase
+        .from('plans')
+        .select('*');
+
+      if (plansError) {
+        console.error('Error fetching plans:', plansError);
+        throw plansError;
+      }
+
+      // Manually join the data
+      const usersWithPlans = users.map(user => ({
+        ...user,
+        plans: user.plan_id ? plans.find(plan => plan.id === user.plan_id) || null : null
+      }));
+
+      console.log('Fetched users with plans:', usersWithPlans);
+      return usersWithPlans;
     },
   });
 };

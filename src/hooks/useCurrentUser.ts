@@ -33,36 +33,45 @@ export const useCurrentUser = () => {
 
       console.log('useCurrentUser - Fetching user data for:', user.id);
       
-      const { data, error } = await supabase
+      // First get the user data
+      const { data: userData, error: userError } = await supabase
         .from('system_users')
-        .select(`
-          *,
-          plans:plan_id (
-            id,
-            name,
-            price,
-            description
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .maybeSingle();
 
-      if (error) {
-        console.error('useCurrentUser - Error fetching user data:', error);
-        throw error;
+      if (userError) {
+        console.error('useCurrentUser - Error fetching user data:', userError);
+        throw userError;
       }
 
-      if (!data) {
+      if (!userData) {
         console.log('useCurrentUser - No user data found');
         return null;
       }
 
-      console.log('useCurrentUser - User data:', data);
+      let planData = null;
+      if (userData.plan_id) {
+        const { data: plan, error: planError } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('id', userData.plan_id)
+          .maybeSingle();
+
+        if (planError) {
+          console.error('useCurrentUser - Error fetching plan data:', planError);
+        } else {
+          planData = plan;
+        }
+      }
+
+      console.log('useCurrentUser - User data:', userData);
+      console.log('useCurrentUser - Plan data:', planData);
 
       return {
-        ...data,
-        plan: data.plans || undefined
+        ...userData,
+        plan: planData || undefined
       } as CurrentUserData;
     },
     enabled: !!user && !!session,
