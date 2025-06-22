@@ -318,9 +318,14 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
       {activeSections.map((section) => {
         const fieldsInSection = fieldsBySection[section.name] || [];
         
-        // Só exibir seção se tiver campos
-        if (fieldsInSection.length === 0) {
-          console.log(`⚠️ CustomFieldsSection - Section "${section.name}" has no fields, skipping`);
+        // Só exibir seção se tiver campos E não for uma seção que já existe no sistema
+        const systemSections = ['Informações Básicas', 'Categorias', 'Características Físicas', 'Outras Informações', 'Configurações', 'Visibilidade'];
+        const isSystemSection = systemSections.some(sysSection => 
+          sysSection.toLowerCase() === section.name.toLowerCase()
+        );
+        
+        if (fieldsInSection.length === 0 || isSystemSection) {
+          console.log(`⚠️ CustomFieldsSection - Section "${section.name}" skipped (${isSystemSection ? 'system section' : 'no fields'})`);
           return null;
         }
 
