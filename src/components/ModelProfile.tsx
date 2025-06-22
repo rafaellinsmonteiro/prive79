@@ -29,65 +29,76 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
   const currentMedia = mediaItems[currentImageIndex];
 
-  // Function to generate thumbnail from video if needed
-  const generateVideoThumbnail = (videoUrl: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const video = document.createElement('video');
-      video.crossOrigin = 'anonymous';
-      video.currentTime = 1; // Get frame at 1 second
+  // Organize fields by sections
+  const organizeFieldsBySection = () => {
+    const sections: Record<string, Array<{ label: string; value: any; type?: string }>> = {};
+
+    // Informações Básicas
+    const basicInfo = [];
+    if (model.name) basicInfo.push({ label: 'Nome', value: model.name });
+    if (model.age) basicInfo.push({ label: 'Idade', value: model.age });
+    if (model.location) basicInfo.push({ label: 'Localização', value: model.location });
+    if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
+    if (basicInfo.length > 0) sections['Informações Básicas'] = basicInfo;
+
+    // Características Físicas
+    const physicalInfo = [];
+    if (model.height) physicalInfo.push({ label: 'Altura', value: model.height });
+    if (model.weight) physicalInfo.push({ label: 'Peso', value: model.weight });
+    if (model.bust) physicalInfo.push({ label: 'Busto', value: model.bust });
+    if (model.waist) physicalInfo.push({ label: 'Cintura', value: model.waist });
+    if (model.hip) physicalInfo.push({ label: 'Quadril', value: model.hip });
+    if (model.body_type) physicalInfo.push({ label: 'Manequim', value: model.body_type });
+    if (model.eyes) physicalInfo.push({ label: 'Olhos', value: model.eyes });
+    if (model.shoe_size) physicalInfo.push({ label: 'Pés', value: model.shoe_size });
+    if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
+    if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
+
+    // Custom Fields por seção
+    const activeCustomFields = customFields.filter(field => field.is_active);
+    
+    activeCustomFields.forEach(field => {
+      let value;
       
-      video.onloadeddata = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+      // Check if it's an integrated field or custom field
+      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+      if (integratedFields.includes(field.field_name)) {
+        value = (model as any)[field.field_name];
+      } else {
+        value = (model as any)[field.field_name] || (model as any)[`custom_${field.field_name}`];
+      }
+
+      if (value !== null && value !== undefined && value !== '') {
+        const section = field.section || 'Campos Personalizados';
         
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0);
-        
-        const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
-        resolve(thumbnailUrl);
-      };
-      
-      video.onerror = () => {
-        resolve(''); // Return empty string if thumbnail generation fails
-      };
-      
-      video.src = videoUrl;
+        if (!sections[section]) {
+          sections[section] = [];
+        }
+
+        const formattedValue = formatFieldValue(field, value);
+        if (formattedValue) {
+          sections[section].push({
+            label: field.label,
+            value: formattedValue,
+            type: field.field_type
+          });
+        }
+      }
     });
-  };
 
-  // Filter and organize custom fields for display
-  const systemSections = [
-    'Informações Básicas',
-    'Características Físicas', 
-    'Atendimento',
-    'Outras Informações',
-    'Controle de Acesso',
-    'Configurações'
-  ];
-
-  const activeCustomFields = customFields.filter(field => 
-    field.is_active && 
-    !systemSections.includes(field.section || '') &&
-    !['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name)
-  );
-
-  const customFieldsBySection = activeCustomFields.reduce((acc, field) => {
-    const section = field.section || 'Campos Personalizados';
-    if (!acc[section]) {
-      acc[section] = [];
+    // Outras Informações
+    const otherInfo = [];
+    if (model.languages) otherInfo.push({ label: 'Línguas', value: model.languages });
+    if (model.description) otherInfo.push({ label: 'Descrição', value: model.description });
+    if (model.categories && model.categories.length > 0) {
+      otherInfo.push({ label: 'Categorias', value: model.categories.map(c => c.name).join(', ') });
     }
-    acc[section].push(field);
-    return acc;
-  }, {} as Record<string, typeof activeCustomFields>);
+    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
 
-  // Get custom field values from model data (assuming they're stored with custom_ prefix)
-  const getCustomFieldValue = (fieldName: string) => {
-    const key = `custom_${fieldName}`;
-    return (model as any)[key];
+    return sections;
   };
 
-  const formatCustomFieldValue = (field: typeof activeCustomFields[0], value: any) => {
+  const formatFieldValue = (field: any, value: any) => {
     if (value === null || value === undefined || value === '') return null;
     
     switch (field.field_type) {
@@ -106,9 +117,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     }
   };
 
-  const activeCustomSections = customSections
-    .filter(section => section.is_active && !systemSections.includes(section.name))
-    .sort((a, b) => a.display_order - b.display_order);
+  const sectionsByData = organizeFieldsBySection();
 
   return (
     <div className="fixed inset-0 bg-zinc-950 z-50 overflow-y-auto">
@@ -212,7 +221,6 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                               muted
                             />
                           )}
-                          {/* Video play icon overlay */}
                           <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                             <Play className="h-6 w-6 text-white fill-white" />
                           </div>
@@ -228,197 +236,45 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
               )}
             </div>
 
-            {/* Right side - Model information */}
+            {/* Right side - Model information organized by sections */}
             <div className="space-y-6">
-              {/* About section */}
-              <div className="flex items-center gap-2 text-lg">
-                <span className="text-zinc-400">👤</span>
-                <span>Sobre a modelo</span>
-              </div>
+              {/* WhatsApp button */}
+              {model.whatsapp_number && (
+                <Button onClick={() => window.open(whatsappLink, '_blank')} className="w-full text-white py-3 bg-green-500 hover:bg-green-400">
+                  <Phone className="h-5 w-5 mr-2" />
+                  Chamar no WhatsApp
+                </Button>
+              )}
 
-              <Button onClick={() => window.open(whatsappLink, '_blank')} className="w-full text-white py-3 bg-green-500 hover:bg-green-400">
-                <Phone className="h-5 w-5 mr-2" />
-                Chamar no WhatsApp
-              </Button>
-
-              <div className="space-y-4">
-                {model.location && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-zinc-400 block">Localização</span>
-                      <span>{model.location}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {model.categories && model.categories.length > 0 && (
-                    <div>
-                      <span className="text-zinc-400 block">Aparência</span>
-                      <span>{model.categories.map(c => c.name).join(', ')}</span>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-zinc-400 block">Idade</span>
-                    <span>{model.age}</span>
+              {/* Display sections with data */}
+              {Object.entries(sectionsByData).map(([sectionName, fields]) => (
+                <div key={sectionName} className="space-y-4">
+                  <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+                    {sectionName}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    {fields.map((field, index) => (
+                      <div key={index}>
+                        <span className="text-zinc-400 block">{field.label}</span>
+                        <span className="text-zinc-100">
+                          {field.type === 'textarea' ? (
+                            <p className="leading-relaxed">{field.value}</p>
+                          ) : (
+                            field.value
+                          )}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              ))}
 
-                {(model.height || model.weight) && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    {model.height && (
-                      <div>
-                        <span className="text-zinc-400 block">Altura</span>
-                        <span>{model.height}</span>
-                      </div>
-                    )}
-                    {model.weight && (
-                      <div>
-                        <span className="text-zinc-400 block">Peso</span>
-                        <span>{model.weight}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {(model.silicone !== null || model.shoe_size) && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-zinc-400 block">Silicone</span>
-                      <span>{model.silicone ? 'Sim' : 'Não'}</span>
-                    </div>
-                    {model.shoe_size && (
-                      <div>
-                        <span className="text-zinc-400 block">Pés</span>
-                        <span>{model.shoe_size}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {(model.bust || model.waist) && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    {model.bust && (
-                      <div>
-                        <span className="text-zinc-400 block">Busto</span>
-                        <span>{model.bust}</span>
-                      </div>
-                    )}
-                    {model.waist && (
-                      <div>
-                        <span className="text-zinc-400 block">Cintura</span>
-                        <span>{model.waist}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {(model.hip || model.body_type) && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    {model.hip && (
-                      <div>
-                        <span className="text-zinc-400 block">Quadril</span>
-                        <span>{model.hip}</span>
-                      </div>
-                    )}
-                    {model.body_type && (
-                      <div>
-                        <span className="text-zinc-400 block">Manequim</span>
-                        <span>{model.body_type}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {model.eyes && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-zinc-400 block">Olhos</span>
-                      <span>{model.eyes}</span>
-                    </div>
-                  </div>
-                )}
-
-                {model.languages && (
-                  <div className="text-sm">
-                    <span className="text-zinc-400 block">Línguas</span>
-                    <span>{model.languages}</span>
-                  </div>
-                )}
-
-                {model.description && (
-                  <div className="text-sm">
-                    <span className="text-zinc-400 block mb-2">Descrição</span>
-                    <p className="text-zinc-300 leading-relaxed">{model.description}</p>
-                  </div>
-                )}
-
-                {/* Custom Fields Sections */}
-                {activeCustomSections.map((section) => {
-                  const fieldsInSection = customFieldsBySection[section.name] || [];
-                  
-                  if (fieldsInSection.length === 0) return null;
-
-                  const visibleFields = fieldsInSection.filter(field => {
-                    const value = getCustomFieldValue(field.field_name);
-                    return value !== null && value !== undefined && value !== '';
-                  });
-
-                  if (visibleFields.length === 0) return null;
-
-                  return (
-                    <div key={section.id} className="space-y-4">
-                      <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                        {section.name}
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        {visibleFields.map(field => {
-                          const value = getCustomFieldValue(field.field_name);
-                          const formattedValue = formatCustomFieldValue(field, value);
-                          
-                          if (!formattedValue) return null;
-
-                          return (
-                            <div key={field.id}>
-                              <span className="text-zinc-400 block">{field.label}</span>
-                              <span>{formattedValue}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Default custom fields section */}
-                {customFieldsBySection['Campos Personalizados'] && customFieldsBySection['Campos Personalizados'].length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                      Campos Personalizados
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      {customFieldsBySection['Campos Personalizados']
-                        .filter(field => {
-                          const value = getCustomFieldValue(field.field_name);
-                          return value !== null && value !== undefined && value !== '';
-                        })
-                        .map(field => {
-                          const value = getCustomFieldValue(field.field_name);
-                          const formattedValue = formatCustomFieldValue(field, value);
-                          
-                          if (!formattedValue) return null;
-
-                          return (
-                            <div key={field.id}>
-                              <span className="text-zinc-400 block">{field.label}</span>
-                              <span>{formattedValue}</span>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* If no sections have data */}
+              {Object.keys(sectionsByData).length === 0 && (
+                <div className="text-center text-zinc-400 py-8">
+                  <p>Nenhuma informação adicional cadastrada.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

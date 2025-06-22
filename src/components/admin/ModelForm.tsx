@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import { useAuth } from '@/hooks/useAuth';
 import BasicInfoSection from './model-form/BasicInfoSection';
 import CategoriesSection from './model-form/CategoriesSection';
 import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';
-import OtherInfoSection from './model-form/OtherInfoSection';
 import SettingsSection from './model-form/SettingsSection';
 import VisibilitySection from './model-form/VisibilitySection';
 import CustomFieldsSection from './model-form/CustomFieldsSection';
