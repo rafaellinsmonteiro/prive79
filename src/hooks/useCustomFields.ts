@@ -22,7 +22,7 @@ export const useCustomFields = () => {
     queryKey: ['custom-fields'],
     queryFn: async (): Promise<CustomField[]> => {
       const { data, error } = await supabase
-        .from('custom_fields' as any)
+        .from('custom_fields')
         .select('*')
         .order('display_order', { ascending: true });
 
@@ -42,7 +42,7 @@ export const useCreateCustomField = () => {
   return useMutation({
     mutationFn: async (fieldData: Omit<CustomField, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('custom_fields' as any)
+        .from('custom_fields')
         .insert(fieldData)
         .select()
         .single();
@@ -66,7 +66,7 @@ export const useUpdateCustomField = () => {
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CustomField> & { id: string }) => {
       const { data, error } = await supabase
-        .from('custom_fields' as any)
+        .from('custom_fields')
         .update(updates)
         .eq('id', id)
         .select()
@@ -91,7 +91,7 @@ export const useDeleteCustomField = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('custom_fields' as any)
+        .from('custom_fields')
         .delete()
         .eq('id', id);
 
