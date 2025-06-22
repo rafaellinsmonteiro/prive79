@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAdminCustomFields, useAdminCustomSections, useDeleteCustomField, useDeleteCustomSection } from '@/hooks/useAdminCustomFields';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,9 @@ const CustomFieldsManager = () => {
     alert('All custom fields and sections have been cleared.');
   };
 
+  // Get the field object for editing
+  const editingField = editingFieldId ? customFields.find(f => f.id === editingFieldId) : undefined;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -105,7 +109,6 @@ const CustomFieldsManager = () => {
                 </DialogTitle>
               </DialogHeader>
               <SectionManager
-                sectionId={editingSectionId}
                 onCancel={handleCloseSectionForm}
               />
             </DialogContent>
@@ -124,8 +127,11 @@ const CustomFieldsManager = () => {
                 </DialogTitle>
               </DialogHeader>
               <CustomFieldForm
-                fieldId={editingFieldId}
-                onSuccess={handleCloseFieldForm}
+                field={editingField}
+                onSubmit={() => {}}
+                onCancel={handleCloseFieldForm}
+                loading={false}
+                availableSections={customSections.map(s => s.name)}
               />
             </DialogContent>
           </Dialog>
