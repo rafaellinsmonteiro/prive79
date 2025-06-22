@@ -44,9 +44,18 @@ const SystemFieldsSection = ({ onEditField }: SystemFieldsSectionProps) => {
       { name: 'waist', label: 'Cintura', type: 'text', required: false, section: 'Características Físicas', description: 'Medida da cintura' },
       { name: 'hip', label: 'Quadril', type: 'text', required: false, section: 'Características Físicas', description: 'Medida do quadril' },
     ],
+    'Configurações': [
+      { name: 'silicone', label: 'Silicone', type: 'boolean', required: false, section: 'Configurações', description: 'Possui silicone' },
+      { name: 'is_active', label: 'Perfil Ativo', type: 'boolean', required: false, section: 'Configurações', description: 'Se o perfil está ativo' },
+      { name: 'display_order', label: 'Ordem de Exibição', type: 'number', required: false, section: 'Configurações', description: 'Ordem na listagem' },
+    ],
     'Outras Informações': [
       { name: 'languages', label: 'Idiomas', type: 'text', required: false, section: 'Outras Informações', description: 'Idiomas falados' },
       { name: 'description', label: 'Descrição', type: 'textarea', required: false, section: 'Outras Informações', description: 'Descrição detalhada' },
+    ],
+    'Controle de Acesso': [
+      { name: 'visibility_type', label: 'Tipo de Visibilidade', type: 'select', required: false, section: 'Controle de Acesso', description: 'Controle de visibilidade do perfil' },
+      { name: 'allowed_plan_ids', label: 'Planos Permitidos', type: 'select', required: false, section: 'Controle de Acesso', description: 'Planos que podem ver o perfil' },
     ],
   };
 
