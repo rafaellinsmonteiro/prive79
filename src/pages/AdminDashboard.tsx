@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
 import CitiesManager from '@/components/admin/CitiesManager';
 import CategoriesManager from '@/components/admin/CategoriesManager';
@@ -16,13 +18,44 @@ import PlansManager from '@/components/admin/PlansManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
-  const { user, signOut, loading, isAdmin } = useAuth();
+  const { user, signOut, loading, isAdmin, authComplete } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('AdminDashboard - Auth state:', { user: !!user, isAdmin, loading });
-  }, [user, isAdmin, loading]);
+    console.log('AdminDashboard - Auth state:', { user: !!user, isAdmin, loading, authComplete });
+    
+    // Redirect to login if user is not authenticated and auth check is complete
+    if (authComplete && !user) {
+      console.log('User not authenticated, redirecting to login');
+      navigate('/login');
+    }
+    
+    // Show access denied if user is authenticated but not admin
+    if (authComplete && user && !isAdmin) {
+      console.log('User is not admin, showing access denied');
+    }
+  }, [user, isAdmin, loading, authComplete, navigate]);
 
-  if (loading) {
+  const handleSignOut = async () => {
+    try {
+      console.log('Admin dashboard - handling sign out');
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        toast.error('Erro ao fazer logout');
+      } else {
+        console.log('Sign out successful, redirecting to login');
+        toast.success('Logout realizado com sucesso');
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Sign out exception:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
+  if (loading || !authComplete) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white">Carregando...</div>
@@ -30,7 +63,15 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Redirecionando para login...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Card className="bg-zinc-900 border-zinc-800">
@@ -41,6 +82,13 @@ const AdminDashboard = () => {
             <p className="text-zinc-400">
               Você não tem permissão para acessar esta área.
             </p>
+            <Button 
+              onClick={handleSignOut}
+              variant="outline" 
+              className="mt-4"
+            >
+              Voltar para Login
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -112,7 +160,7 @@ const AdminDashboard = () => {
             </nav>
             <div className="mt-8 pt-8 border-t border-zinc-800">
               <Button
-                onClick={signOut}
+                onClick={handleSignOut}
                 variant="ghost"
                 className="w-full justify-start text-zinc-400 hover:text-white"
               >
