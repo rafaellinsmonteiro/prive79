@@ -39,7 +39,14 @@ const AdminDashboard = () => {
   const handleSignOut = async () => {
     try {
       console.log('Admin dashboard - handling sign out');
+      
+      // Show loading toast
+      toast.loading('Fazendo logout...');
+      
       const { error } = await signOut();
+      
+      // Dismiss loading toast
+      toast.dismiss();
       
       if (error) {
         console.error('Sign out error:', error);
@@ -47,10 +54,14 @@ const AdminDashboard = () => {
       } else {
         console.log('Sign out successful, redirecting to login');
         toast.success('Logout realizado com sucesso');
-        navigate('/login');
+        // Force navigation after a small delay to ensure state is updated
+        setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 100);
       }
     } catch (error) {
       console.error('Sign out exception:', error);
+      toast.dismiss();
       toast.error('Erro ao fazer logout');
     }
   };

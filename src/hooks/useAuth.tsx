@@ -26,8 +26,8 @@ export const useAuth = () => {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        if (event === 'SIGNED_OUT') {
-          console.log('User signed out, clearing state');
+        if (event === 'SIGNED_OUT' || !session) {
+          console.log('User signed out or no session, clearing state');
           setState({
             user: null,
             session: null,
@@ -128,33 +128,17 @@ export const useAuth = () => {
   const signOut = async () => {
     console.log('Signing out user');
     try {
-      // Clear state immediately to prevent UI flickering
-      setState(prev => ({
-        ...prev,
-        loading: true
-      }));
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Sign out error:', error);
-        // Reset loading state if there's an error
-        setState(prev => ({
-          ...prev,
-          loading: false
-        }));
         return { error };
       }
       
       console.log('Sign out successful');
-      // State will be updated by the auth state change listener
       return { error: null };
     } catch (error) {
       console.error('Sign out exception:', error);
-      setState(prev => ({
-        ...prev,
-        loading: false
-      }));
       return { error };
     }
   };
