@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,8 +52,7 @@ export const useCustomSections = () => {
   return useQuery({
     queryKey: ['custom-sections'],
     queryFn: async (): Promise<CustomSection[]> => {
-      // Usando any para contornar o problema de tipos temporariamente
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('custom_sections')
         .select('*')
         .order('display_order', { ascending: true });
@@ -142,8 +142,7 @@ export const useCreateCustomSection = () => {
 
   return useMutation({
     mutationFn: async (sectionData: Omit<CustomSection, 'id' | 'created_at'>) => {
-      // Usando any para contornar o problema de tipos temporariamente
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('custom_sections')
         .insert(sectionData)
         .select()
@@ -166,30 +165,13 @@ export const useUpdateSectionOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: { id: string; name?: string; display_order: number; is_active?: boolean; isSystemSection?: boolean }[]) => {
-      const promises = updates.map(update => {
-        if (update.isSystemSection) {
-          // Para seções do sistema, criar/atualizar um registro na tabela custom_sections
-          // usando o nome da seção como identificador único
-          return (supabase as any)
-            .from('custom_sections')
-            .upsert({
-              id: update.id,
-              name: update.name,
-              display_order: update.display_order,
-              is_active: update.is_active || true,
-            }, { 
-              onConflict: 'id',
-              ignoreDuplicates: false 
-            });
-        } else {
-          // Para seções personalizadas, apenas atualizar
-          return (supabase as any)
-            .from('custom_sections')
-            .update({ display_order: update.display_order })
-            .eq('id', update.id);
-        }
-      });
+    mutationFn: async (updates: { id: string; display_order: number }[]) => {
+      const promises = updates.map(update => 
+        supabase
+          .from('custom_sections')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id)
+      );
 
       const results = await Promise.all(promises);
       
@@ -211,31 +193,15 @@ export const useUpdateFieldOrder = () => {
 
   return useMutation({
     mutationFn: async (updates: { id: string; display_order: number; section?: string }[]) => {
-      const promises = updates.map(update => {
-        if (update.id.startsWith('system_')) {
-          // Para campos do sistema, vamos criar um registro na tabela custom_fields para sobrescrever a configuração
-          return supabase
-            .from('custom_fields')
-            .upsert({
-              field_name: update.id,
-              label: update.id,
-              field_type: 'text',
-              is_required: false,
-              is_active: true,
-              display_order: update.display_order,
-              section: update.section,
-            }, { onConflict: 'field_name' });
-        } else {
-          // Para campos personalizados, apenas atualizar
-          return supabase
-            .from('custom_fields')
-            .update({ 
-              display_order: update.display_order,
-              section: update.section 
-            })
-            .eq('id', update.id);
-        }
-      });
+      const promises = updates.map(update => 
+        supabase
+          .from('custom_fields')
+          .update({ 
+            display_order: update.display_order,
+            section: update.section 
+          })
+          .eq('id', update.id)
+      );
 
       const results = await Promise.all(promises);
       

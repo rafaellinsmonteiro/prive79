@@ -1,12 +1,12 @@
+
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCustomFields, useCreateCustomField, useUpdateCustomField, useDeleteCustomField, useCustomSections, useUpdateFieldOrder, useUpdateSectionOrder } from '@/hooks/useCustomFields';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash, Settings, GripVertical, FolderPlus, Folder, List } from 'lucide-react';
+import { Plus, Edit, Trash, GripVertical, FolderPlus, Folder, List } from 'lucide-react';
 import CustomFieldForm from './CustomFieldForm';
-import SystemFieldEditForm from './SystemFieldEditForm';
 import SectionManager from './SectionManager';
 import {
   Table,
@@ -23,35 +23,10 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 
-interface SystemField {
-  id: string;
-  name: string;
-  label: string;
-  type: string;
-  required: boolean;
-  section: string;
-  description?: string;
-  display_order: number;
-  isSystemField: boolean;
-}
-
-interface CombinedField extends SystemField {
-  isCustomField?: boolean;
-}
-
-interface SectionItem {
-  id: string;
-  name: string;
-  type: 'section';
-  display_order: number;
-  isSystemSection?: boolean;
-}
-
 const CustomFieldsManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [showSectionManager, setShowSectionManager] = useState(false);
   const [editingField, setEditingField] = useState<any>(null);
-  const [editingSystemField, setEditingSystemField] = useState<SystemField | null>(null);
   
   const { data: customFields = [], isLoading } = useCustomFields();
   const { data: customSections = [] } = useCustomSections();
@@ -62,82 +37,14 @@ const CustomFieldsManager = () => {
   const updateSectionOrder = useUpdateSectionOrder();
   const { toast } = useToast();
 
-  const systemFields: SystemField[] = [
-    { id: 'name', name: 'name', label: 'Nome', type: 'text', required: true, section: 'Informações Básicas', description: 'Nome da modelo', display_order: 1, isSystemField: true },
-    { id: 'age', name: 'age', label: 'Idade', type: 'number', required: true, section: 'Informações Básicas', description: 'Idade da modelo', display_order: 2, isSystemField: true },
-    { id: 'neighborhood', name: 'neighborhood', label: 'Bairro', type: 'text', required: false, section: 'Informações Básicas', description: 'Bairro onde atende', display_order: 3, isSystemField: true },
-    { id: 'whatsapp_number', name: 'whatsapp_number', label: 'WhatsApp', type: 'text', required: false, section: 'Informações Básicas', description: 'Número do WhatsApp', display_order: 4, isSystemField: true },
-    { id: 'height', name: 'height', label: 'Altura', type: 'text', required: false, section: 'Características Físicas', description: 'Altura da modelo', display_order: 10, isSystemField: true },
-    { id: 'weight', name: 'weight', label: 'Peso', type: 'text', required: false, section: 'Características Físicas', description: 'Peso da modelo', display_order: 11, isSystemField: true },
-    { id: 'eyes', name: 'eyes', label: 'Olhos', type: 'text', required: false, section: 'Características Físicas', description: 'Cor dos olhos', display_order: 12, isSystemField: true },
-    { id: 'body_type', name: 'body_type', label: 'Manequim', type: 'text', required: false, section: 'Características Físicas', description: 'Tipo de corpo/manequim', display_order: 13, isSystemField: true },
-    { id: 'bust', name: 'bust', label: 'Busto', type: 'text', required: false, section: 'Características Físicas', description: 'Medida do busto', display_order: 14, isSystemField: true },
-    { id: 'waist', name: 'waist', label: 'Cintura', type: 'text', required: false, section: 'Características Físicas', description: 'Medida da cintura', display_order: 15, isSystemField: true },
-    { id: 'hip', name: 'hip', label: 'Quadril', type: 'text', required: false, section: 'Características Físicas', description: 'Medida do quadril', display_order: 16, isSystemField: true },
-    { id: 'silicone', name: 'silicone', label: 'Silicone', type: 'boolean', required: false, section: 'Configurações', description: 'Possui silicone', display_order: 20, isSystemField: true },
-    { id: 'is_active', name: 'is_active', label: 'Perfil Ativo', type: 'boolean', required: false, section: 'Configurações', description: 'Se o perfil está ativo', display_order: 21, isSystemField: true },
-    { id: 'display_order', name: 'display_order', label: 'Ordem de Exibição', type: 'number', required: false, section: 'Configurações', description: 'Ordem na listagem', display_order: 22, isSystemField: true },
-    { id: 'languages', name: 'languages', label: 'Idiomas', type: 'text', required: false, section: 'Outras Informações', description: 'Idiomas falados', display_order: 30, isSystemField: true },
-    { id: 'description', name: 'description', label: 'Descrição', type: 'textarea', required: false, section: 'Outras Informações', description: 'Descrição detalhada', display_order: 31, isSystemField: true },
-  ];
+  // Usar apenas as seções personalizadas da base de dados
+  const allSections = customSections
+    .filter(section => section.is_active)
+    .sort((a, b) => a.display_order - b.display_order);
 
-  // Criar seções do sistema com ordens padrão
-  const systemSectionsBase = [
-    { id: 'informacoes-basicas', name: 'Informações Básicas', display_order: 1 },
-    { id: 'caracteristicas-fisicas', name: 'Características Físicas', display_order: 2 },
-    { id: 'configuracoes', name: 'Configurações', display_order: 3 },
-    { id: 'outras-informacoes', name: 'Outras Informações', display_order: 4 },
-  ];
-
-  // Verificar se há seções personalizadas que definem ordem para seções do sistema
-  const customSystemSectionOverrides = customSections.filter(section => 
-    systemSectionsBase.some(sysSection => sysSection.name === section.name)
-  );
-
-  // Criar seções do sistema com override de ordem se existir
-  const systemSections: SectionItem[] = systemSectionsBase.map(sysSection => {
-    const override = customSystemSectionOverrides.find(cs => cs.name === sysSection.name);
-    return {
-      id: sysSection.id,
-      name: sysSection.name,
-      type: 'section' as const,
-      display_order: override ? override.display_order : sysSection.display_order,
-      isSystemSection: true
-    };
-  });
-
-  // Combinar todas as seções (sistema + personalizadas puras)
-  const pureCustomSections = customSections.filter(section => 
-    section.is_active && !systemSectionsBase.some(sysSection => sysSection.name === section.name)
-  );
-
-  const allSections: SectionItem[] = [
-    ...systemSections,
-    ...pureCustomSections.map(section => ({
-      id: section.id,
-      name: section.name,
-      type: 'section' as const,
-      display_order: section.display_order,
-      isSystemSection: false
-    }))
-  ].sort((a, b) => a.display_order - b.display_order);
-
-  // Combinar campos do sistema com campos personalizados
-  const combinedFields: CombinedField[] = [
-    ...systemFields,
-    ...customFields.map(field => ({
-      id: field.id,
-      name: field.field_name,
-      label: field.label,
-      type: field.field_type,
-      required: field.is_required,
-      section: field.section || 'Campos Personalizados',
-      description: field.help_text || '',
-      display_order: field.display_order + 1000,
-      isSystemField: false,
-      isCustomField: true
-    }))
-  ].sort((a, b) => a.display_order - b.display_order);
+  // Usar apenas os campos personalizados da base de dados
+  const allFields = customFields
+    .sort((a, b) => a.display_order - b.display_order);
 
   const handleSectionDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -149,40 +56,11 @@ const CustomFieldsManager = () => {
     // Atualizar ordens de todas as seções
     const updates = items.map((item, index) => ({
       id: item.id,
-      name: item.name,
-      display_order: index + 1,
-      isSystemSection: item.isSystemSection
+      display_order: index + 1
     }));
 
     try {
-      // Separar updates para seções do sistema e personalizadas
-      const systemSectionUpdates = updates.filter(update => update.isSystemSection);
-      const customSectionUpdates = updates.filter(update => !update.isSystemSection);
-      
-      // Para seções do sistema, criar/atualizar registros na tabela custom_sections
-      if (systemSectionUpdates.length > 0) {
-        const systemPromises = systemSectionUpdates.map(update => 
-          updateSectionOrder.mutateAsync([{
-            id: update.id,
-            name: update.name,
-            display_order: update.display_order,
-            is_active: true,
-            isSystemSection: true
-          }])
-        );
-        await Promise.all(systemPromises);
-      }
-      
-      // Para seções personalizadas, apenas atualizar
-      if (customSectionUpdates.length > 0) {
-        await updateSectionOrder.mutateAsync(
-          customSectionUpdates.map(update => ({
-            id: update.id,
-            display_order: update.display_order
-          }))
-        );
-      }
-      
+      await updateSectionOrder.mutateAsync(updates);
       toast({
         title: "Sucesso",
         description: "Ordem das seções atualizada com sucesso!",
@@ -200,7 +78,7 @@ const CustomFieldsManager = () => {
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(combinedFields);
+    const items = Array.from(allFields);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
@@ -231,13 +109,13 @@ const CustomFieldsManager = () => {
       await createCustomField.mutateAsync(fieldData);
       toast({
         title: "Sucesso",
-        description: "Campo personalizado criado com sucesso!",
+        description: "Campo criado com sucesso!",
       });
       setShowForm(false);
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao criar campo personalizado.",
+        description: "Erro ao criar campo.",
         variant: "destructive",
       });
     }
@@ -248,58 +126,34 @@ const CustomFieldsManager = () => {
       await updateCustomField.mutateAsync({ id: editingField.id, ...fieldData });
       toast({
         title: "Sucesso",
-        description: "Campo personalizado atualizado com sucesso!",
+        description: "Campo atualizado com sucesso!",
       });
       setEditingField(null);
       setShowForm(false);
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao atualizar campo personalizado.",
+        description: "Erro ao atualizar campo.",
         variant: "destructive",
       });
     }
   };
 
   const handleDeleteField = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este campo personalizado?')) {
+    if (confirm('Tem certeza que deseja excluir este campo?')) {
       try {
         await deleteCustomField.mutateAsync(id);
         toast({
           title: "Sucesso",
-          description: "Campo personalizado excluído com sucesso!",
+          description: "Campo excluído com sucesso!",
         });
       } catch (error) {
         toast({
           title: "Erro",
-          description: "Erro ao excluir campo personalizado.",
+          description: "Erro ao excluir campo.",
           variant: "destructive",
         });
       }
-    }
-  };
-
-  const handleEditSystemField = (field: SystemField) => {
-    setEditingSystemField(field);
-  };
-
-  const handleSaveSystemField = async (fieldData: any) => {
-    try {
-      await createCustomField.mutateAsync({
-        ...fieldData,
-        field_name: `system_${fieldData.field_name}`,
-      });
-      toast({
-        title: "Sucesso",
-        description: "Configurações do campo do sistema salvas com sucesso!",
-      });
-      setEditingSystemField(null);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar configurações do campo do sistema.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -345,12 +199,12 @@ const CustomFieldsManager = () => {
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Novo Campo Personalizado
+            Novo Campo
           </Button>
         </div>
       </div>
 
-      {(showForm || editingSystemField || showSectionManager) && (
+      {(showForm || showSectionManager) && (
         <div className="space-y-4">
           {showForm && (
             <CustomFieldForm
@@ -362,15 +216,6 @@ const CustomFieldsManager = () => {
               }}
               loading={createCustomField.isPending || updateCustomField.isPending}
               availableSections={allSections.map(s => s.name)}
-            />
-          )}
-          
-          {editingSystemField && (
-            <SystemFieldEditForm
-              field={editingSystemField}
-              onSave={handleSaveSystemField}
-              onCancel={() => setEditingSystemField(null)}
-              loading={createCustomField.isPending}
             />
           )}
 
@@ -406,18 +251,14 @@ const CustomFieldsManager = () => {
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                       <div className="space-y-4">
                         <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                          Todas as Seções - Arrastar e Soltar para Reordenar
+                          Seções - Arrastar e Soltar para Reordenar
                         </h3>
-                        <p className="text-sm text-zinc-400">
-                          Você pode reordenar livremente todas as seções. Seções do sistema e personalizadas podem ser intercaladas em qualquer ordem.
-                        </p>
                         <Table>
                           <TableHeader>
                             <TableRow className="border-zinc-700">
                               <TableHead className="text-zinc-300 w-10"></TableHead>
                               <TableHead className="text-zinc-300">Nome da Seção</TableHead>
                               <TableHead className="text-zinc-300">Ordem</TableHead>
-                              <TableHead className="text-zinc-300">Origem</TableHead>
                               <TableHead className="text-zinc-300">Ações</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -442,24 +283,15 @@ const CustomFieldsManager = () => {
                                     <TableCell className="text-zinc-300">
                                       {section.display_order}
                                     </TableCell>
-                                    <TableCell className="text-zinc-300">
-                                      {section.isSystemSection ? (
-                                        <span className="text-blue-400">Sistema</span>
-                                      ) : (
-                                        <span className="text-green-400">Personalizada</span>
-                                      )}
-                                    </TableCell>
                                     <TableCell>
                                       <div className="flex space-x-2">
-                                        {!section.isSystemSection && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                                          >
-                                            <Edit className="h-4 w-4" />
-                                          </Button>
-                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -483,7 +315,7 @@ const CustomFieldsManager = () => {
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                       <div className="space-y-4">
                         <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
-                          Todos os Campos - Arrastar e Soltar para Reordenar
+                          Campos - Arrastar e Soltar para Reordenar
                         </h3>
                         <Table>
                           <TableHeader>
@@ -494,12 +326,11 @@ const CustomFieldsManager = () => {
                               <TableHead className="text-zinc-300">Tipo</TableHead>
                               <TableHead className="text-zinc-300">Seção</TableHead>
                               <TableHead className="text-zinc-300">Obrigatório</TableHead>
-                              <TableHead className="text-zinc-300">Origem</TableHead>
                               <TableHead className="text-zinc-300">Ações</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {combinedFields.map((field, index) => (
+                            {allFields.map((field, index) => (
                               <Draggable key={field.id} draggableId={field.id} index={index}>
                                 {(provided, snapshot) => (
                                   <TableRow 
@@ -511,26 +342,19 @@ const CustomFieldsManager = () => {
                                       <GripVertical className="h-4 w-4" />
                                     </TableCell>
                                     <TableCell className="text-white font-mono text-sm">
-                                      {field.name}
+                                      {field.field_name}
                                     </TableCell>
                                     <TableCell className="text-white">
                                       {field.label}
                                     </TableCell>
                                     <TableCell className="text-zinc-300">
-                                      {getFieldTypeName(field.type)}
+                                      {getFieldTypeName(field.field_type)}
                                     </TableCell>
                                     <TableCell className="text-zinc-300">
                                       {field.section}
                                     </TableCell>
                                     <TableCell className="text-zinc-300">
-                                      {field.required ? 'Sim' : 'Não'}
-                                    </TableCell>
-                                    <TableCell className="text-zinc-300">
-                                      {field.isSystemField ? (
-                                        <span className="text-blue-400">Sistema</span>
-                                      ) : (
-                                        <span className="text-green-400">Personalizado</span>
-                                      )}
+                                      {field.is_required ? 'Sim' : 'Não'}
                                     </TableCell>
                                     <TableCell>
                                       <div className="flex space-x-2">
@@ -538,30 +362,21 @@ const CustomFieldsManager = () => {
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => {
-                                            if (field.isSystemField) {
-                                              handleEditSystemField(field);
-                                            } else {
-                                              const customField = customFields.find(cf => cf.id === field.id);
-                                              if (customField) {
-                                                setEditingField(customField);
-                                                setShowForm(true);
-                                              }
-                                            }
+                                            setEditingField(field);
+                                            setShowForm(true);
                                           }}
                                           className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
                                         >
                                           <Edit className="h-4 w-4" />
                                         </Button>
-                                        {field.isCustomField && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteField(field.id)}
-                                            className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
-                                          >
-                                            <Trash className="h-4 w-4" />
-                                          </Button>
-                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDeleteField(field.id)}
+                                          className="text-red-400 hover:text-red-300 hover:bg-zinc-800"
+                                        >
+                                          <Trash className="h-4 w-4" />
+                                        </Button>
                                       </div>
                                     </TableCell>
                                   </TableRow>
