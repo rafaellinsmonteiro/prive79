@@ -16,6 +16,7 @@ const userSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido'),
   phone: z.string().optional(),
+  password: z.string().optional(),
   user_role: z.enum(['admin', 'modelo', 'cliente']),
   plan_id: z.string().optional(),
   is_active: z.boolean().default(true),
@@ -61,6 +62,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           name: user.name || '',
           email: user.email,
           phone: user.phone || '',
+          password: '', // Always start with empty password for security
           user_role: user.user_role as 'admin' | 'modelo' | 'cliente',
           plan_id: user.plan_id || '',
           is_active: user.is_active,
@@ -79,6 +81,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         user_role: data.user_role,
         plan_id: data.plan_id && data.plan_id !== 'no_plan' ? data.plan_id : null,
         is_active: data.is_active,
+        ...(data.password && { password: data.password }), // Only include password if provided
       };
 
       if (userId) {
@@ -134,6 +137,27 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
       </div>
 
       <div>
+        <Label htmlFor="password" className="text-white">
+          {userId ? 'Nova Senha (deixe em branco para manter a atual)' : 'Senha'}
+        </Label>
+        <Input
+          id="password"
+          type="password"
+          {...register('password')}
+          className="bg-zinc-800 border-zinc-700 text-white"
+          placeholder={userId ? 'Digite nova senha ou deixe em branco' : 'Digite a senha'}
+        />
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
+        {userId && (
+          <p className="text-yellow-200 text-xs mt-1">
+            Nota: A alteração de senha pelo admin pode não funcionar devido às configurações de segurança do Supabase.
+          </p>
+        )}
+      </div>
+
+      <div>
         <Label className="text-white">Tipo de Usuário</Label>
         <Select onValueChange={(value) => setValue('user_role', value as 'admin' | 'modelo' | 'cliente')}>
           <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
@@ -178,12 +202,14 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         <Label htmlFor="is_active" className="text-white">Ativo</Label>
       </div>
 
-      <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
-        <p className="text-yellow-200 text-sm">
-          <strong>Nota:</strong> Este formulário cria apenas o registro do usuário no sistema. 
-          Para que o usuário possa fazer login, ele precisará se registrar através da página de autenticação do aplicativo.
-        </p>
-      </div>
+      {!userId && (
+        <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
+          <p className="text-yellow-200 text-sm">
+            <strong>Nota:</strong> Este formulário cria apenas o registro do usuário no sistema. 
+            Para que o usuário possa fazer login, ele precisará se registrar através da página de autenticação do aplicativo.
+          </p>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button
