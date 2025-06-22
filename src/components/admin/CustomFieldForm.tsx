@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +15,13 @@ import {
 
 interface CustomFieldFormProps {
   field?: any;
-  onSubmit: (data: any) => void;
+  onSubmit: (fieldData: any) => void;
   onCancel: () => void;
   loading: boolean;
+  availableSections?: string[];
 }
 
-const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldFormProps) => {
+const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections = [] }: CustomFieldFormProps) => {
   const [formData, setFormData] = useState({
     field_name: '',
     label: '',
@@ -32,6 +32,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
     placeholder: '',
     help_text: '',
     options: '',
+    section: 'Campos Personalizados',
   });
 
   useEffect(() => {
@@ -41,11 +42,12 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
         label: field.label || '',
         field_type: field.field_type || 'text',
         is_required: field.is_required || false,
-        is_active: field.is_active !== false,
+        is_active: field.is_active !== undefined ? field.is_active : true,
         display_order: field.display_order || 0,
         placeholder: field.placeholder || '',
         help_text: field.help_text || '',
         options: field.options ? field.options.join('\n') : '',
+        section: field.section || 'Campos Personalizados',
       });
     }
   }, [field]);
@@ -86,7 +88,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="field_name" className="text-white">
-                Nome do Campo (identificador único)
+                Nome do Campo *
               </Label>
               <Input
                 id="field_name"
@@ -95,6 +97,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
                 placeholder="ex: data_nascimento"
                 className="bg-zinc-800 border-zinc-700 text-white"
                 required
+                disabled={!!field}
               />
               <p className="text-xs text-zinc-400">
                 Use apenas letras minúsculas, números e underscore (_)
@@ -103,7 +106,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
 
             <div className="space-y-2">
               <Label htmlFor="label" className="text-white">
-                Rótulo (nome exibido)
+                Rótulo (nome exibido) *
               </Label>
               <Input
                 id="label"
@@ -139,16 +142,24 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="display_order" className="text-white">
-                Ordem de Exibição
+              <Label htmlFor="section" className="text-white">
+                Seção
               </Label>
-              <Input
-                id="display_order"
-                type="number"
-                value={formData.display_order}
-                onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
-                className="bg-zinc-800 border-zinc-700 text-white"
-              />
+              <Select
+                value={formData.section}
+                onValueChange={(value) => setFormData({ ...formData, section: value })}
+              >
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  {availableSections.map((section) => (
+                    <SelectItem key={section} value={section} className="text-white">
+                      {section}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -195,7 +206,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
             </div>
           )}
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               <Switch
                 id="is_required"
@@ -233,7 +244,7 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading }: CustomFieldForm
               disabled={loading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {loading ? 'Salvando...' : field ? 'Atualizar' : 'Criar Campo'}
+              {loading ? 'Salvando...' : field ? 'Atualizar Campo' : 'Criar Campo'}
             </Button>
           </div>
         </form>
