@@ -19,7 +19,6 @@ const userSchema = z.object({
   user_role: z.enum(['admin', 'modelo', 'cliente']),
   plan_id: z.string().optional(),
   is_active: z.boolean().default(true),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -65,7 +64,6 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           user_role: user.user_role as 'admin' | 'modelo' | 'cliente',
           plan_id: user.plan_id || '',
           is_active: user.is_active,
-          password: '', // Don't prefill password for security
         });
       }
     }
@@ -81,7 +79,6 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         user_role: data.user_role,
         plan_id: data.plan_id && data.plan_id !== 'no_plan' ? data.plan_id : null,
         is_active: data.is_active,
-        password: data.password,
       };
 
       if (userId) {
@@ -93,6 +90,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
       }
       onSuccess();
     } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
       toast.error('Erro ao salvar usuário');
     } finally {
       setIsSubmitting(false);
@@ -123,22 +121,6 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         />
         {errors.email && (
           <p className="text-red-500 text-sm">{errors.email.message}</p>
-        )}
-      </div>
-
-      <div>
-        <Label htmlFor="password" className="text-white">
-          {userId ? 'Nova Senha (deixe em branco para manter atual)' : 'Senha'}
-        </Label>
-        <Input
-          id="password"
-          type="password"
-          {...register('password')}
-          className="bg-zinc-800 border-zinc-700 text-white"
-          placeholder={userId ? "Digite nova senha..." : "Digite a senha..."}
-        />
-        {errors.password && (
-          <p className="text-red-500 text-sm">{errors.password.message}</p>
         )}
       </div>
 
@@ -194,6 +176,13 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           defaultChecked={true}
         />
         <Label htmlFor="is_active" className="text-white">Ativo</Label>
+      </div>
+
+      <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
+        <p className="text-yellow-200 text-sm">
+          <strong>Nota:</strong> Este formulário cria apenas o registro do usuário no sistema. 
+          Para que o usuário possa fazer login, ele precisará se registrar através da página de autenticação do aplicativo.
+        </p>
       </div>
 
       <div className="flex gap-2">

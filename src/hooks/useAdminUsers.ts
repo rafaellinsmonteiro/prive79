@@ -33,29 +33,14 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userData: TablesInsert<'system_users'> & { password?: string }) => {
-      const { password, ...userSystemData } = userData;
+    mutationFn: async (userData: TablesInsert<'system_users'>) => {
+      // Remove password from userData since we're not creating auth users automatically
+      const { password, ...userSystemData } = userData as any;
       
-      // First create the auth user if password is provided
-      let authUserId = null;
-      if (password && userData.email) {
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: userData.email,
-          password: password,
-          email_confirm: true,
-        });
-
-        if (authError) throw authError;
-        authUserId = authData.user?.id;
-      }
-
-      // Then create the system user record
+      // Create only the system user record
       const { data, error } = await supabase
         .from('system_users')
-        .insert({
-          ...userSystemData,
-          user_id: authUserId,
-        })
+        .insert(userSystemData)
         .select()
         .single();
 
@@ -73,27 +58,13 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, password, ...userData }: TablesUpdate<'system_users'> & { id: string; password?: string }) => {
-      // Update auth user password if provided
-      if (password) {
-        const user = await supabase
-          .from('system_users')
-          .select('user_id')
-          .eq('id', id)
-          .single();
-
-        if (user.data?.user_id) {
-          const { error: authError } = await supabase.auth.admin.updateUserById(
-            user.data.user_id,
-            { password: password }
-          );
-          if (authError) throw authError;
-        }
-      }
-
-      // Update system user record
+      // Remove password from update since we can't update auth users from frontend
+      const { password: _, ...updateData } = { password, ...userData };
+      
+      // Update only system user record
       const { data, error } = await supabase
         .from('system_users')
-        .update(userData)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
