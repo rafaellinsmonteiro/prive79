@@ -200,14 +200,23 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       
       if (modelId) {
         console.log('📝 UPDATING MODEL:', modelId);
-        const updateData = { id: modelId, ...modelData };
         
-        console.log('📤 Sending update data to mutation:', updateData);
+        // Para atualização, vamos fazer a operação diretamente no Supabase
+        // para ter mais controle sobre os dados que estão sendo enviados
+        const { data: updatedModel, error: updateError } = await supabase
+          .from('models')
+          .update(modelData)
+          .eq('id', modelId)
+          .select()
+          .single();
         
-        await updateModel.mutateAsync(updateData as any);
-        modelResult = { id: modelId };
+        if (updateError) {
+          console.error('💥 Direct update error:', updateError);
+          throw updateError;
+        }
         
-        console.log('✅ UPDATE COMPLETED');
+        console.log('✅ Direct update success:', updatedModel);
+        modelResult = updatedModel;
         
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
         

@@ -446,11 +446,13 @@ export type Database = {
           name: string
           neighborhood: string | null
           olhos: string | null
+          oral2: boolean | null
           shoe_size: string | null
           silicone: boolean | null
           tatuagem: boolean | null
           testedecampo: string | null
           updated_at: string
+          vaginal2: boolean | null
           visibility_type: string | null
           waist: string | null
           weight: string | null
@@ -480,11 +482,13 @@ export type Database = {
           name: string
           neighborhood?: string | null
           olhos?: string | null
+          oral2?: boolean | null
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
           testedecampo?: string | null
           updated_at?: string
+          vaginal2?: boolean | null
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
@@ -514,11 +518,13 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           olhos?: string | null
+          oral2?: boolean | null
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
           testedecampo?: string | null
           updated_at?: string
+          vaginal2?: boolean | null
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
