@@ -166,12 +166,29 @@ export const useUpdateSectionOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: { id: string; display_order: number }[]) => {
+    mutationFn: async (updates: { id: string; name?: string; display_order: number; is_active?: boolean; isSystemSection?: boolean }[]) => {
       const promises = updates.map(update => {
-        return (supabase as any)
-          .from('custom_sections')
-          .update({ display_order: update.display_order })
-          .eq('id', update.id);
+        if (update.isSystemSection) {
+          // Para seções do sistema, criar/atualizar um registro na tabela custom_sections
+          // usando o nome da seção como identificador único
+          return (supabase as any)
+            .from('custom_sections')
+            .upsert({
+              id: update.id,
+              name: update.name,
+              display_order: update.display_order,
+              is_active: update.is_active || true,
+            }, { 
+              onConflict: 'id',
+              ignoreDuplicates: false 
+            });
+        } else {
+          // Para seções personalizadas, apenas atualizar
+          return (supabase as any)
+            .from('custom_sections')
+            .update({ display_order: update.display_order })
+            .eq('id', update.id);
+        }
       });
 
       const results = await Promise.all(promises);

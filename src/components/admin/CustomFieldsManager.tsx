@@ -81,22 +81,43 @@ const CustomFieldsManager = () => {
     { id: 'description', name: 'description', label: 'Descrição', type: 'textarea', required: false, section: 'Outras Informações', description: 'Descrição detalhada', display_order: 31, isSystemField: true },
   ];
 
-  // Criar seções do sistema baseadas nos campos do sistema
-  const systemSections: SectionItem[] = [
-    { id: 'informacoes-basicas', name: 'Informações Básicas', type: 'section' as const, display_order: 1, isSystemSection: true },
-    { id: 'caracteristicas-fisicas', name: 'Características Físicas', type: 'section' as const, display_order: 2, isSystemSection: true },
-    { id: 'configuracoes', name: 'Configurações', type: 'section' as const, display_order: 3, isSystemSection: true },
-    { id: 'outras-informacoes', name: 'Outras Informações', type: 'section' as const, display_order: 4, isSystemSection: true },
+  // Criar seções do sistema com ordens padrão
+  const systemSectionsBase = [
+    { id: 'informacoes-basicas', name: 'Informações Básicas', display_order: 1 },
+    { id: 'caracteristicas-fisicas', name: 'Características Físicas', display_order: 2 },
+    { id: 'configuracoes', name: 'Configurações', display_order: 3 },
+    { id: 'outras-informacoes', name: 'Outras Informações', display_order: 4 },
   ];
 
-  // Combinar seções do sistema com seções personalizadas
+  // Verificar se há seções personalizadas que definem ordem para seções do sistema
+  const customSystemSectionOverrides = customSections.filter(section => 
+    systemSectionsBase.some(sysSection => sysSection.name === section.name)
+  );
+
+  // Criar seções do sistema com override de ordem se existir
+  const systemSections: SectionItem[] = systemSectionsBase.map(sysSection => {
+    const override = customSystemSectionOverrides.find(cs => cs.name === sysSection.name);
+    return {
+      id: sysSection.id,
+      name: sysSection.name,
+      type: 'section' as const,
+      display_order: override ? override.display_order : sysSection.display_order,
+      isSystemSection: true
+    };
+  });
+
+  // Combinar todas as seções (sistema + personalizadas puras)
+  const pureCustomSections = customSections.filter(section => 
+    section.is_active && !systemSectionsBase.some(sysSection => sysSection.name === section.name)
+  );
+
   const allSections: SectionItem[] = [
     ...systemSections,
-    ...customSections.filter(section => section.is_active).map(section => ({
+    ...pureCustomSections.map(section => ({
       id: section.id,
       name: section.name,
       type: 'section' as const,
-      display_order: section.display_order + 100,
+      display_order: section.display_order,
       isSystemSection: false
     }))
   ].sort((a, b) => a.display_order - b.display_order);
@@ -125,20 +146,41 @@ const CustomFieldsManager = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Agora permitir reordenar tanto seções do sistema quanto personalizadas
+    // Atualizar ordens de todas as seções
     const updates = items.map((item, index) => ({
       id: item.id,
+      name: item.name,
       display_order: index + 1,
+      isSystemSection: item.isSystemSection
     }));
 
     try {
       // Separar updates para seções do sistema e personalizadas
-      const customSectionUpdates = updates.filter(update => 
-        !systemSections.some(s => s.id === update.id)
-      );
+      const systemSectionUpdates = updates.filter(update => update.isSystemSection);
+      const customSectionUpdates = updates.filter(update => !update.isSystemSection);
       
+      // Para seções do sistema, criar/atualizar registros na tabela custom_sections
+      if (systemSectionUpdates.length > 0) {
+        const systemPromises = systemSectionUpdates.map(update => 
+          updateSectionOrder.mutateAsync([{
+            id: update.id,
+            name: update.name,
+            display_order: update.display_order,
+            is_active: true,
+            isSystemSection: true
+          }])
+        );
+        await Promise.all(systemPromises);
+      }
+      
+      // Para seções personalizadas, apenas atualizar
       if (customSectionUpdates.length > 0) {
-        await updateSectionOrder.mutateAsync(customSectionUpdates);
+        await updateSectionOrder.mutateAsync(
+          customSectionUpdates.map(update => ({
+            id: update.id,
+            display_order: update.display_order
+          }))
+        );
       }
       
       toast({
@@ -367,7 +409,7 @@ const CustomFieldsManager = () => {
                           Todas as Seções - Arrastar e Soltar para Reordenar
                         </h3>
                         <p className="text-sm text-zinc-400">
-                          Você pode reordenar tanto seções do sistema quanto personalizadas. A ordem será aplicada nos formulários.
+                          Você pode reordenar livremente todas as seções. Seções do sistema e personalizadas podem ser intercaladas em qualquer ordem.
                         </p>
                         <Table>
                           <TableHeader>
