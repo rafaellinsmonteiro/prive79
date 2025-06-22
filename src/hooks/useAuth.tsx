@@ -42,6 +42,7 @@ export const useAuth = () => {
               
               if (error) {
                 console.error('Error checking admin status:', error);
+                // User is authenticated but not admin - treat as regular user
                 setState(prev => ({ 
                   ...prev, 
                   isAdmin: false, 
@@ -59,6 +60,7 @@ export const useAuth = () => {
               }
             } catch (error) {
               console.error('Error calling is_admin function:', error);
+              // User is authenticated but admin check failed - treat as regular user
               setState(prev => ({ 
                 ...prev, 
                 isAdmin: false, 

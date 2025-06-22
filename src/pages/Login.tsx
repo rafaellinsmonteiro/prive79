@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,7 +24,7 @@ const Login = () => {
     toast
   } = useToast();
 
-  // Only redirect when authentication is complete
+  // Redirect users based on their role when authentication is complete
   useEffect(() => {
     if (authComplete && user) {
       console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin);
@@ -31,7 +32,7 @@ const Login = () => {
         console.log('Redirecting admin to /admin');
         navigate('/admin');
       } else {
-        console.log('Redirecting regular user to /');
+        console.log('Redirecting user to home page');
         navigate('/');
       }
     }
