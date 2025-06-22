@@ -425,6 +425,8 @@ export type Database = {
         Row: {
           age: number
           allowed_plan_ids: string[] | null
+          anal: boolean | null
+          anal2: boolean | null
           appearance: string | null
           body_type: string | null
           bust: string | null
@@ -457,6 +459,8 @@ export type Database = {
         Insert: {
           age: number
           allowed_plan_ids?: string[] | null
+          anal?: boolean | null
+          anal2?: boolean | null
           appearance?: string | null
           body_type?: string | null
           bust?: string | null
@@ -489,6 +493,8 @@ export type Database = {
         Update: {
           age?: number
           allowed_plan_ids?: string[] | null
+          anal?: boolean | null
+          anal2?: boolean | null
           appearance?: string | null
           body_type?: string | null
           bust?: string | null

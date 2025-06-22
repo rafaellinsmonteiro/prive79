@@ -315,7 +315,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <BasicInfoSection form={form} cities={cities} />
             <CategoriesSection form={form} categories={categories || []} />
             <PhysicalCharacteristicsSection form={form} />
-            <OtherInfoSection form={form} />
             <CustomFieldsSection form={form} />
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
