@@ -18,8 +18,6 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
   console.log('📊 Active fields:', customFields.filter(f => f.is_active).length);
   console.log('📊 Total sections:', customSections.length);
   console.log('📊 Active sections:', customSections.filter(s => s.is_active).length);
-  console.log('📋 All fields:', customFields.map(f => ({ name: f.field_name, section: f.section, active: f.is_active })));
-  console.log('📋 All sections:', customSections.map(s => ({ name: s.name, active: s.is_active, order: s.display_order })));
   
   if (loadingFields || loadingSections) {
     return (
@@ -31,7 +29,7 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     );
   }
   
-  // Sistema de seções que não devem aparecer como personalizadas
+  // Seções que já existem no sistema e são integradas diretamente
   const systemSections = [
     'Informações Básicas',
     'Características Físicas', 
@@ -45,21 +43,22 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
   const customFieldsOnly = customFields.filter(field => {
     const isActive = field.is_active;
     const isSystemField = ['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name);
+    const isInSystemSection = systemSections.includes(field.section || '');
     
-    console.log(`🔍 Field ${field.field_name}: active=${isActive}, isSystem=${isSystemField}, section=${field.section}`);
+    console.log(`🔍 Field ${field.field_name}: active=${isActive}, isSystem=${isSystemField}, section=${field.section}, inSystemSection=${isInSystemSection}`);
     
-    return isActive && !isSystemField;
+    // Excluir campos do sistema E campos que estão em seções do sistema (eles são integrados diretamente)
+    return isActive && !isSystemField && !isInSystemSection;
   });
   
-  console.log('✅ Filtered custom fields:', customFieldsOnly.length);
-  console.log('📋 Custom fields to display:', customFieldsOnly.map(f => ({ name: f.field_name, section: f.section })));
+  console.log('✅ Custom fields NOT in system sections:', customFieldsOnly.length);
   
-  // Obter todas as seções ativas ordenadas
-  const activeSections = customSections
-    .filter(section => section.is_active)
+  // Obter seções ativas ordenadas, excluindo as do sistema
+  const customSectionsOnly = customSections
+    .filter(section => section.is_active && !systemSections.includes(section.name))
     .sort((a, b) => a.display_order - b.display_order);
   
-  console.log('📂 Active sections to display:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
+  console.log('📂 Custom sections to display:', customSectionsOnly.map(s => ({ name: s.name, order: s.display_order })));
   
   // Agrupar campos por seção
   const fieldsBySection = customFieldsOnly.reduce((acc, field) => {
@@ -76,18 +75,11 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     fieldsBySection[sectionName].sort((a, b) => a.display_order - b.display_order);
   });
 
-  console.log('🗂️ Fields grouped by section:', Object.keys(fieldsBySection));
-  console.log('🔍 Detailed section breakdown:');
-  Object.entries(fieldsBySection).forEach(([sectionName, fields]) => {
-    console.log(`  📁 ${sectionName}: ${fields.length} fields`);
-    fields.forEach(field => {
-      console.log(`    📄 ${field.field_name} (${field.field_type})`);
-    });
-  });
+  console.log('🗂️ Fields grouped by custom section:', Object.keys(fieldsBySection));
 
-  // Se não há campos personalizados ativos, não mostrar nada
+  // Se não há campos personalizados ativos fora das seções do sistema, não mostrar nada
   if (customFieldsOnly.length === 0) {
-    console.log('⚠️ No custom fields to display');
+    console.log('⚠️ No custom fields to display outside system sections');
     return null;
   }
 
@@ -95,14 +87,14 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
 
   return (
     <>
-      {/* Renderizar seções definidas no sistema */}
-      {activeSections.map((section) => {
+      {/* Renderizar seções personalizadas (não do sistema) */}
+      {customSectionsOnly.map((section) => {
         const fieldsInSection = fieldsBySection[section.name] || [];
         
-        console.log(`🎨 Rendering section "${section.name}" with ${fieldsInSection.length} fields`);
+        console.log(`🎨 Rendering custom section "${section.name}" with ${fieldsInSection.length} fields`);
         
         if (fieldsInSection.length === 0) {
-          console.log(`⏭️ Skipping empty section: ${section.name}`);
+          console.log(`⏭️ Skipping empty custom section: ${section.name}`);
           return null;
         }
         
@@ -136,29 +128,6 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
           </div>
         </div>
       )}
-      
-      {/* Debug visual para mostrar o que está sendo renderizado */}
-      <div className="mt-6 p-4 bg-zinc-800 rounded border-2 border-blue-500">
-        <h4 className="text-blue-300 font-bold mb-2">🐛 DEBUG - Campos Personalizados</h4>
-        <div className="text-xs text-white space-y-1">
-          <p>📊 Total de campos carregados: <span className="text-green-400">{customFields.length}</span></p>
-          <p>📊 Campos ativos: <span className="text-green-400">{customFields.filter(f => f.is_active).length}</span></p>
-          <p>📊 Campos personalizados (não sistema): <span className="text-green-400">{customFieldsOnly.length}</span></p>
-          <p>📊 Seções ativas: <span className="text-green-400">{activeSections.length}</span></p>
-          <div className="mt-2">
-            <p className="text-yellow-300">Seções encontradas:</p>
-            {activeSections.map(s => (
-              <p key={s.id} className="ml-2 text-gray-300">• {s.name} (ordem: {s.display_order})</p>
-            ))}
-          </div>
-          <div className="mt-2">
-            <p className="text-yellow-300">Campos por seção:</p>
-            {Object.entries(fieldsBySection).map(([sectionName, fields]) => (
-              <p key={sectionName} className="ml-2 text-gray-300">• {sectionName}: {fields.length} campos</p>
-            ))}
-          </div>
-        </div>
-      </div>
     </>
   );
 };
