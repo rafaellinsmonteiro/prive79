@@ -1,45 +1,52 @@
+
 import { useParams, Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, MapPin } from "lucide-react";
 import { GalleryMedia } from "@/hooks/useGalleryMedia";
+
 const MediaPage = () => {
-  const {
-    id,
-    type
-  } = useParams<{
-    id: string;
-    type: string;
-  }>();
-  if (!id || !type || type !== 'photo' && type !== 'video') {
+  const { id, type } = useParams<{ id: string; type: string }>();
+  const { isAdmin } = useAuth();
+
+  if (!id || !type || (type !== 'photo' && type !== 'video')) {
     return <Navigate to="/galeria" replace />;
   }
-  const {
-    data: media,
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ['media', id, type],
+
+  const { data: media, isLoading, error } = useQuery({
+    queryKey: ['media', id, type, isAdmin],
     queryFn: async (): Promise<GalleryMedia | null> => {
       if (type === 'photo') {
-        const {
-          data,
-          error
-        } = await supabase.from('model_photos').select(`
+        const { data, error } = await supabase
+          .from('model_photos')
+          .select(`
             id,
             model_id,
             photo_url,
             created_at,
+            visibility_type,
+            allowed_plan_ids,
             models!inner (
               name,
               is_active,
               cities (name)
             )
-          `).eq('id', id).eq('models.is_active', true).maybeSingle();
+          `)
+          .eq('id', id)
+          .eq('models.is_active', true)
+          .maybeSingle();
+
         if (error) throw error;
         if (!data) return null;
+
+        // Verificar visibilidade - admins podem ver todas as fotos
+        if (!isAdmin && data.visibility_type === 'plans') {
+          return null; // Esconder para usuários não-admin
+        }
+
         return {
           id: data.id,
           model_id: data.model_id,
@@ -47,27 +54,41 @@ const MediaPage = () => {
           media_type: 'photo' as const,
           model_name: data.models.name,
           city_name: data.models.cities?.name,
-          created_at: data.created_at
+          created_at: data.created_at,
+          visibility_type: data.visibility_type || 'public',
+          allowed_plan_ids: data.allowed_plan_ids || []
         };
       } else {
-        const {
-          data,
-          error
-        } = await supabase.from('model_videos').select(`
+        const { data, error } = await supabase
+          .from('model_videos')
+          .select(`
             id,
             model_id,
             video_url,
             thumbnail_url,
             title,
             created_at,
+            visibility_type,
+            allowed_plan_ids,
             models!inner (
               name,
               is_active,
               cities (name)
             )
-          `).eq('id', id).eq('models.is_active', true).eq('is_active', true).maybeSingle();
+          `)
+          .eq('id', id)
+          .eq('models.is_active', true)
+          .eq('is_active', true)
+          .maybeSingle();
+
         if (error) throw error;
         if (!data) return null;
+
+        // Verificar visibilidade - admins podem ver todos os vídeos
+        if (!isAdmin && data.visibility_type === 'plans') {
+          return null; // Esconder para usuários não-admin
+        }
+
         return {
           id: data.id,
           model_id: data.model_id,
@@ -77,32 +98,42 @@ const MediaPage = () => {
           title: data.title || undefined,
           model_name: data.models.name,
           city_name: data.models.cities?.name,
-          created_at: data.created_at
+          created_at: data.created_at,
+          visibility_type: data.visibility_type || 'public',
+          allowed_plan_ids: data.allowed_plan_ids || []
         };
       }
     }
   });
+
   if (isLoading) {
-    return <div className="min-h-screen bg-zinc-950">
+    return (
+      <div className="min-h-screen bg-zinc-950">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-zinc-100">Carregando mídia...</div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (error || !media) {
-    return <div className="min-h-screen bg-zinc-950">
+    return (
+      <div className="min-h-screen bg-zinc-950">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-red-400">Mídia não encontrada</div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-zinc-950 text-zinc-100">
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -121,39 +152,67 @@ const MediaPage = () => {
           <div className="bg-zinc-900 rounded-lg overflow-hidden">
             {/* Mídia */}
             <div className="flex justify-center items-center bg-black">
-              {media.media_type === 'video' ? <video controls className="max-w-full max-h-[70vh] w-auto h-auto" poster={media.thumbnail_url}>
+              {media.media_type === 'video' ? (
+                <video
+                  controls
+                  className="max-w-full max-h-[70vh] w-auto h-auto"
+                  poster={media.thumbnail_url}
+                >
                   <source src={media.media_url} type="video/mp4" />
                   Seu navegador não suporta vídeos.
-                </video> : <img src={media.media_url} alt={media.title || `Mídia de ${media.model_name}`} className="max-w-full max-h-[70vh] w-auto h-auto object-contain" />}
+                </video>
+              ) : (
+                <img
+                  src={media.media_url}
+                  alt={media.title || `Mídia de ${media.model_name}`}
+                  className="max-w-full max-h-[70vh] w-auto h-auto object-contain"
+                />
+              )}
             </div>
 
             {/* Informações */}
             <div className="p-6">
               <div className="flex flex-col gap-4">
-                {media.title && <h1 className="text-2xl font-bold text-white">{media.title}</h1>}
+                {media.title && (
+                  <h1 className="text-2xl font-bold text-white">{media.title}</h1>
+                )}
                 
                 <div className="flex flex-wrap items-center gap-6 text-zinc-400">
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    <Link to={`/modelo/${media.model_id}`} className="text-white font-medium hover:text-primary transition-colors">
+                    <Link
+                      to={`/modelo/${media.model_id}`}
+                      className="text-white font-medium hover:text-primary transition-colors"
+                    >
                       {media.model_name}
                     </Link>
                   </div>
                   
-                  {media.city_name && <div className="flex items-center gap-2">
+                  {media.city_name && (
+                    <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       <span>{media.city_name}</span>
-                    </div>}
+                    </div>
+                  )}
                   
                   <div className="text-sm">
                     {new Date(media.created_at).toLocaleDateString('pt-BR')}
                   </div>
+
+                  {/* Indicador de visibilidade para admins */}
+                  {isAdmin && media.visibility_type === 'plans' && (
+                    <div className="bg-yellow-600 text-yellow-100 px-2 py-1 rounded text-xs">
+                      Restrito a Planos
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default MediaPage;

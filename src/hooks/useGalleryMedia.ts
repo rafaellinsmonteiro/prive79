@@ -1,37 +1,42 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+export type MediaType = 'photo' | 'video';
 
 export interface GalleryMedia {
   id: string;
   model_id: string;
   media_url: string;
-  media_type: 'photo' | 'video';
-  thumbnail_url?: string;
-  title?: string;
+  media_type: MediaType;
   model_name: string;
   city_name?: string;
-  model_age?: number;
   created_at: string;
+  thumbnail_url?: string;
+  title?: string;
+  visibility_type?: string;
+  allowed_plan_ids?: string[];
 }
 
-interface GalleryFilters {
-  mediaType?: 'photo' | 'video' | 'all';
+interface UseGalleryMediaParams {
+  mediaType?: 'all' | MediaType;
   city?: string;
   minAge?: number;
   maxAge?: number;
 }
 
-export const useGalleryMedia = (filters: GalleryFilters = {}) => {
-  const { mediaType = 'all', city, minAge, maxAge } = filters;
-  
+export const useGalleryMedia = (params: UseGalleryMediaParams = {}) => {
+  const { mediaType = 'all', city, minAge, maxAge } = params;
+  const { isAdmin } = useAuth();
+
   return useQuery({
-    queryKey: ['gallery-media', mediaType, city, minAge, maxAge],
+    queryKey: ['gallery-media', mediaType, city, minAge, maxAge, isAdmin],
     queryFn: async (): Promise<GalleryMedia[]> => {
       const allMedia: GalleryMedia[] = [];
-      
-      // Buscar fotos se não for especificamente vídeos
-      if (mediaType !== 'video') {
+
+      // Buscar fotos se mediaType for 'all' ou 'photo'
+      if (mediaType === 'all' || mediaType === 'photo') {
         let photosQuery = supabase
           .from('model_photos')
           .select(`
@@ -39,22 +44,24 @@ export const useGalleryMedia = (filters: GalleryFilters = {}) => {
             model_id,
             photo_url,
             created_at,
+            visibility_type,
+            allowed_plan_ids,
             models!inner (
               name,
               age,
               is_active,
-              city_id,
               cities (name)
             )
           `)
-          .eq('models.is_active', true);
+          .eq('models.is_active', true)
+          .eq('show_in_gallery', true);
 
-        // Aplicar filtro de cidade
+        // Aplicar filtros de cidade se especificado
         if (city) {
-          photosQuery = photosQuery.eq('models.city_id', city);
+          photosQuery = photosQuery.eq('models.cities.name', city);
         }
 
-        // Aplicar filtro de idade
+        // Aplicar filtros de idade se especificados
         if (minAge !== undefined) {
           photosQuery = photosQuery.gte('models.age', minAge);
         }
@@ -66,26 +73,45 @@ export const useGalleryMedia = (filters: GalleryFilters = {}) => {
           .order('created_at', { ascending: false });
 
         if (photosError) {
-          console.error('Erro ao buscar fotos:', photosError);
+          console.error('Erro ao buscar fotos da galeria:', photosError);
           throw photosError;
         }
 
-        const photoItems: GalleryMedia[] = (photosData || []).map(photo => ({
-          id: photo.id,
-          model_id: photo.model_id,
-          media_url: photo.photo_url,
-          media_type: 'photo' as const,
-          model_name: photo.models.name,
-          model_age: photo.models.age,
-          city_name: photo.models.cities?.name,
-          created_at: photo.created_at
-        }));
+        if (photosData) {
+          // Filtrar fotos com base na visibilidade - admins podem ver todas
+          const visiblePhotos = photosData.filter(photo => {
+            // Se o usuário é admin, mostrar todas as fotos
+            if (isAdmin) {
+              return true;
+            }
+            
+            // Se visibility_type é null ou 'public', mostrar a foto
+            if (!photo.visibility_type || photo.visibility_type === 'public') {
+              return true;
+            }
+            
+            // Por enquanto, esconder fotos que requerem planos específicos
+            return false;
+          });
 
-        allMedia.push(...photoItems);
+          const photoItems: GalleryMedia[] = visiblePhotos.map(photo => ({
+            id: photo.id,
+            model_id: photo.model_id,
+            media_url: photo.photo_url,
+            media_type: 'photo' as MediaType,
+            model_name: photo.models.name,
+            city_name: photo.models.cities?.name,
+            created_at: photo.created_at,
+            visibility_type: photo.visibility_type || 'public',
+            allowed_plan_ids: photo.allowed_plan_ids || []
+          }));
+
+          allMedia.push(...photoItems);
+        }
       }
 
-      // Buscar vídeos se não for especificamente fotos
-      if (mediaType !== 'photo') {
+      // Buscar vídeos se mediaType for 'all' ou 'video'
+      if (mediaType === 'all' || mediaType === 'video') {
         let videosQuery = supabase
           .from('model_videos')
           .select(`
@@ -95,23 +121,25 @@ export const useGalleryMedia = (filters: GalleryFilters = {}) => {
             thumbnail_url,
             title,
             created_at,
+            visibility_type,
+            allowed_plan_ids,
             models!inner (
               name,
               age,
               is_active,
-              city_id,
               cities (name)
             )
           `)
           .eq('models.is_active', true)
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .eq('show_in_gallery', true);
 
-        // Aplicar filtro de cidade
+        // Aplicar filtros de cidade se especificado
         if (city) {
-          videosQuery = videosQuery.eq('models.city_id', city);
+          videosQuery = videosQuery.eq('models.cities.name', city);
         }
 
-        // Aplicar filtro de idade
+        // Aplicar filtros de idade se especificados
         if (minAge !== undefined) {
           videosQuery = videosQuery.gte('models.age', minAge);
         }
@@ -123,30 +151,47 @@ export const useGalleryMedia = (filters: GalleryFilters = {}) => {
           .order('created_at', { ascending: false });
 
         if (videosError) {
-          console.error('Erro ao buscar vídeos:', videosError);
+          console.error('Erro ao buscar vídeos da galeria:', videosError);
           throw videosError;
         }
 
-        const videoItems: GalleryMedia[] = (videosData || []).map(video => ({
-          id: video.id,
-          model_id: video.model_id,
-          media_url: video.video_url,
-          media_type: 'video' as const,
-          thumbnail_url: video.thumbnail_url || undefined,
-          title: video.title || undefined,
-          model_name: video.models.name,
-          model_age: video.models.age,
-          city_name: video.models.cities?.name,
-          created_at: video.created_at
-        }));
+        if (videosData) {
+          // Filtrar vídeos com base na visibilidade - admins podem ver todos
+          const visibleVideos = videosData.filter(video => {
+            // Se o usuário é admin, mostrar todos os vídeos
+            if (isAdmin) {
+              return true;
+            }
+            
+            // Se visibility_type é null ou 'public', mostrar o vídeo
+            if (!video.visibility_type || video.visibility_type === 'public') {
+              return true;
+            }
+            
+            // Por enquanto, esconder vídeos que requerem planos específicos
+            return false;
+          });
 
-        allMedia.push(...videoItems);
+          const videoItems: GalleryMedia[] = visibleVideos.map(video => ({
+            id: video.id,
+            model_id: video.model_id,
+            media_url: video.video_url,
+            media_type: 'video' as MediaType,
+            thumbnail_url: video.thumbnail_url || undefined,
+            title: video.title || undefined,
+            model_name: video.models.name,
+            city_name: video.models.cities?.name,
+            created_at: video.created_at,
+            visibility_type: video.visibility_type || 'public',
+            allowed_plan_ids: video.allowed_plan_ids || []
+          }));
+
+          allMedia.push(...videoItems);
+        }
       }
 
-      // Ordenar por data de criação (mais recente primeiro)
-      return allMedia.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      // Ordenar por data de criação (mais recentes primeiro)
+      return allMedia.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
   });
 };

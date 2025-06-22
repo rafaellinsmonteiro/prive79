@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import type { Category } from "./useCategories";
 
 export interface ModelPhoto {
@@ -45,8 +46,10 @@ export interface Model {
 }
 
 export const useModels = (cityId?: string) => {
+  const { isAdmin } = useAuth();
+  
   return useQuery({
-    queryKey: ['models', cityId],
+    queryKey: ['models', cityId, isAdmin],
     queryFn: async (): Promise<Model[]> => {
       // 1. Fetch models with city filter and visibility
       let modelsQuery = supabase
@@ -68,8 +71,13 @@ export const useModels = (cityId?: string) => {
       }
       if (!modelsData) return [];
 
-      // Filter models based on visibility - only show public models to anonymous users
+      // Filter models based on visibility - admins can see all models
       const filteredModels = modelsData.filter(model => {
+        // If user is admin, show all models
+        if (isAdmin) {
+          return true;
+        }
+        
         // If visibility_type is null or 'public', show the model
         if (!model.visibility_type || model.visibility_type === 'public') {
           return true;
@@ -132,9 +140,14 @@ export const useModels = (cityId?: string) => {
           .map(mc => categoriesMap.get(mc.category_id))
           .filter(Boolean) as Category[];
 
-        // Filter photos based on visibility
+        // Filter photos based on visibility - admins can see all photos
         const allPhotos = (photosData ?? []).filter(photo => photo.model_id === model.id);
         const visiblePhotos = allPhotos.filter(photo => {
+          // If user is admin, show all photos
+          if (isAdmin) {
+            return true;
+          }
+          
           // If visibility_type is null or 'public', show the photo
           if (!photo.visibility_type || photo.visibility_type === 'public') {
             return true;
@@ -157,8 +170,10 @@ export const useModels = (cityId?: string) => {
 };
 
 export const useModel = (id: string) => {
+  const { isAdmin } = useAuth();
+  
   return useQuery({
-    queryKey: ['model', id],
+    queryKey: ['model', id, isAdmin],
     queryFn: async (): Promise<Model | null> => {
       if (!id) return null;
       
@@ -178,10 +193,10 @@ export const useModel = (id: string) => {
         return null;
       }
 
-      // Check model visibility - only show public models to anonymous users
-      if (modelData.visibility_type === 'plans') {
+      // Check model visibility - admins can see all models
+      if (modelData.visibility_type === 'plans' && !isAdmin) {
         // TODO: Implement user plan checking when authentication is added
-        // For now, return null to hide plan-restricted models
+        // For now, return null to hide plan-restricted models for non-admin users
         return null;
       }
 
@@ -234,9 +249,14 @@ export const useModel = (id: string) => {
         locationParts.push(modelWithCity.neighborhood);
       }
 
-      // Filter photos based on visibility
+      // Filter photos based on visibility - admins can see all photos
       const allPhotos = photosData || [];
       const visiblePhotos = allPhotos.filter(photo => {
+        // If user is admin, show all photos
+        if (isAdmin) {
+          return true;
+        }
+        
         // If visibility_type is null or 'public', show the photo
         if (!photo.visibility_type || photo.visibility_type === 'public') {
           return true;
