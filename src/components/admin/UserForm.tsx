@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -105,7 +106,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           return;
         }
         await createUserMutation.mutateAsync({ ...submitData, password: data.password });
-        toast.success('Usuário criado com sucesso! Agora ele pode fazer login no sistema.');
+        toast.success('Usuário criado com sucesso! O usuário poderá fazer login quando o sistema de autenticação for implementado.');
       }
       onSuccess();
     } catch (error) {
@@ -169,7 +170,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         )}
         {!userId && (
           <p className="text-zinc-400 text-xs mt-1">
-            A senha permitirá que o usuário faça login no sistema
+            A senha será usada quando o sistema de autenticação for implementado
           </p>
         )}
       </div>
