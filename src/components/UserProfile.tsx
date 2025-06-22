@@ -71,8 +71,10 @@ const UserProfile = () => {
     
     try {
       console.log('Buscando plano para usuário:', user.id);
+      console.log('Email do usuário:', user.email);
       
-      const { data, error } = await supabase
+      // Primeiro buscar na tabela system_users pelo user_id
+      let { data: systemUserData, error: systemUserError } = await supabase
         .from('system_users')
         .select(`
           plan_id,
@@ -85,16 +87,42 @@ const UserProfile = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) {
-        console.log('Erro ao buscar plano:', error);
-        setUserPlan('Nenhum plano ativo');
+      console.log('Resultado busca por user_id:', systemUserData, systemUserError);
+
+      // Se não encontrar por user_id, tentar buscar por email
+      if (!systemUserData && !systemUserError) {
+        console.log('Tentando buscar por email:', user.email);
+        const { data: emailData, error: emailError } = await supabase
+          .from('system_users')
+          .select(`
+            plan_id,
+            plans (
+              name,
+              description,
+              price
+            )
+          `)
+          .eq('email', user.email)
+          .maybeSingle();
+
+        systemUserData = emailData;
+        systemUserError = emailError;
+        console.log('Resultado busca por email:', systemUserData, systemUserError);
+      }
+
+      if (systemUserError) {
+        console.log('Erro ao buscar plano:', systemUserError);
+        setUserPlan('Erro ao carregar plano');
         return;
       }
 
-      if (data?.plans) {
-        const plan = data.plans as any;
+      if (systemUserData?.plans) {
+        const plan = systemUserData.plans as any;
         setUserPlan(`${plan.name} - R$ ${plan.price}`);
         console.log('Plano encontrado:', plan);
+      } else if (systemUserData?.plan_id) {
+        console.log('System user encontrado mas sem dados do plano, plan_id:', systemUserData.plan_id);
+        setUserPlan('Plano não encontrado');
       } else {
         setUserPlan('Nenhum plano ativo');
         console.log('Nenhum plano encontrado para o usuário');
