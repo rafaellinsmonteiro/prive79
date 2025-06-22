@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -14,6 +15,7 @@ import ReelsManager from '@/components/admin/ReelsManager';
 import ZaiaAIManager from '@/components/admin/ZaiaAIManager';
 import UsersManager from '@/components/admin/UsersManager';
 import PlansManager from '@/components/admin/PlansManager';
+import CustomFieldsManager from '@/components/admin/CustomFieldsManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -110,6 +112,7 @@ const AdminDashboard = () => {
     { key: 'plans', label: 'Planos', icon: CreditCard },
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
+    { key: 'custom-fields', label: 'Campos Personalizados', icon: Settings },
     { key: 'media', label: 'Mídia', icon: Image },
     { key: 'menu', label: 'Menu', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
@@ -128,6 +131,8 @@ const AdminDashboard = () => {
         return <CitiesManager />;
       case 'categories':
         return <CategoriesManager />;
+      case 'custom-fields':
+        return <CustomFieldsManager />;
       case 'media':
         return <MediaManagerContainer />;
       case 'menu':
