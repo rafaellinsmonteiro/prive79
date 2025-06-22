@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -43,7 +44,7 @@ export const useCreateUser = () => {
         }
 
         // Call the Edge Function to create user
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-user`, {
+        const response = await fetch('https://hhpcrtpevucuucoiodxh.supabase.co/functions/v1/create-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
