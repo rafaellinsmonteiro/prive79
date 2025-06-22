@@ -20,9 +20,8 @@ interface CustomFieldRendererProps {
 }
 
 const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
-  // Para campos personalizados integrados, usar o nome direto do campo
-  const isIntegratedField = ['olhos', 'tatuagem', 'cabelo', 'etnia'].includes(field.field_name);
-  const fieldName = isIntegratedField ? field.field_name as keyof ModelFormData : `custom_${field.field_name}` as keyof ModelFormData;
+  // Para todos os campos personalizados, usar o nome direto do campo
+  const fieldName = field.field_name as keyof ModelFormData;
 
   const formatValue = (value: any): string => {
     if (value === null || value === undefined) return '';
@@ -35,7 +34,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
   };
 
   console.log(`🎨 CustomFieldRenderer - Rendering field: ${field.field_name} (${field.field_type})`);
-  console.log(`🎨 Field name used: ${String(fieldName)}, integrated: ${isIntegratedField}`);
+  console.log(`🎨 Field name used: ${String(fieldName)}`);
   console.log(`🎨 Field options:`, field.options);
 
   switch (field.field_type) {
@@ -83,7 +82,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
                   value={formatNumberValue(formField.value)}
                   onChange={(e) => {
                     const value = e.target.value;
-                    formField.onChange(value === '' ? '' : Number(value));
+                    formField.onChange(value === '' ? null : Number(value));
                   }}
                   type="number"
                   placeholder={field.placeholder || ''}

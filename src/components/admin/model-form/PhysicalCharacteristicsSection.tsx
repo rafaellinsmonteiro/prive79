@@ -17,7 +17,7 @@ const PhysicalCharacteristicsSection = ({ form }: PhysicalCharacteristicsSection
         Características Físicas
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Campos do sistema */}
+        {/* Apenas campos básicos que não são personalizáveis */}
         <FormField
           control={form.control}
           name="height"
@@ -40,76 +40,6 @@ const PhysicalCharacteristicsSection = ({ form }: PhysicalCharacteristicsSection
               <FormLabel className="text-white">Peso</FormLabel>
               <FormControl>
                 <Input {...field} placeholder="Ex: 60kg" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="body_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Manequim</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: P, M, G" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="shoe_size"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Calçado</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 37" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="bust"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Busto</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 90cm" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="waist"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Cintura</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 65cm" className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="hip"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Quadril</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Ex: 95cm" className="bg-zinc-800 border-zinc-700 text-white" />
               </FormControl>
               <FormMessage />
             </FormItem>

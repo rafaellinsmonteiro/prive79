@@ -26,7 +26,7 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
         Informações Básicas
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Campos padrão do sistema */}
+        {/* Apenas campos que NÃO são personalizáveis */}
         <FormField
           control={form.control}
           name="name"
@@ -54,59 +54,6 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   className="bg-zinc-800 border-zinc-700 text-white" 
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="city_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Cidade</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                    <SelectValue placeholder="Selecione uma cidade" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id} className="text-white">
-                      {city.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="neighborhood"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Bairro</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="whatsapp_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">WhatsApp</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" />
               </FormControl>
               <FormMessage />
             </FormItem>
