@@ -110,9 +110,13 @@ export const useModels = (cityId?: string) => {
           return true;
         }
         
-        // For now, hide models that require specific plans since we don't have user plan info
-        // TODO: Implement user plan checking when authentication is added
-        console.log(`useModels - Access denied for ${model.name} (requires plan)`);
+        // If visibility_type is 'plans', for now show it to all users since we don't have plan checking implemented
+        if (model.visibility_type === 'plans') {
+          console.log(`useModels - Plan-restricted model ${model.name} - showing to all users for now (plan checking not implemented)`);
+          return true; // Changed from false to true temporarily
+        }
+        
+        console.log(`useModels - Access denied for ${model.name} (unknown visibility type)`);
         return false;
       });
 
@@ -259,10 +263,10 @@ export const useModel = (id: string) => {
       });
 
       if (!isAdmin && modelData.visibility_type === 'plans') {
-        console.log('useModel - Access denied for non-admin user (requires plan)');
+        console.log('useModel - Plan-restricted model - allowing access for now (plan checking not implemented)');
+        // Temporarily allow access to plan-restricted models for all users
         // TODO: Implement user plan checking when authentication is added
-        // For now, return null to hide plan-restricted models for non-admin users
-        return null;
+        // return null;
       }
 
       console.log('useModel - Access granted, proceeding with fetch...');
