@@ -41,7 +41,7 @@ const ModelCard = ({ model, onClick }: ModelCardProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-white text-xl font-medium">{model.name}</h3>
-            <p className="text-zinc-300 text-sm mt-1">{model.age} anos</p>
+            
           </div>
           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button 
