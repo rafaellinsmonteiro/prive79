@@ -79,9 +79,12 @@ export const useUpdateModel = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Model> & { id: string }) => {
-      console.log('=== UPDATE MODEL MUTATION START ===');
-      console.log('useAdminModels - Updating model with id:', id, 'and data:', updates);
-      console.log('useAdminModels - Visibility data received:', {
+      // Logs básicos sempre visíveis
+      alert(`Hook received update for ID: ${id}`);
+      console.log('🔥 HOOK: Update mutation started');
+      console.log('🔥 HOOK: Model ID:', id);
+      console.log('🔥 HOOK: Raw updates received:', updates);
+      console.log('🔥 HOOK: Visibility data specifically:', {
         visibility_type: updates.visibility_type,
         allowed_plan_ids: updates.allowed_plan_ids
       });
@@ -95,11 +98,13 @@ export const useUpdateModel = () => {
       delete (cleanUpdates as any).created_at;
       delete (cleanUpdates as any).updated_at;
       
-      console.log('useAdminModels - Clean updates being sent to database:', cleanUpdates);
-      console.log('useAdminModels - Visibility in clean updates:', {
+      console.log('🧹 HOOK: Clean updates after filtering:', cleanUpdates);
+      console.log('🧹 HOOK: Visibility in clean updates:', {
         visibility_type: cleanUpdates.visibility_type,
         allowed_plan_ids: cleanUpdates.allowed_plan_ids
       });
+      
+      alert(`Sending to DB - Type: ${cleanUpdates.visibility_type}, Plans: ${JSON.stringify(cleanUpdates.allowed_plan_ids)}`);
       
       const { data, error } = await supabase
         .from('models')
@@ -109,21 +114,23 @@ export const useUpdateModel = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('=== UPDATE MODEL MUTATION ERROR ===');
-        console.error('useAdminModels - Error updating model:', error);
+        console.error('💥 HOOK: Database error:', error);
+        alert(`Database error: ${error.message}`);
         throw error;
       }
       
-      console.log('=== UPDATE MODEL MUTATION SUCCESS ===');
-      console.log('useAdminModels - Model updated successfully:', data);
-      console.log('useAdminModels - Updated model visibility:', {
+      console.log('✅ HOOK: Database response:', data);
+      console.log('✅ HOOK: Visibility in response:', {
         visibility_type: data?.visibility_type,
         allowed_plan_ids: data?.allowed_plan_ids
       });
       
+      alert(`DB Response - Type: ${data?.visibility_type}, Plans: ${JSON.stringify(data?.allowed_plan_ids)}`);
+      
       return data;
     },
     onSuccess: () => {
+      console.log('🔄 HOOK: Invalidating queries...');
       queryClient.invalidateQueries({ queryKey: ['admin-models'] });
       queryClient.invalidateQueries({ queryKey: ['models'] });
     },

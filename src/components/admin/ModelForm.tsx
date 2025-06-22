@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,23 +130,15 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   }, [existingModel, setValue, form]);
 
   const onSubmit = async (data: ModelFormData) => {
-    console.log('=== FORM SUBMISSION START ===');
-    console.log('Form submission started:', {
-      user: !!user,
-      userId: user?.id,
-      isAdmin,
-      session: !!session
-    });
-
-    // Debug: valores do formulário antes do processamento
-    console.log('ModelForm - Raw form data received:', data);
-    console.log('ModelForm - Visibility data specifically:', {
-      visibility_type: data.visibility_type,
-      allowed_plan_ids: data.allowed_plan_ids
-    });
-
-    // Verificar autenticação antes de prosseguir
+    // Log básico que sempre deve aparecer
+    alert('Form submission started!'); // Alert para garantir visibilidade
+    console.log('🚀 FORM SUBMISSION STARTED');
+    console.log('📊 Raw form data:', data);
+    console.log('👀 Visibility type:', data.visibility_type);
+    console.log('📋 Allowed plan IDs:', data.allowed_plan_ids);
+    
     if (!user || !session) {
+      alert('Auth error!');
       toast({
         title: "Erro de Autenticação",
         description: "Você precisa estar logado como admin para realizar esta operação.",
@@ -157,6 +148,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     }
 
     if (!isAdmin) {
+      alert('Admin error!');
       toast({
         title: "Acesso Negado",
         description: "Apenas administradores podem gerenciar modelos.",
@@ -168,8 +160,10 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     setLoading(true);
     try {
       const { category_ids, ...modelData } = data;
-      console.log('Submitting model data (after removing category_ids):', modelData);
-      console.log('ModelForm - Visibility data being submitted:', {
+      
+      console.log('🔧 Processing model data...');
+      console.log('🔧 Model data after removing category_ids:', modelData);
+      console.log('🔧 Visibility in model data:', {
         visibility_type: modelData.visibility_type,
         allowed_plan_ids: modelData.allowed_plan_ids
       });
@@ -177,16 +171,27 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       let modelResult;
       
       if (modelId) {
-        console.log('Updating model:', modelId);
+        console.log('📝 UPDATING MODEL:', modelId);
         const updateData = { id: modelId, ...modelData };
-        console.log('ModelForm - Complete update data being sent:', updateData);
+        
+        console.log('📤 Sending update data to mutation:', updateData);
+        console.log('📤 Visibility being sent:', {
+          visibility_type: updateData.visibility_type,
+          allowed_plan_ids: updateData.allowed_plan_ids
+        });
+        
+        alert(`Updating with visibility: ${updateData.visibility_type}, plans: ${JSON.stringify(updateData.allowed_plan_ids)}`);
         
         await updateModel.mutateAsync(updateData as any);
         modelResult = { id: modelId };
+        
+        console.log('✅ UPDATE COMPLETED');
+        alert('Update completed!');
+        
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
         
         // Verificar se a atualização realmente funcionou
-        console.log('ModelForm - Checking if update persisted...');
+        console.log('🔍 Checking if update persisted...');
         const { data: updatedModel, error: checkError } = await supabase
           .from('models')
           .select('visibility_type, allowed_plan_ids')
@@ -194,19 +199,21 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           .single();
         
         if (checkError) {
-          console.error('ModelForm - Error checking updated model:', checkError);
+          console.error('❌ Error checking updated model:', checkError);
+          alert(`Error checking update: ${checkError.message}`);
         } else {
-          console.log('ModelForm - Model data in database after update:', updatedModel);
+          console.log('🔍 Model data in database after update:', updatedModel);
+          alert(`DB after update - Type: ${updatedModel.visibility_type}, Plans: ${JSON.stringify(updatedModel.allowed_plan_ids)}`);
         }
         
       } else {
-        console.log('Creating new model');
+        console.log('➕ CREATING NEW MODEL');
         modelResult = await createModel.mutateAsync(modelData as any);
         toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
       
       const newModelId = modelResult.id;
-      console.log('Model operation successful, managing categories:', { newModelId, category_ids });
+      console.log('🏷️ Managing categories for model:', { newModelId, category_ids });
 
       if (newModelId) {
         // Verificar sessão novamente antes das operações de categorias
@@ -246,11 +253,13 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         }
       }
 
-      console.log('=== FORM SUBMISSION SUCCESS ===');
+      console.log('🎉 FORM SUBMISSION SUCCESS');
+      alert('Success!');
       onSuccess(modelResult);
     } catch (error: any) {
-      console.error('=== FORM SUBMISSION ERROR ===');
-      console.error('Error saving model:', error);
+      console.error('💥 FORM SUBMISSION ERROR');
+      console.error('💥 Error details:', error);
+      alert(`Error: ${error.message}`);
       
       let errorMessage = "Erro ao salvar modelo. Tente novamente.";
       
@@ -305,11 +314,12 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
 
-            {/* Debug adicional - mostrar valores atuais do formulário */}
-            <div className="text-xs text-zinc-500 p-2 bg-zinc-800 rounded">
-              <p><strong>DEBUG FORM VALUES:</strong></p>
-              <p>visibility_type: {watch('visibility_type')}</p>
-              <p>allowed_plan_ids: {JSON.stringify(watch('allowed_plan_ids'))}</p>
+            {/* Debug info mais visível */}
+            <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border-2 border-yellow-400">
+              <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
+              <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
+              <p className="text-white">allowed_plan_ids: <span className="text-green-400">{JSON.stringify(watch('allowed_plan_ids'))}</span></p>
+              <p className="text-xs text-gray-400 mt-2">Se estes valores estão corretos, clique em salvar e observe os alerts que vão aparecer</p>
             </div>
 
             {/* Gerenciar Mídia */}
