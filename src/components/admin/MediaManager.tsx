@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import {
   useUpdateVideoVisibility
 } from '@/hooks/useMediaMutations';
 import { useToggleVideoInReels } from '@/hooks/useReelsMedia';
+import MediaVisibilityControl from './MediaVisibilityControl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -379,6 +381,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                           <Star className="h-3 w-3" />
                         </Button>
                       )}
+                      <MediaVisibilityControl
+                        mediaId={photo.id}
+                        mediaType="photo"
+                        currentVisibilityType={photo.visibility_type}
+                        currentAllowedPlanIds={photo.allowed_plan_ids || []}
+                        modelId={modelId}
+                      />
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="sm" variant="destructive" disabled={isProcessing}>
@@ -535,6 +544,13 @@ const MediaManager = ({ modelId }: MediaManagerProps) => {
                       </p>
                       <p className="text-zinc-400 text-sm truncate mb-2">{video.media_url}</p>
                       <div className="flex gap-2">
+                        <MediaVisibilityControl
+                          mediaId={video.id}
+                          mediaType="video"
+                          currentVisibilityType={video.visibility_type}
+                          currentAllowedPlanIds={video.allowed_plan_ids || []}
+                          modelId={modelId}
+                        />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button size="sm" variant="destructive" disabled={isProcessing}>
