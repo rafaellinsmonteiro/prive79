@@ -38,6 +38,7 @@ const Index = () => {
             <ModelCard 
               key={model.id} 
               model={model} 
+              
             />
           ))}
         </div>
