@@ -15,7 +15,7 @@ export const useAdminUsers = () => {
         .from('system_users')
         .select(`
           *,
-          plans (
+          plans:plan_id (
             id,
             name,
             price
