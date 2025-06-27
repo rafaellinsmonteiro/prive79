@@ -35,7 +35,6 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
     // Informações Básicas
     const basicInfo = [];
-    if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
     if (basicInfo.length > 0) sections['Informações Básicas'] = basicInfo;
 
     // Características Físicas
