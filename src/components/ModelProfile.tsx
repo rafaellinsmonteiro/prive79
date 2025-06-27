@@ -56,9 +56,16 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     activeCustomFields.forEach(field => {
       let value;
       
+      // Check if it's an integrated field or custom field
+      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+      if (integratedFields.includes(field.field_name)) {
+        value = (model as any)[field.field_name];
+      } else {
+        value = (model as any)[field.field_name] || (model as any)[`custom_${field.field_name}`];
+      }
 
       if (value !== null && value !== undefined && value !== '') {
-        const section = field.section || 'Campos Personalizados';
+       
         
         if (!sections[section]) {
           sections[section] = [];
