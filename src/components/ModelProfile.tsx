@@ -65,7 +65,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       }
 
       if (value !== null && value !== undefined && value !== '') {
-       
+        const section = field.section || 'Campos Personalizados';
         
         if (!sections[section]) {
           sections[section] = [];
