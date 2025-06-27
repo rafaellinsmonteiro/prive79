@@ -35,7 +35,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
     // Informações Básicas
     const basicInfo = [];
-    if (model.name) basicInfo.push({ label: 'Nome3', value: model.name });
+    
     if (model.age) basicInfo.push({ label: 'Idade', value: model.age });
     if (model.location) basicInfo.push({ label: 'Localização', value: model.location });
     if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
