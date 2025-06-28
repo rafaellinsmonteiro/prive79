@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Mic, MicOff, ArrowLeft, MoreVertical, Phone, Video, Paperclip } from 'lucide-react';
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +23,6 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   modelPhoto 
 }) => {
   const [message, setMessage] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
@@ -30,6 +30,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   const { data: messages = [], isLoading } = useMessages(conversationId);
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
+  const { isRecording, startRecording, stopRecording, audioBlob, error } = useVoiceRecorder();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
@@ -40,6 +41,13 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Handle audio blob when recording stops
+  useEffect(() => {
+    if (audioBlob) {
+      handleAudioUpload(audioBlob);
+    }
+  }, [audioBlob]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !user) return;
@@ -76,10 +84,32 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
     }
   };
 
-  const handleVoiceRecord = () => {
-    setIsRecording(!isRecording);
-    // TODO: Implement voice recording functionality
-    console.log('Voice recording:', !isRecording ? 'started' : 'stopped');
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+  };
+
+  const handleAudioUpload = async (audioBlob: Blob) => {
+    try {
+      // Create a URL for the audio blob
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      await sendMessage.mutateAsync({
+        conversationId,
+        messageType: 'audio',
+        mediaUrl: audioUrl,
+        mediaType: 'audio/webm',
+        fileName: `audio_${Date.now()}.webm`,
+        fileSize: audioBlob.size,
+      });
+      
+      console.log('Audio message sent successfully');
+    } catch (error) {
+      console.error('Erro ao enviar áudio:', error);
+    }
   };
 
   if (isLoading) {
@@ -151,6 +181,12 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
 
       {/* Input Area with Audio Button */}
       <div className="bg-zinc-900 px-4 py-4 border-t border-zinc-800">
+        {error && (
+          <div className="mb-3 p-3 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+        
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
@@ -167,6 +203,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               onKeyPress={handleKeyPress}
               placeholder="Mensagem..."
               className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 rounded-full pr-4 py-3 h-12 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isRecording}
             />
           </div>
           
@@ -182,6 +219,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           ) : (
             <Button
               onClick={handleVoiceRecord}
+              disabled={sendMessage.isPending}
               className={`rounded-full w-12 h-12 p-0 flex-shrink-0 shadow-lg transition-all duration-200 ${
                 isRecording 
                   ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
@@ -192,6 +230,15 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
             </Button>
           )}
         </div>
+        
+        {isRecording && (
+          <div className="mt-3 flex items-center justify-center">
+            <div className="flex items-center space-x-2 text-red-400">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">Gravando áudio...</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

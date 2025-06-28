@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Mic, MicOff, Phone, Video, Paperclip, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import MediaUpload from './MediaUpload';
 import TypingIndicator from './TypingIndicator';
@@ -18,7 +19,6 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const [message, setMessage] = useState('');
   const [showMediaUpload, setShowMediaUpload] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
@@ -26,6 +26,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
+  const { isRecording, startRecording, stopRecording, audioBlob, error } = useVoiceRecorder();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
@@ -48,6 +49,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Handle audio blob when recording stops
+  useEffect(() => {
+    if (audioBlob) {
+      handleAudioUpload(audioBlob);
+    }
+  }, [audioBlob]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !user) return;
@@ -84,9 +92,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
     }
   };
 
-  const handleVoiceRecord = () => {
-    setIsRecording(!isRecording);
-    console.log('Voice recording:', !isRecording ? 'started' : 'stopped');
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+  };
+
+  const handleAudioUpload = async (audioBlob: Blob) => {
+    try {
+      // Create a URL for the audio blob
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      await sendMessage.mutateAsync({
+        conversationId,
+        messageType: 'audio',
+        mediaUrl: audioUrl,
+        mediaType: 'audio/webm',
+        fileName: `audio_${Date.now()}.webm`,
+        fileSize: audioBlob.size,
+      });
+      
+      console.log('Audio message sent successfully');
+    } catch (error) {
+      console.error('Erro ao enviar áudio:', error);
+    }
   };
 
   const handleMediaUpload = async (mediaData: {
@@ -187,6 +218,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
 
         {/* Input Area with Audio Button */}
         <div className="bg-zinc-800 px-4 py-4 border-t border-zinc-700">
+          {error && (
+            <div className="mb-2 p-2 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+          
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
@@ -204,6 +241,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
                 onKeyPress={handleKeyPress}
                 placeholder="Mensagem..."
                 className="bg-zinc-700 border-zinc-600 text-white placeholder:text-zinc-500 rounded-full pr-4 py-2 h-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isRecording}
               />
             </div>
             
@@ -219,6 +257,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
             ) : (
               <Button
                 onClick={handleVoiceRecord}
+                disabled={sendMessage.isPending}
                 className={`rounded-full w-10 h-10 p-0 flex-shrink-0 shadow-lg transition-all duration-200 ${
                   isRecording 
                     ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
@@ -229,6 +268,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
               </Button>
             )}
           </div>
+          
+          {isRecording && (
+            <div className="mt-2 flex items-center justify-center">
+              <div className="flex items-center space-x-2 text-red-400">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm">Gravando áudio...</span>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
