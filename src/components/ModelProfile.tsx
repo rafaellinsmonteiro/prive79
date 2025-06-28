@@ -88,7 +88,11 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
     // Outras Informações
     const otherInfo = [];
+    if (model.languages) otherInfo.push({ label: 'Línguas', value: model.languages });
+    if (model.description) otherInfo.push({ label: 'Descrição', value: model.description });
     
+    }
+    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
 
     
   };
