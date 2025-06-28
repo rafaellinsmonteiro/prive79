@@ -3,12 +3,15 @@ import { Tables } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, User } from 'lucide-react';
 import { useDeleteUser } from '@/hooks/useAdminUsers';
 import { toast } from 'sonner';
 
 type SystemUser = Tables<'system_users'> & {
   plans?: Tables<'plans'>;
+  model_profiles?: (Tables<'model_profiles'> & {
+    models?: Tables<'models'> | null;
+  })[] | null;
 };
 
 interface UsersListProps {
@@ -98,6 +101,19 @@ const UsersList = ({ users, loading, onEdit }: UsersListProps) => {
                   </span>
                 </div>
               )}
+              
+              {user.user_role === 'modelo' && user.model_profiles && user.model_profiles.length > 0 && (
+                <div>
+                  <span className="text-zinc-400 text-sm">Modelo Associado: </span>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-purple-400" />
+                    <span className="text-white">
+                      {user.model_profiles[0].models?.name}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div>
                 <span className="text-zinc-400 text-sm">Criado em: </span>
                 <span className="text-white">
