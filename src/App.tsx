@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +20,7 @@ import GalleryPage from "./pages/GalleryPage";
 import MediaPage from "./pages/MediaPage";
 import ModelOnboarding from "./pages/ModelOnboarding";
 import ChatPage from "./pages/ChatPage";
+import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 
 const queryClient = new QueryClient();
@@ -58,6 +58,12 @@ const AppContent = () => {
           path="/chat" 
           element={
             user ? <ChatPage /> : <Navigate to="/" replace />
+          } 
+        />
+        <Route 
+          path="/chat-feed" 
+          element={
+            user ? <ChatFeedPage /> : <Navigate to="/" replace />
           } 
         />
         <Route 

@@ -17,7 +17,7 @@ const navigationItems: BottomNavigationItem[] = [
     id: 'feed',
     label: 'Feed',
     icon: Home,
-    path: '/',
+    path: '/chat-feed',
   },
   {
     id: 'conversations',
