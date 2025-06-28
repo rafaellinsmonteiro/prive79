@@ -90,9 +90,10 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     const otherInfo = [];
     if (model.languages) otherInfo.push({ label: 'Línguas', value: model.languages });
     if (model.description) otherInfo.push({ label: 'Descrição', value: model.description });
-    
+    if (model.categories && model.categories.length > 0) {
+      otherInfo.push({ label: 'Categorias', value: model.categories.map(c => c.name).join(', ') });
     }
-    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
+    
 
     
   };
