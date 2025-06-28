@@ -27,14 +27,24 @@ export const useConversations = () => {
           *,
           models (
             *,
-            photos:model_photos(*)
+            photos:model_photos(
+              id,
+              photo_url,
+              is_primary,
+              display_order
+            )
           )
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('last_message_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching conversations:', error);
+        throw error;
+      }
+      
+      console.log('Conversations loaded:', data);
       return data || [];
     },
     enabled: !!user,

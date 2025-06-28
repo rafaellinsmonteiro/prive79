@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Mic, MicOff, ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Mic, MicOff, ArrowLeft, MoreVertical, Phone, Video, Paperclip } from 'lucide-react';
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
 import MessageItem from './MessageItem';
@@ -79,11 +79,12 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   const handleVoiceRecord = () => {
     setIsRecording(!isRecording);
     // TODO: Implement voice recording functionality
+    console.log('Voice recording:', !isRecording ? 'started' : 'stopped');
   };
 
   if (isLoading) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center">
+      <div className="h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-zinc-400">Carregando conversa...</p>
@@ -93,53 +94,54 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   }
 
   return (
-    <div className="h-screen bg-black flex flex-col">
-      {/* Header */}
-      <div className="bg-zinc-900 px-4 py-3 flex items-center justify-between border-b border-zinc-800">
+    <div className="h-screen bg-zinc-950 flex flex-col">
+      {/* Header with Model Photo */}
+      <div className="bg-zinc-900 px-4 py-4 flex items-center justify-between border-b border-zinc-800 shadow-lg">
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/chat')}
-            className="text-white hover:bg-zinc-800"
+            className="text-white hover:bg-zinc-800 rounded-full"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
           <div className="flex items-center space-x-3">
-            {modelPhoto && (
-              <div className="relative">
-                <img
-                  src={modelPhoto}
-                  alt={modelName}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700"
-                />
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
-              </div>
-            )}
+            <div className="relative">
+              <img
+                src={modelPhoto || '/placeholder.svg'}
+                alt={modelName}
+                className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+            </div>
             <div>
-              <h3 className="text-white font-medium">{modelName}</h3>
-              <p className="text-xs text-green-400">Online</p>
+              <h3 className="text-white font-semibold text-lg">{modelName}</h3>
+              <p className="text-xs text-green-400 font-medium">Online agora</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
+        <div className="flex items-center space-x-1">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
             <Video className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
             <Phone className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
             <MoreVertical className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 px-4 bg-black" ref={scrollAreaRef}>
-        <div className="py-4 space-y-4">
+      <ScrollArea className="flex-1 px-4 bg-zinc-950" ref={scrollAreaRef}>
+        <div className="py-6 space-y-6">
           {messages.map((msg) => (
             <MessageItem key={msg.id} message={msg} />
           ))}
@@ -147,32 +149,43 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
-      <div className="bg-zinc-900 px-4 py-3 border-t border-zinc-800">
-        <div className="flex items-end space-x-2">
+      {/* Input Area with Audio Button */}
+      <div className="bg-zinc-900 px-4 py-4 border-t border-zinc-800">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full flex-shrink-0"
+          >
+            <Paperclip className="h-5 w-5" />
+          </Button>
+          
           <div className="flex-1 relative">
             <Input
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder="Mensagem..."
-              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 rounded-full pr-12 py-3 min-h-[44px]"
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 rounded-full pr-4 py-3 h-12 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
+          {/* Audio/Send Button - WhatsApp Style */}
           {message.trim() ? (
             <Button
               onClick={handleSendMessage}
               disabled={sendMessage.isPending}
-              className="bg-blue-500 hover:bg-blue-600 rounded-full w-12 h-12 p-0 flex-shrink-0"
+              className="bg-blue-600 hover:bg-blue-700 rounded-full w-12 h-12 p-0 flex-shrink-0 shadow-lg"
             >
               <Send className="h-5 w-5" />
             </Button>
           ) : (
             <Button
               onClick={handleVoiceRecord}
-              className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${
-                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-zinc-700 hover:bg-zinc-600'
+              className={`rounded-full w-12 h-12 p-0 flex-shrink-0 shadow-lg transition-all duration-200 ${
+                isRecording 
+                  ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
+                  : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
