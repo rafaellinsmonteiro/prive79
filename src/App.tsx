@@ -1,9 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CityProvider } from "@/contexts/CityContext";
 import { useAuth } from "@/hooks/useAuth";
 import HomePage from "./pages/HomePage";
@@ -20,6 +19,7 @@ import GalleryPage from "./pages/GalleryPage";
 import MediaPage from "./pages/MediaPage";
 import ModelOnboarding from "./pages/ModelOnboarding";
 import ChatPage from "./pages/ChatPage";
+import MobileChatPage from "./pages/MobileChatPage";
 
 const queryClient = new QueryClient();
 
@@ -51,7 +51,18 @@ const AppContent = () => {
       <Route path="/reels" element={<ReelsPage />} />
       <Route path="/galeria" element={<GalleryPage />} />
       <Route path="/midia/:type/:id" element={<MediaPage />} />
-      <Route path="/chat" element={user ? <ChatPage /> : <HomePage />} />
+      <Route 
+        path="/chat" 
+        element={
+          user ? <ChatPage /> : <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/mobile-chat" 
+        element={
+          user ? <MobileChatPage /> : <Navigate to="/" replace />
+        } 
+      />
       
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />

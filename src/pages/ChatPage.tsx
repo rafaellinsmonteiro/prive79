@@ -3,12 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ConversationsList from '@/components/chat/ConversationsList';
 import ChatInterface from '@/components/chat/ChatInterface';
+import MobileChatPage from './MobileChatPage';
 import { MessageCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ChatPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Check for conversation ID in URL parameters
   useEffect(() => {
@@ -18,6 +21,11 @@ const ChatPage = () => {
       setSelectedConversationId(conversationId);
     }
   }, [location.search]);
+
+  // Use mobile interface if on mobile device
+  if (isMobile) {
+    return <MobileChatPage />;
+  }
 
   return (
     <div className="min-h-screen bg-black p-4">
