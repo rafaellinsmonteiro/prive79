@@ -6,27 +6,28 @@ import { Input } from '@/components/ui/input';
 import { Image, Video, Mic, File, X } from 'lucide-react';
 
 interface MediaUploadProps {
-  onUpload: (file: File, type: 'image' | 'video' | 'audio' | 'file') => void;
-  onClose: () => void;
-  maxSizeMB: number;
-  allowedTypes: string[];
+  onUpload: (mediaData: {
+    url: string;
+    type: string;
+    fileName?: string;
+    fileSize?: number;
+  }) => void;
+  onCancel: () => void;
 }
 
-const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUploadProps) => {
+const MediaUpload = ({ onUpload, onCancel }: MediaUploadProps) => {
   const [dragOver, setDragOver] = useState(false);
 
-  const handleFileSelect = (file: File, type: 'image' | 'video' | 'audio' | 'file') => {
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      alert(`Arquivo muito grande. Máximo ${maxSizeMB}MB permitido.`);
-      return;
-    }
-
-    if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-      alert('Tipo de arquivo não permitido.');
-      return;
-    }
-
-    onUpload(file, type);
+  const handleFileSelect = async (file: File) => {
+    // Create a URL for the file (in a real app, you'd upload to storage)
+    const url = URL.createObjectURL(file);
+    
+    onUpload({
+      url: url,
+      type: file.type,
+      fileName: file.name,
+      fileSize: file.size,
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -35,14 +36,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
     
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      const file = files[0];
-      let type: 'image' | 'video' | 'audio' | 'file' = 'file';
-      
-      if (file.type.startsWith('image/')) type = 'image';
-      else if (file.type.startsWith('video/')) type = 'video';
-      else if (file.type.startsWith('audio/')) type = 'audio';
-      
-      handleFileSelect(file, type);
+      handleFileSelect(files[0]);
     }
   };
 
@@ -61,7 +55,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-medium">Enviar Mídia</h3>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onCancel}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -88,7 +82,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
               accept="image/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleFileSelect(file, 'image');
+                if (file) handleFileSelect(file);
               }}
               className="hidden"
               id="image-upload"
@@ -107,7 +101,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
               accept="video/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleFileSelect(file, 'video');
+                if (file) handleFileSelect(file);
               }}
               className="hidden"
               id="video-upload"
@@ -126,7 +120,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
               accept="audio/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleFileSelect(file, 'audio');
+                if (file) handleFileSelect(file);
               }}
               className="hidden"
               id="audio-upload"
@@ -144,7 +138,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
               type="file"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleFileSelect(file, 'file');
+                if (file) handleFileSelect(file);
               }}
               className="hidden"
               id="file-upload"
@@ -160,7 +154,7 @@ const MediaUpload = ({ onUpload, onClose, maxSizeMB, allowedTypes }: MediaUpload
           </div>
 
           <p className="text-xs text-zinc-500 mt-4">
-            Tamanho máximo: {maxSizeMB}MB
+            Tamanho máximo: 10MB
           </p>
         </div>
       </CardContent>
