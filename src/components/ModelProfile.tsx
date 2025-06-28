@@ -29,7 +29,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
   const currentMedia = mediaItems[currentImageIndex];
 
-  // Organize fields by sections
+  // Organize fields by sections - excluding configuration, access control, and other info sections
   const organizeFieldsBySection = () => {
     const sections: Record<string, Array<{ label: string; value: any; type?: string }>> = {};
 
@@ -53,7 +53,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
     if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
 
-    // Custom Fields por seção
+    // Custom Fields por seção - excluding sensitive sections
     const activeCustomFields = customFields.filter(field => field.is_active);
     
     activeCustomFields.forEach(field => {
@@ -70,6 +70,12 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       if (value !== null && value !== undefined && value !== '') {
         const section = field.section || 'Campos Personalizados';
         
+        // Skip sections that should not be displayed
+        const excludedSections = ['Configurações', 'Controle de Acesso', 'Outras Informações'];
+        if (excludedSections.includes(section)) {
+          return;
+        }
+        
         if (!sections[section]) {
           sections[section] = [];
         }
@@ -84,15 +90,6 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
         }
       }
     });
-
-    // Outras Informações
-    const otherInfo = [];
-    if (model.languages) otherInfo.push({ label: 'Línguas', value: model.languages });
-    if (model.description) otherInfo.push({ label: 'Descrição', value: model.description });
-    if (model.categories && model.categories.length > 0) {
-      otherInfo.push({ label: 'Categorias', value: model.categories.map(c => c.name).join(', ') });
-    }
-    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
 
     return sections;
   };
