@@ -86,6 +86,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       }
     });
 
+    // Outras Informações
 
     return sections;
   };
