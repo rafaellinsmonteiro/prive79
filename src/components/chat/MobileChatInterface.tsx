@@ -67,7 +67,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEventHandler<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     
     if (e.target.value && !message) {

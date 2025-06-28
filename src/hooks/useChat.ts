@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -6,7 +5,9 @@ import { useAuth } from './useAuth';
 import { useEffect } from 'react';
 
 type Conversation = Tables<'conversations'> & {
-  models?: Tables<'models'> | null;
+  models?: (Tables<'models'> & {
+    photos?: Tables<'model_photos'>[];
+  }) | null;
 };
 
 type Message = Tables<'messages'>;
@@ -24,7 +25,10 @@ export const useConversations = () => {
         .from('conversations')
         .select(`
           *,
-          models (*)
+          models (
+            *,
+            photos:model_photos(*)
+          )
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)

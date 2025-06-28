@@ -26,6 +26,18 @@ const MobileConversationsList = ({ onSelectConversation, selectedConversationId 
     }
   };
 
+  const getModelPhoto = (conversation: any) => {
+    if (conversation.models?.photos && conversation.models.photos.length > 0) {
+      // Try to get the primary photo first
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      
+      // If no primary photo, get the first one
+      return conversation.models.photos[0].photo_url;
+    }
+    return '/placeholder.svg';
+  };
+
   return (
     <div className="h-screen bg-zinc-900 flex flex-col">
       {/* Header */}
@@ -79,7 +91,7 @@ const MobileConversationsList = ({ onSelectConversation, selectedConversationId 
             >
               <div className="relative">
                 <img
-                  src={conversation.models?.avatar_url || '/placeholder.svg'}
+                  src={getModelPhoto(conversation)}
                   alt={conversation.models?.name || 'Model'}
                   className="w-12 h-12 rounded-full object-cover"
                 />
