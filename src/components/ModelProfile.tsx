@@ -51,7 +51,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.body_type) physicalInfo.push({ label: 'Manequim', value: model.body_type });
     if (model.eyes) physicalInfo.push({ label: 'Olhos', value: model.eyes });
     if (model.shoe_size) physicalInfo.push({ label: 'Pés', value: model.shoe_size });
-    if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
+    if (model.silicone) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
     if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
 
     // Custom Fields por seção
