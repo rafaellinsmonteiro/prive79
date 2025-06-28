@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -84,7 +83,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
 
   if (isLoading) {
     return (
-      <div className="h-screen bg-zinc-900 flex items-center justify-center">
+      <div className="h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-zinc-400">Carregando conversa...</p>
@@ -94,15 +93,15 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   }
 
   return (
-    <div className="h-screen bg-zinc-900 flex flex-col">
+    <div className="h-screen bg-black flex flex-col">
       {/* Header */}
-      <div className="bg-zinc-800 px-4 py-3 flex items-center justify-between border-b border-zinc-700">
+      <div className="bg-zinc-900 px-4 py-3 flex items-center justify-between border-b border-zinc-800">
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/chat')}
-            className="text-white hover:bg-zinc-700"
+            className="text-white hover:bg-zinc-800"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -113,9 +112,9 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
                 <img
                   src={modelPhoto}
                   alt={modelName}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700"
                 />
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-800"></div>
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
               </div>
             )}
             <div>
@@ -126,20 +125,20 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-700">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
             <Video className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-700">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
             <Phone className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-700">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
             <MoreVertical className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 px-4 bg-black" ref={scrollAreaRef}>
         <div className="py-4 space-y-4">
           {messages.map((msg) => (
             <MessageItem key={msg.id} message={msg} />
@@ -149,7 +148,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="bg-zinc-800 px-4 py-3 border-t border-zinc-700">
+      <div className="bg-zinc-900 px-4 py-3 border-t border-zinc-800">
         <div className="flex items-end space-x-2">
           <div className="flex-1 relative">
             <Input
@@ -157,7 +156,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder="Mensagem..."
-              className="bg-zinc-700 border-zinc-600 text-white placeholder:text-zinc-400 rounded-full pr-12 py-3"
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 rounded-full pr-12 py-3 min-h-[44px]"
             />
           </div>
           
@@ -165,15 +164,15 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
             <Button
               onClick={handleSendMessage}
               disabled={sendMessage.isPending}
-              className="bg-blue-500 hover:bg-blue-600 rounded-full w-12 h-12 p-0"
+              className="bg-blue-500 hover:bg-blue-600 rounded-full w-12 h-12 p-0 flex-shrink-0"
             >
               <Send className="h-5 w-5" />
             </Button>
           ) : (
             <Button
               onClick={handleVoiceRecord}
-              className={`rounded-full w-12 h-12 p-0 ${
-                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'
+              className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${
+                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-zinc-700 hover:bg-zinc-600'
               }`}
             >
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}

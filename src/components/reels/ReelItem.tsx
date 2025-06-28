@@ -5,7 +5,7 @@ import { ReelsSettings } from "@/hooks/useReelsSettings";
 import { Heart, MessageCircle, Share, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useCreateConversation } from "@/hooks/useChat";
+import { useConversations, useCreateConversation } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ReelItemProps {
@@ -23,6 +23,7 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
   const [startY, setStartY] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: conversations = [] } = useConversations();
   const createConversation = useCreateConversation();
   const { data: mediaItems = [] } = useModelMedia(model.id);
 
@@ -125,10 +126,21 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
     }
 
     try {
-      const conversation = await createConversation.mutateAsync(model.id);
-      navigate(`/chat?conversation=${conversation.id}`);
+      // Procurar por uma conversa existente com esta modelo
+      const existingConversation = conversations.find(
+        conversation => conversation.model_id === model.id
+      );
+
+      if (existingConversation) {
+        // Se já existe uma conversa, navegar para ela
+        navigate(`/chat?conversation=${existingConversation.id}`);
+      } else {
+        // Se não existe, criar uma nova conversa
+        const conversation = await createConversation.mutateAsync(model.id);
+        navigate(`/chat?conversation=${conversation.id}`);
+      }
     } catch (error) {
-      console.error('Erro ao criar conversa:', error);
+      console.error('Erro ao acessar conversa:', error);
       // Fallback: navegar para chat geral
       navigate('/chat');
     }
