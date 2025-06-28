@@ -39,19 +39,28 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     'Configurações'
   ];
   
-  // Filtrar apenas campos personalizados ativos, excluindo campos do sistema
+  // Lista completa de campos do sistema que já estão implementados diretamente
+  const systemFields = [
+    'name', 'age', 'whatsapp_number', 'neighborhood', 'city_id',
+    'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 
+    'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 
+    'allowed_plan_ids', 'languages', 'appearance', 'city'
+  ];
+  
+  // Filtrar apenas campos personalizados ativos que NÃO são campos do sistema
   const customFieldsOnly = customFields.filter(field => {
     const isActive = field.is_active;
-    const isSystemField = ['name', 'age', 'whatsapp_number', 'neighborhood', 'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 'allowed_plan_ids'].includes(field.field_name);
+    const isSystemField = systemFields.includes(field.field_name);
     const isInSystemSection = systemSections.includes(field.section || '');
     
     console.log(`🔍 Field ${field.field_name}: active=${isActive}, isSystem=${isSystemField}, section=${field.section}, inSystemSection=${isInSystemSection}`);
     
-    // Excluir campos do sistema E campos que estão em seções do sistema (eles são integrados diretamente)
+    // Incluir apenas campos que são ativos E não são campos do sistema E não estão em seções do sistema
     return isActive && !isSystemField && !isInSystemSection;
   });
   
-  console.log('✅ Custom fields NOT in system sections:', customFieldsOnly.length);
+  console.log('✅ Custom fields to display:', customFieldsOnly.length);
+  console.log('✅ Custom field names:', customFieldsOnly.map(f => f.field_name));
   
   // Obter seções ativas ordenadas, excluindo as do sistema
   const customSectionsOnly = customSections
