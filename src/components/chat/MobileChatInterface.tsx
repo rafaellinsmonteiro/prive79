@@ -9,22 +9,26 @@ import { useAuth } from '@/hooks/useAuth';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
-import { useNavigate } from 'react-router-dom';
+import ContactInfoSheet from './ContactInfoSheet';
 
 interface MobileChatInterfaceProps {
   conversationId: string;
   modelName?: string;
   modelPhoto?: string;
+  modelId?: string;
+  onBack: () => void;
 }
 
 const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({ 
   conversationId, 
   modelName = "Chat",
-  modelPhoto 
+  modelPhoto,
+  modelId,
+  onBack
 }) => {
   const [message, setMessage] = useState('');
+  const [showContactInfo, setShowContactInfo] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   
   const { user } = useAuth();
   const { data: messages = [], isLoading } = useMessages(conversationId);
@@ -131,13 +135,16 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/chat')}
+            onClick={onBack}
             className="text-white hover:bg-zinc-800 rounded-full"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowContactInfo(true)}
+            className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors"
+          >
             <div className="relative">
               <img
                 src={modelPhoto || '/placeholder.svg'}
@@ -153,7 +160,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               <h3 className="text-white font-semibold text-lg">{modelName}</h3>
               <p className="text-xs text-green-400 font-medium">Online agora</p>
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="flex items-center space-x-1">
@@ -240,6 +247,15 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           </div>
         )}
       </div>
+
+      {/* Contact Info Sheet */}
+      <ContactInfoSheet
+        isOpen={showContactInfo}
+        onClose={() => setShowContactInfo(false)}
+        modelId={modelId}
+        modelName={modelName}
+        modelPhoto={modelPhoto}
+      />
     </div>
   );
 };

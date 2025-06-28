@@ -30,6 +30,12 @@ const MobileChatPage = () => {
     navigate(`/chat?conversation=${conversationId}`);
   };
 
+  const handleBackToList = () => {
+    setShowConversation(false);
+    setSelectedConversationId(null);
+    navigate('/chat');
+  };
+
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
   const getModelPhoto = (conversation: any) => {
@@ -56,6 +62,8 @@ const MobileChatPage = () => {
         conversationId={selectedConversationId}
         modelName={selectedConversation?.models?.name}
         modelPhoto={getModelPhoto(selectedConversation)}
+        modelId={selectedConversation?.model_id || undefined}
+        onBack={handleBackToList}
       />
     );
   }
