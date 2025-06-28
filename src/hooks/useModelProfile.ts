@@ -12,29 +12,76 @@ export const useModelProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      console.log('Searching for model profile with user_id:', user.id);
+      console.log('=== Model Profile Debug ===');
+      console.log('Authenticated user:', { id: user.id, email: user.email });
 
-      const { data, error } = await supabase
-        .from('model_profiles')
-        .select(`
-          *,
-          models (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+      // Primeiro, vamos verificar se existe um registro na tabela system_users
+      const { data: systemUser, error: systemUserError } = await supabase
+        .from('system_users')
+        .select('*')
+        .eq('email', user.email)
+        .maybeSingle();
 
-      console.log('Model profile query result:', { data, error });
+      console.log('System user query:', { systemUser, systemUserError });
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('No model profile found for user:', user.id);
-          return null;
-        }
-        throw error;
+      // Agora vamos buscar o model_profile usando tanto o user.id quanto o system_user.user_id se existir
+      const userIds = [user.id];
+      if (systemUser?.user_id && systemUser.user_id !== user.id) {
+        userIds.push(systemUser.user_id);
       }
 
-      return data;
+      console.log('Searching for model profile with user_ids:', userIds);
+
+      // Tentar com todos os possíveis user_ids
+      let profileData = null;
+      let profileError = null;
+
+      for (const userId of userIds) {
+        console.log('Trying user_id:', userId);
+        
+        const { data, error } = await supabase
+          .from('model_profiles')
+          .select(`
+            *,
+            models (*)
+          `)
+          .eq('user_id', userId)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        console.log(`Query result for user_id ${userId}:`, { data, error });
+
+        if (data) {
+          profileData = data;
+          break;
+        }
+        if (error && error.code !== 'PGRST116') {
+          profileError = error;
+        }
+      }
+
+      // Se não encontrou nenhum perfil, vamos mostrar todos os model_profiles para debug
+      if (!profileData) {
+        console.log('No profile found, checking all model_profiles...');
+        const { data: allProfiles, error: allError } = await supabase
+          .from('model_profiles')
+          .select('*');
+        
+        console.log('All model_profiles in database:', allProfiles);
+        console.log('Query error:', allError);
+      }
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (!profileData) {
+        console.log('No model profile found for any user_id:', userIds);
+        return null;
+      }
+
+      console.log('Found model profile:', profileData);
+      return profileData;
     },
   });
 
