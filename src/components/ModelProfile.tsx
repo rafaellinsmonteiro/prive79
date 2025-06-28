@@ -29,68 +29,84 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
   const currentMedia = mediaItems[currentImageIndex];
 
-  // Organize fields by sections - excluding configuration, access control, and other info sections
+  // Organize fields by sections with proper ordering and no duplicates
   const organizeFieldsBySection = () => {
     const sections: Record<string, Array<{ label: string; value: any; type?: string }>> = {};
 
-    // Informações Básicas
-    const basicInfo = [];
-    if (model.name) basicInfo.push({ label: 'Nome', value: model.name });
-    if (model.age) basicInfo.push({ label: 'Idade', value: model.age });
-    if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
-    if (basicInfo.length > 0) sections['Informações Básicas'] = basicInfo;
+    // Get all active custom sections ordered by display_order
+    const activeSections = customSections
+      .filter(section => section.is_active)
+      .sort((a, b) => a.display_order - b.display_order);
 
-    // Características Físicas
-    const physicalInfo = [];
-    if (model.height) physicalInfo.push({ label: 'Altura', value: model.height });
-    if (model.weight) physicalInfo.push({ label: 'Peso', value: model.weight });
-    if (model.bust) physicalInfo.push({ label: 'Busto', value: model.bust });
-    if (model.waist) physicalInfo.push({ label: 'Cintura', value: model.waist });
-    if (model.hip) physicalInfo.push({ label: 'Quadril', value: model.hip });
-    if (model.body_type) physicalInfo.push({ label: 'Manequim', value: model.body_type });
-    if (model.eyes) physicalInfo.push({ label: 'Olhos', value: model.eyes });
-    if (model.shoe_size) physicalInfo.push({ label: 'Pés', value: model.shoe_size });
-    if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
-    if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
+    console.log('📊 Active sections ordered:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
 
-    // Custom Fields por seção - excluding sensitive sections
-    const activeCustomFields = customFields.filter(field => field.is_active);
-    
-    activeCustomFields.forEach(field => {
-      let value;
+    // Process each section in order
+    activeSections.forEach(section => {
+      const sectionName = section.name;
       
-      // Check if it's an integrated field or custom field
-      const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
-      if (integratedFields.includes(field.field_name)) {
-        value = (model as any)[field.field_name];
-      } else {
-        value = (model as any)[field.field_name] || (model as any)[`custom_${field.field_name}`];
+      // Skip sections that should not be displayed
+      const excludedSections = ['Configurações', 'Controle de Acesso', 'Outras Informações'];
+      if (excludedSections.includes(sectionName)) {
+        return;
       }
 
-      if (value !== null && value !== undefined && value !== '') {
-        const section = field.section || 'Campos Personalizados';
+      // Initialize section
+      if (!sections[sectionName]) {
+        sections[sectionName] = [];
+      }
+
+      // Handle built-in sections with their specific fields
+      if (sectionName === 'Informações Básicas') {
+        if (model.name) sections[sectionName].push({ label: 'Nome', value: model.name });
+        if (model.age) sections[sectionName].push({ label: 'Idade', value: model.age });
+        if (model.neighborhood) sections[sectionName].push({ label: 'Bairro', value: model.neighborhood });
+      } else if (sectionName === 'Características Físicas') {
+        if (model.height) sections[sectionName].push({ label: 'Altura', value: model.height });
+        if (model.weight) sections[sectionName].push({ label: 'Peso', value: model.weight });
+        if (model.bust) sections[sectionName].push({ label: 'Busto', value: model.bust });
+        if (model.waist) sections[sectionName].push({ label: 'Cintura', value: model.waist });
+        if (model.hip) sections[sectionName].push({ label: 'Quadril', value: model.hip });
+        if (model.body_type) sections[sectionName].push({ label: 'Manequim', value: model.body_type });
+        if (model.eyes) sections[sectionName].push({ label: 'Olhos', value: model.eyes });
+        if (model.shoe_size) sections[sectionName].push({ label: 'Pés', value: model.shoe_size });
+        if (model.silicone !== null) sections[sectionName].push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
+      }
+
+      // Add custom fields for this section
+      const fieldsForSection = customFields
+        .filter(field => field.is_active && field.section === sectionName)
+        .sort((a, b) => a.display_order - b.display_order);
+
+      fieldsForSection.forEach(field => {
+        let value;
         
-        // Skip sections that should not be displayed
-        const excludedSections = ['Configurações', 'Controle de Acesso', 'Outras Informações'];
-        if (excludedSections.includes(section)) {
-          return;
-        }
-        
-        if (!sections[section]) {
-          sections[section] = [];
+        // Check if it's an integrated field or custom field
+        const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+        if (integratedFields.includes(field.field_name)) {
+          value = (model as any)[field.field_name];
+        } else {
+          value = (model as any)[field.field_name] || (model as any)[`custom_${field.field_name}`];
         }
 
-        const formattedValue = formatFieldValue(field, value);
-        if (formattedValue) {
-          sections[section].push({
-            label: field.label,
-            value: formattedValue,
-            type: field.field_type
-          });
+        if (value !== null && value !== undefined && value !== '') {
+          const formattedValue = formatFieldValue(field, value);
+          if (formattedValue) {
+            sections[sectionName].push({
+              label: field.label,
+              value: formattedValue,
+              type: field.field_type
+            });
+          }
         }
+      });
+
+      // Remove empty sections
+      if (sections[sectionName].length === 0) {
+        delete sections[sectionName];
       }
     });
 
+    console.log('✅ Organized sections:', Object.keys(sections));
     return sections;
   };
 
@@ -242,7 +258,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
                 </Button>
               )}
 
-              {/* Display sections with data */}
+              {/* Display sections with data in correct order */}
               {Object.entries(sectionsByData).map(([sectionName, fields]) => (
                 <div key={sectionName} className="space-y-4">
                   <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">

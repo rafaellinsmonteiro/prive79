@@ -45,7 +45,19 @@ const CustomFieldsManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Campos protegidos que não podem ser editados ou excluídos
+  const protectedFields = ['name', 'age', 'city_id'];
+
   const handleEditField = (id: string) => {
+    const field = customFields.find(f => f.id === id);
+    if (field && protectedFields.includes(field.field_name)) {
+      toast({
+        title: "Campo Protegido",
+        description: `O campo "${field.label}" não pode ser editado pois é essencial para o sistema.`,
+        variant: "destructive"
+      });
+      return;
+    }
     setEditingFieldId(id);
     setIsFieldFormOpen(true);
   };
@@ -127,33 +139,44 @@ const CustomFieldsManager = () => {
   const handleClearAll = async () => {
     setShowClearAllDialog(false);
   
-    // Delete all custom fields
+    // Delete all non-protected custom fields
     for (const field of customFields) {
-      try {
-        await deleteCustomField.mutateAsync(field.id);
-        console.log(`✅ Field ${field.id} deleted successfully`);
-      } catch (error) {
-        console.error(`❌ Error deleting field ${field.id}:`, error);
+      if (!protectedFields.includes(field.field_name)) {
+        try {
+          await deleteCustomField.mutateAsync(field.id);
+          console.log(`✅ Field ${field.id} deleted successfully`);
+        } catch (error) {
+          console.error(`❌ Error deleting field ${field.id}:`, error);
+        }
       }
     }
   
-    // Delete all custom sections
+    // Delete all custom sections (except system ones)
+    const systemSections = ['Informações Básicas', 'Características Físicas', 'Outras Informações'];
     for (const section of customSections) {
-      try {
-        await deleteCustomSection.mutateAsync(section.id);
-        console.log(`✅ Section ${section.id} deleted successfully`);
-      } catch (error) {
-        console.error(`❌ Error deleting section ${section.id}:`, error);
+      if (!systemSections.includes(section.name)) {
+        try {
+          await deleteCustomSection.mutateAsync(section.id);
+          console.log(`✅ Section ${section.id} deleted successfully`);
+        } catch (error) {
+          console.error(`❌ Error deleting section ${section.id}:`, error);
+        }
       }
     }
   
-    toast({ title: "Todos os campos e seções foram removidos." });
+    toast({ title: "Campos e seções personalizados foram removidos." });
     await refreshCache();
   };
 
   // Get the field object for editing
   const editingField = editingFieldId ? customFields.find(f => f.id === editingFieldId) : undefined;
   const editingSection = editingSectionId ? customSections.find(s => s.id === editingSectionId) : undefined;
+
+  // Get ordered sections for dropdown
+  const orderedSections = customSections
+    .filter(s => s.is_active)
+    .sort((a, b) => a.display_order - b.display_order)
+    .map(s => s.name);
 
   return (
     <div className="space-y-6">
@@ -166,7 +189,7 @@ const CustomFieldsManager = () => {
           </Button>
           <Button variant="destructive" onClick={() => setShowClearAllDialog(true)}>
             <Trash2 className="h-4 w-4 mr-2" />
-            Limpar Tudo
+            Limpar Campos Personalizados
           </Button>
           <Dialog open={isSectionFormOpen} onOpenChange={setIsSectionFormOpen}>
             <DialogTrigger asChild>
@@ -206,11 +229,18 @@ const CustomFieldsManager = () => {
                 onSubmit={handleFieldSubmit}
                 onCancel={handleCloseFieldForm}
                 loading={createCustomField.isPending || updateCustomField.isPending}
-                availableSections={customSections.map(s => s.name)}
+                availableSections={orderedSections}
               />
             </DialogContent>
           </Dialog>
         </div>
+      </div>
+
+      {/* Aviso sobre campos protegidos */}
+      <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
+        <p className="text-yellow-200 text-sm">
+          <strong>Campos Protegidos:</strong> Os campos Nome, Idade e Cidade são essenciais para o sistema e não podem ser editados ou excluídos.
+        </p>
       </div>
 
       <DraggableCustomFieldsList
@@ -227,7 +257,8 @@ const CustomFieldsManager = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Limpeza</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação removerá TODOS os campos personalizados e seções criados. 
+              Esta ação removerá APENAS os campos e seções personalizados que você criou. 
+              Os campos essenciais (Nome, Idade, Cidade) serão preservados.
               Esta ação não pode ser desfeita. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>

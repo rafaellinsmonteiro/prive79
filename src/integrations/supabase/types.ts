@@ -436,6 +436,7 @@ export type Database = {
           bust: string | null
           cabelo: string | null
           chuva_dourada: string | null
+          city: string | null
           city_id: string | null
           clube_swing: boolean | null
           com_local: boolean | null
@@ -495,6 +496,7 @@ export type Database = {
           bust?: string | null
           cabelo?: string | null
           chuva_dourada?: string | null
+          city?: string | null
           city_id?: string | null
           clube_swing?: boolean | null
           com_local?: boolean | null
@@ -554,6 +556,7 @@ export type Database = {
           bust?: string | null
           cabelo?: string | null
           chuva_dourada?: string | null
+          city?: string | null
           city_id?: string | null
           clube_swing?: boolean | null
           com_local?: boolean | null

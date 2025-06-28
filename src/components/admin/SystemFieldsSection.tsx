@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Settings } from 'lucide-react';
+import { Edit, Settings, Lock } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,6 +20,7 @@ interface SystemField {
   required: boolean;
   section: string;
   description?: string;
+  protected?: boolean; // Campos que não podem ser editados
 }
 
 interface SystemFieldsSectionProps {
@@ -29,8 +30,9 @@ interface SystemFieldsSectionProps {
 const SystemFieldsSection = ({ onEditField }: SystemFieldsSectionProps) => {
   const systemFieldsBySection = {
     'Informações Básicas': [
-      { name: 'name', label: 'Nome', type: 'text', required: true, section: 'Informações Básicas', description: 'Nome da modelo' },
-      { name: 'age', label: 'Idade', type: 'number', required: true, section: 'Informações Básicas', description: 'Idade da modelo' },
+      { name: 'name', label: 'Nome', type: 'text', required: true, section: 'Informações Básicas', description: 'Nome da modelo', protected: true },
+      { name: 'age', label: 'Idade', type: 'number', required: true, section: 'Informações Básicas', description: 'Idade da modelo', protected: true },
+      { name: 'city_id', label: 'Cidade', type: 'select', required: false, section: 'Informações Básicas', description: 'Cidade onde atende', protected: true },
       { name: 'neighborhood', label: 'Bairro', type: 'text', required: false, section: 'Informações Básicas', description: 'Bairro onde atende' },
       { name: 'whatsapp_number', label: 'WhatsApp', type: 'text', required: false, section: 'Informações Básicas', description: 'Número do WhatsApp' },
     ],
@@ -90,7 +92,10 @@ const SystemFieldsSection = ({ onEditField }: SystemFieldsSectionProps) => {
                 {fields.map((field) => (
                   <TableRow key={field.name} className="border-zinc-700">
                     <TableCell className="text-white font-mono text-sm">
-                      {field.name}
+                      <div className="flex items-center gap-2">
+                        {field.protected && <Lock className="h-3 w-3 text-yellow-500" />}
+                        {field.name}
+                      </div>
                     </TableCell>
                     <TableCell className="text-white">
                       {field.label}
@@ -103,16 +108,28 @@ const SystemFieldsSection = ({ onEditField }: SystemFieldsSectionProps) => {
                     </TableCell>
                     <TableCell className="text-zinc-300 text-sm">
                       {field.description}
+                      {field.protected && (
+                        <div className="text-xs text-yellow-500 mt-1">
+                          Campo protegido - não pode ser editado
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditField(field)}
-                        className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {field.protected ? (
+                        <div className="flex items-center gap-1 text-zinc-500">
+                          <Lock className="h-4 w-4" />
+                          <span className="text-xs">Protegido</span>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditField(field)}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-zinc-800"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
