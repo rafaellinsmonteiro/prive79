@@ -423,111 +423,177 @@ export type Database = {
       }
       models: {
         Row: {
+          "1hora": number | null
+          "2horas": number | null
+          "3horas": number | null
           age: number
           allowed_plan_ids: string[] | null
           anal: boolean | null
           anal2: boolean | null
           appearance: string | null
+          beijo: boolean | null
           body_type: string | null
           bust: string | null
           cabelo: string | null
+          chuva_dourada: string | null
           city_id: string | null
+          clube_swing: boolean | null
+          com_local: boolean | null
           created_at: string
           description: string | null
+          despedida_solteiro: boolean | null
+          diaria: number | null
           display_order: number | null
+          domicilio: boolean | null
+          dupla_penetracao: boolean | null
           etnia: string | null
           eyes: string | null
+          garganta: boolean | null
           grava: boolean | null
           height: string | null
           hip: string | null
+          hotel: boolean | null
           id: string
           is_active: boolean | null
+          jantar: boolean | null
           languages: string | null
+          motel: boolean | null
           name: string
           neighborhood: string | null
           nuru: boolean | null
           olhos: string | null
+          onlyfans: boolean | null
           oral2: boolean | null
+          pernoite: number | null
+          plataformas: string | null
+          privacy: boolean | null
+          Privacy: string | null
           shoe_size: string | null
           silicone: boolean | null
           tatuagem: boolean | null
+          telegram: boolean | null
           testedecampo: string | null
           updated_at: string
           vaginal2: boolean | null
+          videochamada: boolean | null
           visibility_type: string | null
           waist: string | null
           weight: string | null
           whatsapp_number: string | null
         }
         Insert: {
+          "1hora"?: number | null
+          "2horas"?: number | null
+          "3horas"?: number | null
           age: number
           allowed_plan_ids?: string[] | null
           anal?: boolean | null
           anal2?: boolean | null
           appearance?: string | null
+          beijo?: boolean | null
           body_type?: string | null
           bust?: string | null
           cabelo?: string | null
+          chuva_dourada?: string | null
           city_id?: string | null
+          clube_swing?: boolean | null
+          com_local?: boolean | null
           created_at?: string
           description?: string | null
+          despedida_solteiro?: boolean | null
+          diaria?: number | null
           display_order?: number | null
+          domicilio?: boolean | null
+          dupla_penetracao?: boolean | null
           etnia?: string | null
           eyes?: string | null
+          garganta?: boolean | null
           grava?: boolean | null
           height?: string | null
           hip?: string | null
+          hotel?: boolean | null
           id?: string
           is_active?: boolean | null
+          jantar?: boolean | null
           languages?: string | null
+          motel?: boolean | null
           name: string
           neighborhood?: string | null
           nuru?: boolean | null
           olhos?: string | null
+          onlyfans?: boolean | null
           oral2?: boolean | null
+          pernoite?: number | null
+          plataformas?: string | null
+          privacy?: boolean | null
+          Privacy?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
+          telegram?: boolean | null
           testedecampo?: string | null
           updated_at?: string
           vaginal2?: boolean | null
+          videochamada?: boolean | null
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
           whatsapp_number?: string | null
         }
         Update: {
+          "1hora"?: number | null
+          "2horas"?: number | null
+          "3horas"?: number | null
           age?: number
           allowed_plan_ids?: string[] | null
           anal?: boolean | null
           anal2?: boolean | null
           appearance?: string | null
+          beijo?: boolean | null
           body_type?: string | null
           bust?: string | null
           cabelo?: string | null
+          chuva_dourada?: string | null
           city_id?: string | null
+          clube_swing?: boolean | null
+          com_local?: boolean | null
           created_at?: string
           description?: string | null
+          despedida_solteiro?: boolean | null
+          diaria?: number | null
           display_order?: number | null
+          domicilio?: boolean | null
+          dupla_penetracao?: boolean | null
           etnia?: string | null
           eyes?: string | null
+          garganta?: boolean | null
           grava?: boolean | null
           height?: string | null
           hip?: string | null
+          hotel?: boolean | null
           id?: string
           is_active?: boolean | null
+          jantar?: boolean | null
           languages?: string | null
+          motel?: boolean | null
           name?: string
           neighborhood?: string | null
           nuru?: boolean | null
           olhos?: string | null
+          onlyfans?: boolean | null
           oral2?: boolean | null
+          pernoite?: number | null
+          plataformas?: string | null
+          privacy?: boolean | null
+          Privacy?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           tatuagem?: boolean | null
+          telegram?: boolean | null
           testedecampo?: string | null
           updated_at?: string
           vaginal2?: boolean | null
+          videochamada?: boolean | null
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
