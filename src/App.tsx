@@ -55,6 +55,7 @@ const AppContent = () => {
           <Route path="/" element={user ? <Index /> : <HomePage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/model-dashboard" element={<ModelDashboard />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
           <Route path="/cidade/:cityId" element={<CityPage />} />
           <Route path="/categoria/:categoryId" element={<CategoryPage />} />

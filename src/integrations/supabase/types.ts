@@ -424,6 +424,47 @@ export type Database = {
           },
         ]
       }
+      model_dashboard_settings: {
+        Row: {
+          allow_direct_messages: boolean
+          auto_approve_photos: boolean
+          created_at: string
+          id: string
+          model_id: string
+          privacy_mode: boolean
+          show_online_status: boolean
+          updated_at: string
+        }
+        Insert: {
+          allow_direct_messages?: boolean
+          auto_approve_photos?: boolean
+          created_at?: string
+          id?: string
+          model_id: string
+          privacy_mode?: boolean
+          show_online_status?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allow_direct_messages?: boolean
+          auto_approve_photos?: boolean
+          created_at?: string
+          id?: string
+          model_id?: string
+          privacy_mode?: boolean
+          show_online_status?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_dashboard_settings_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: true
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_photos: {
         Row: {
           allowed_plan_ids: string[] | null
@@ -464,6 +505,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "model_photos_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          model_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          model_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          model_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_profiles_model_id_fkey"
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "models"
