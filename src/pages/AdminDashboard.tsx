@@ -113,12 +113,12 @@ const AdminDashboard = () => {
     { key: 'plans', label: 'Planos', icon: CreditCard },
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
-    { key: 'custom-fields', label: 'Campos Personalizados', icon: Settings },
+    { key: 'custom-fields', label: 'Campos', icon: Settings },
     { key: 'chat', label: 'Chat', icon: MessageCircle },
     { key: 'media', label: 'Mídia', icon: Image },
     { key: 'menu', label: 'Menu', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
-    { key: 'zaia-ai', label: 'Zaia AI', icon: Bot },
+    { key: 'zaia-ai', label: 'IA', icon: Bot },
   ];
 
   const renderContent = () => {
