@@ -1,6 +1,7 @@
 
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ModelFormData } from '../ModelForm';
 import { City } from '@/hooks/useCities';
@@ -17,26 +18,62 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
       <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
         Informações Básicas
       </h3>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Campo Cidade (fixo - não pode ser editado/excluído) */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Nome *</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Nome da modelo"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="age"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Idade *</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Idade"
+                  min="18"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="city_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white font-medium">Cidade</FormLabel>
-              <Select 
-                value={field.value || ''} 
-                onValueChange={field.onChange}
-              >
+              <FormLabel className="text-white">Cidade</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Selecione uma cidade" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
+                <SelectContent>
                   {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id} className="text-white hover:bg-zinc-700">
+                    <SelectItem key={city.id} value={city.id}>
                       {city.name}
                     </SelectItem>
                   ))}
@@ -46,8 +83,44 @@ const BasicInfoSection = ({ form, cities }: BasicInfoSectionProps) => {
             </FormItem>
           )}
         />
-        
-        {/* Campos personalizados da seção "Informações Básicas" */}
+
+        <FormField
+          control={form.control}
+          name="neighborhood"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">Bairro</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Bairro onde atende"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="whatsapp_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-white">WhatsApp</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Número do WhatsApp"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Campos personalizados integrados para a seção Informações Básicas */}
         <IntegratedCustomFields form={form} sectionName="Informações Básicas" />
       </div>
     </div>

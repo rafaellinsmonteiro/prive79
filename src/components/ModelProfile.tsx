@@ -59,6 +59,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       if (sectionName === 'Informações Básicas') {
         if (model.name) sections[sectionName].push({ label: 'Nome', value: model.name });
         if (model.age) sections[sectionName].push({ label: 'Idade', value: model.age });
+        if (model.cities?.name) sections[sectionName].push({ label: 'Cidade', value: model.cities.name });
         if (model.neighborhood) sections[sectionName].push({ label: 'Bairro', value: model.neighborhood });
       } else if (sectionName === 'Características Físicas') {
         if (model.height) sections[sectionName].push({ label: 'Altura', value: model.height });
@@ -72,9 +73,17 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
         if (model.silicone !== null) sections[sectionName].push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
       }
 
-      // Add custom fields for this section
+      // Add custom fields for this section (exclude system fields to avoid duplicates)
+      const systemFields = ['name', 'age', 'city_id', 'neighborhood', 'whatsapp_number', 'height', 'weight', 'bust', 'waist', 'hip', 'body_type', 'eyes', 'shoe_size', 'silicone', 'languages', 'description'];
+      
       const fieldsForSection = customFields
-        .filter(field => field.is_active && field.section === sectionName)
+        .filter(field => {
+          const isActive = field.is_active;
+          const isForThisSection = field.section === sectionName;
+          const isNotSystemField = !systemFields.includes(field.field_name);
+          
+          return isActive && isForThisSection && isNotSystemField;
+        })
         .sort((a, b) => a.display_order - b.display_order);
 
       fieldsForSection.forEach(field => {

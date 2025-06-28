@@ -20,7 +20,7 @@ interface SystemField {
   required: boolean;
   section: string;
   description?: string;
-  protected?: boolean; // Campos que não podem ser editados
+  protected?: boolean;
 }
 
 interface SystemFieldsSectionProps {

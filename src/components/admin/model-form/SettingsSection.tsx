@@ -11,7 +11,6 @@ interface SettingsSectionProps {
 
 const SettingsSection = ({ form }: SettingsSectionProps) => {
   const { register, setValue, watch } = form;
-  const silicone = watch('silicone');
   const isActive = watch('is_active');
 
   return (
@@ -21,15 +20,6 @@ const SettingsSection = ({ form }: SettingsSectionProps) => {
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="silicone"
-            checked={silicone}
-            onCheckedChange={(checked) => setValue('silicone', checked)}
-          />
-          <Label htmlFor="silicone" className="text-white">Possui Silicone</Label>
-        </div>
-
         <div className="flex items-center space-x-2">
           <Switch
             id="is_active"
