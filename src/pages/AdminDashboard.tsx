@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -116,7 +116,8 @@ const AdminDashboard = () => {
     { key: 'custom-fields', label: 'Campos', icon: Settings },
     { key: 'chat', label: 'Chat', icon: MessageCircle },
     { key: 'media', label: 'Mídia', icon: Image },
-    { key: 'menu', label: 'Menu', icon: Menu },
+    { key: 'sidebar-menu', label: 'Menu Sidebar', icon: Navigation },
+    { key: 'menu', label: 'Menu (Legacy)', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
     { key: 'zaia-ai', label: 'IA', icon: Bot },
   ];
@@ -139,6 +140,8 @@ const AdminDashboard = () => {
         return <ChatManager />;
       case 'media':
         return <MediaManagerContainer />;
+      case 'sidebar-menu':
+        return <MenuManager />;
       case 'menu':
         return <MenuManager />;
       case 'reels':
