@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,17 +14,32 @@ const ChatSettings = () => {
   const { data: settings } = useChatSettings();
   const updateSettings = useUpdateChatSettings();
 
-  const { register, handleSubmit, setValue, watch } = useForm({
+  const { register, handleSubmit, setValue, watch, reset } = useForm({
     defaultValues: {
-      is_enabled: settings?.is_enabled || true,
-      max_file_size_mb: settings?.max_file_size_mb || 10,
-      auto_delete_messages_days: settings?.auto_delete_messages_days || null,
-      enable_typing_indicators: settings?.enable_typing_indicators || true,
-      enable_read_receipts: settings?.enable_read_receipts || true,
-      enable_file_upload: settings?.enable_file_upload || true,
-      allowed_file_types: settings?.allowed_file_types?.join(', ') || 'image/jpeg, image/png, image/gif, video/mp4, audio/mpeg, audio/wav',
+      is_enabled: true,
+      max_file_size_mb: 10,
+      auto_delete_messages_days: null,
+      enable_typing_indicators: true,
+      enable_read_receipts: true,
+      enable_file_upload: true,
+      allowed_file_types: 'image/jpeg, image/png, image/gif, video/mp4, audio/mpeg, audio/wav',
     },
   });
+
+  // Reset form when settings are loaded
+  useEffect(() => {
+    if (settings) {
+      reset({
+        is_enabled: settings.is_enabled || true,
+        max_file_size_mb: settings.max_file_size_mb || 10,
+        auto_delete_messages_days: settings.auto_delete_messages_days || null,
+        enable_typing_indicators: settings.enable_typing_indicators || true,
+        enable_read_receipts: settings.enable_read_receipts || true,
+        enable_file_upload: settings.enable_file_upload || true,
+        allowed_file_types: settings.allowed_file_types?.join(', ') || 'image/jpeg, image/png, image/gif, video/mp4, audio/mpeg, audio/wav',
+      });
+    }
+  }, [settings, reset]);
 
   const isEnabled = watch('is_enabled');
   const enableTypingIndicators = watch('enable_typing_indicators');
