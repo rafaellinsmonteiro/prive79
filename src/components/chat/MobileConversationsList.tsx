@@ -34,6 +34,13 @@ const MobileConversationsList = ({ onSelectConversation, selectedConversationId 
     return '/placeholder.svg';
   };
 
+  const getLastMessageDisplay = (conversation: any) => {
+    if (!conversation.last_message_content) {
+      return 'Inicie uma conversa...';
+    }
+    return conversation.last_message_content;
+  };
+
   return (
     <div className="h-screen bg-zinc-950 flex flex-col">
       {/* Header */}
@@ -116,7 +123,7 @@ const MobileConversationsList = ({ onSelectConversation, selectedConversationId 
                     </span>
                   </div>
                   <p className="text-sm text-zinc-400 truncate">
-                    Última mensagem da conversa...
+                    {getLastMessageDisplay(conversation)}
                   </p>
                 </div>
               </button>

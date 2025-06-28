@@ -35,6 +35,13 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
     return '/placeholder.svg';
   };
 
+  const getLastMessageDisplay = (conversation: any) => {
+    if (!conversation.last_message_content) {
+      return 'Inicie uma conversa...';
+    }
+    return conversation.last_message_content;
+  };
+
   return (
     <Card className="bg-zinc-900 border-zinc-700 h-[600px] flex flex-col">
       <CardHeader className="border-b border-zinc-800 pb-4">
@@ -116,7 +123,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                       </span>
                     </div>
                     <p className="text-sm text-zinc-400 truncate">
-                      Última mensagem da conversa...
+                      {getLastMessageDisplay(conversation)}
                     </p>
                   </div>
                 </button>

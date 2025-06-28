@@ -126,6 +126,8 @@ export type Database = {
           id: string
           is_active: boolean
           last_message_at: string | null
+          last_message_content: string | null
+          last_message_type: Database["public"]["Enums"]["message_type"] | null
           model_id: string | null
           updated_at: string
           user_id: string
@@ -135,6 +137,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_message_at?: string | null
+          last_message_content?: string | null
+          last_message_type?: Database["public"]["Enums"]["message_type"] | null
           model_id?: string | null
           updated_at?: string
           user_id: string
@@ -144,6 +148,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_message_at?: string | null
+          last_message_content?: string | null
+          last_message_type?: Database["public"]["Enums"]["message_type"] | null
           model_id?: string | null
           updated_at?: string
           user_id?: string

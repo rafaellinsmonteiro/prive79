@@ -8,6 +8,8 @@ type Conversation = Tables<'conversations'> & {
   models?: (Tables<'models'> & {
     photos?: Tables<'model_photos'>[];
   }) | null;
+  last_message_content?: string;
+  last_message_type?: string;
 };
 
 type Message = Tables<'messages'>;
@@ -71,11 +73,26 @@ export const useCreateConversation = () => {
     mutationFn: async (modelId: string) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Primeiro, verificar se já existe uma conversa para este usuário e modelo
+      if (modelId) {
+        const { data: existingConversation } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('model_id', modelId)
+          .eq('is_active', true)
+          .single();
+
+        if (existingConversation) {
+          return existingConversation;
+        }
+      }
+
       const { data, error } = await supabase
         .from('conversations')
         .insert({
           user_id: user.id,
-          model_id: modelId,
+          model_id: modelId || null,
         })
         .select()
         .single();
