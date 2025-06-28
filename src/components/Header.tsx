@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -10,7 +9,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, MapPin, ChevronDown, LogIn, User } from "lucide-react";
+import { Menu, MapPin, ChevronDown, LogIn, User, MessageCircle } from "lucide-react";
 import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,6 +96,17 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-800">
+                {/* Chat - mobile menu */}
+                {user && (
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/chat')}
+                    className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Chat
+                  </DropdownMenuItem>
+                )}
+                
                 {/* Itens URL raiz (sem filhos) */}
                 {rootUrlItems.map((item) => (
                   <DropdownMenuItem 
@@ -153,6 +163,17 @@ const Header = () => {
 
           {/* Menu Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
+            {/* Chat - desktop menu */}
+            {user && (
+              <button
+                onClick={() => navigate('/chat')}
+                className="text-zinc-300 hover:text-zinc-100 transition-colors flex items-center gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Chat
+              </button>
+            )}
+            
             {/* Itens URL raiz (sem filhos) */}
             {rootUrlItems.map((item) => (
               <a 

@@ -19,6 +19,7 @@ import ReelsPage from "./pages/ReelsPage";
 import GalleryPage from "./pages/GalleryPage";
 import MediaPage from "./pages/MediaPage";
 import ModelOnboarding from "./pages/ModelOnboarding";
+import ChatPage from "./pages/ChatPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const AppContent = () => {
       <Route path="/reels" element={<ReelsPage />} />
       <Route path="/galeria" element={<GalleryPage />} />
       <Route path="/midia/:type/:id" element={<MediaPage />} />
+      <Route path="/chat" element={user ? <ChatPage /> : <HomePage />} />
       
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
