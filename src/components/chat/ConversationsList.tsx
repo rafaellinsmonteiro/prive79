@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { MessageCircle, Plus, Search, MoreVertical } from 'lucide-react';
 import { useConversations, useCreateConversation } from '@/hooks/useChat';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -25,57 +26,104 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
     }
   };
 
+  const getModelPhoto = (conversation: any) => {
+    if (conversation.models?.photos && conversation.models.photos.length > 0) {
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      return conversation.models.photos[0].photo_url;
+    }
+    return '/placeholder.svg';
+  };
+
   return (
-    <Card className="bg-zinc-900 border-zinc-700 h-[600px]">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Conversas
-        </CardTitle>
+    <Card className="bg-zinc-900 border-zinc-700 h-[600px] flex flex-col">
+      <CardHeader className="border-b border-zinc-800 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle className="text-white flex items-center gap-3">
+            <MessageCircle className="h-6 w-6 text-blue-500" />
+            Conversas
+          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Input
+            placeholder="Pesquisar conversas..."
+            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 pl-10 rounded-full h-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="space-y-1 max-h-[500px] overflow-y-auto">
-          {conversations.length === 0 ? (
-            <div className="p-4 text-center">
-              <p className="text-zinc-400 mb-4">Nenhuma conversa encontrada</p>
-              <Button
-                onClick={() => {
-                  // Para demonstração, vamos criar uma conversa sem modelo específico
-                  handleCreateConversation('');
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conversa
-              </Button>
+
+      <CardContent className="p-0 flex-1 overflow-hidden">
+        {conversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full px-6">
+            <div className="bg-zinc-800 rounded-full p-6 mb-4">
+              <MessageCircle className="h-12 w-12 text-zinc-600" />
             </div>
-          ) : (
-            conversations.map((conversation) => (
-              <button
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                className={`w-full p-4 text-left hover:bg-zinc-800 transition-colors border-b border-zinc-800 ${
-                  selectedConversationId === conversation.id ? 'bg-zinc-800' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">
-                      {conversation.models?.name || 'Conversa'}
-                    </h4>
-                    <p className="text-zinc-400 text-sm mt-1">
-                      {conversation.last_message_at &&
-                        format(new Date(conversation.last_message_at), 'dd/MM/yyyy HH:mm', {
-                          locale: ptBR,
-                        })}
+            <h3 className="text-lg font-semibold text-white mb-2">Nenhuma conversa</h3>
+            <p className="text-zinc-400 text-center mb-6 text-sm">
+              Comece uma nova conversa com suas modelos favoritas
+            </p>
+            <Button
+              onClick={() => handleCreateConversation('')}
+              className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 py-2"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Conversa
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-y-auto h-full">
+            <div className="divide-y divide-zinc-800">
+              {conversations.map((conversation) => (
+                <button
+                  key={conversation.id}
+                  onClick={() => onSelectConversation(conversation.id)}
+                  className={`w-full p-4 flex items-center space-x-3 hover:bg-zinc-800 transition-all duration-200 ${
+                    selectedConversationId === conversation.id ? 'bg-zinc-800 border-r-2 border-blue-500' : ''
+                  }`}
+                >
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={getModelPhoto(conversation)}
+                      alt={conversation.models?.name || 'Model'}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+                  </div>
+                  
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-white font-semibold truncate">
+                        {conversation.models?.name || 'Modelo'}
+                      </h4>
+                      <span className="text-xs text-zinc-500 ml-2 flex-shrink-0">
+                        {conversation.last_message_at &&
+                          format(new Date(conversation.last_message_at), 'HH:mm', {
+                            locale: ptBR,
+                          })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-zinc-400 truncate">
+                      Última mensagem da conversa...
                     </p>
                   </div>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full opacity-0"></div>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
