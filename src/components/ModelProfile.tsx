@@ -51,7 +51,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.body_type) physicalInfo.push({ label: 'Manequim', value: model.body_type });
     if (model.eyes) physicalInfo.push({ label: 'Olhos', value: model.eyes });
     if (model.shoe_size) physicalInfo.push({ label: 'Pés', value: model.shoe_size });
-    if (model.silicone) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
+    if (model.silicone !== null) physicalInfo.push({ label: 'Silicone', value: model.silicone ? 'Sim' : 'Não' });
     if (physicalInfo.length > 0) sections['Características Físicas'] = physicalInfo;
 
     // Custom Fields por seção
@@ -86,14 +86,6 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       }
     });
 
-    // Outras Informações
-    const otherInfo = [];
-    if (model.languages) otherInfo.push({ label: 'Línguas', value: model.languages });
-    if (model.description) otherInfo.push({ label: 'Descrição', value: model.description });
-    if (model.categories && model.categories.length > 0) {
-      otherInfo.push({ label: 'Categorias', value: model.categories.map(c => c.name).join(', ') });
-    }
-    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
 
     return sections;
   };
