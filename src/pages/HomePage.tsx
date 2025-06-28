@@ -1,23 +1,16 @@
-
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Lock, Diamond, Globe, Target, Flame, Eye, Check } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const HomePage = () => {
-  return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+  return <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Header */}
       <header className="border-b border-zinc-800 py-6">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/lovable-uploads/a935e9c2-2b1f-481f-a98d-a750da629b13.png" 
-                alt="Prive Logo" 
-                className="h-10 w-auto"
-              />
+              <img src="/lovable-uploads/a935e9c2-2b1f-481f-a98d-a750da629b13.png" alt="Prive Logo" className="h-10 w-auto" />
             </div>
             <div className="flex gap-4">
               <Link to="/login">
@@ -58,16 +51,10 @@ const HomePage = () => {
         <div className="container mx-auto">
           <Tabs defaultValue="clientes" className="w-full">
             <TabsList className="grid w-full grid-cols-2 max-w-2xl mx-auto mb-12 bg-zinc-800 p-1">
-              <TabsTrigger 
-                value="clientes" 
-                className="text-zinc-300 data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
+              <TabsTrigger value="clientes" className="text-zinc-300 data-[state=active]:bg-primary data-[state=active]:text-white">
                 Para Clientes Exigentes
               </TabsTrigger>
-              <TabsTrigger 
-                value="modelos" 
-                className="text-zinc-300 data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
+              <TabsTrigger value="modelos" className="text-zinc-300 data-[state=active]:bg-primary data-[state=active]:text-white">
                 Para Modelos de Alto Padrão
               </TabsTrigger>
             </TabsList>
@@ -217,77 +204,7 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-zinc-900/50">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            
-            {/* Feature 1 */}
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-4">🔒 Discrição é nossa essência</h3>
-                <p className="text-zinc-400 text-lg">
-                  Ambiente blindado e 100% privado. Aqui, sua identidade e seus desejos são tratados 
-                  com respeito e sigilo absoluto.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Diamond className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-4">💎 Modelos verificados e selecionados</h3>
-                <p className="text-zinc-400 text-lg">
-                  Apenas perfis verificados e cuidadosamente escolhidos para oferecer a você o melhor 
-                  da beleza, elegância e presença.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Globe className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-4">🌐 Conexões reais. Experiências únicas.</h3>
-                <p className="text-zinc-400 text-lg">
-                  Agende encontros, negocie experiências exclusivas ou viva fantasias com total 
-                  liberdade — sem intermediários, sem burocracia.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Target className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-4">🎯 Você no controle</h3>
-                <p className="text-zinc-400 text-lg">
-                  Filtros inteligentes, chats seguros e recursos personalizados para você encontrar 
-                  a companhia perfeita, de acordo com seu estilo de vida.
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      
 
       {/* CTA Section */}
       <section className="py-20 px-4">
@@ -329,8 +246,6 @@ const HomePage = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
