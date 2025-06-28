@@ -12,24 +12,25 @@ interface IntegratedCustomFieldsProps {
 const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsProps) => {
   const { data: customFields = [] } = useCustomFields();
   
-  // Lista de campos do sistema que já estão implementados
-  const systemFields = [
+  // Lista de campos do sistema que NÃO devem ser renderizados como campos personalizados
+  // pois já estão implementados diretamente nos componentes do sistema
+  const systemFieldsToExclude = [
     'name', 'age', 'whatsapp_number', 'neighborhood', 'city_id',
-    'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip',
-    'silicone', 'description', 'languages', 'appearance', 'city', 'is_active',
-    'display_order', 'visibility_type', 'allowed_plan_ids'
+    'height', 'weight', 'body_type', 'shoe_size', 'bust', 'waist', 'hip',
+    'description', 'languages', 'appearance', 'city', 'is_active',
+    'display_order', 'visibility_type', 'allowed_plan_ids', 'silicone'
   ];
   
   // Filtrar campos personalizados que pertencem à seção específica
-  // e que NÃO são campos do sistema
+  // INCLUINDO campos como 'eyes', 'olhos', 'tatuagem', etc. que são campos personalizados válidos
   const sectionFields = customFields.filter(field => {
     const belongsToSection = field.section === sectionName;
     const isActive = field.is_active;
-    const isNotSystemField = !systemFields.includes(field.field_name);
+    const shouldExclude = systemFieldsToExclude.includes(field.field_name);
     
-    console.log(`🔍 IntegratedCustomFields - Field ${field.field_name}: section=${field.section}, belongs=${belongsToSection}, active=${isActive}, notSystem=${isNotSystemField}`);
+    console.log(`🔍 IntegratedCustomFields - Field ${field.field_name}: section=${field.section}, belongs=${belongsToSection}, active=${isActive}, shouldExclude=${shouldExclude}`);
     
-    return belongsToSection && isActive && isNotSystemField;
+    return belongsToSection && isActive && !shouldExclude;
   });
   
   console.log(`🎯 IntegratedCustomFields - Section "${sectionName}" has ${sectionFields.length} fields`);

@@ -39,35 +39,38 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     'Configurações'
   ];
   
-  // Lista completa de campos do sistema que já estão implementados diretamente
-  const systemFields = [
+  // Lista de campos do sistema que NÃO devem ser renderizados como campos personalizados
+  // pois já estão implementados diretamente nos componentes do sistema
+  const systemFieldsToExclude = [
     'name', 'age', 'whatsapp_number', 'neighborhood', 'city_id',
-    'height', 'weight', 'eyes', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 
-    'description', 'silicone', 'is_active', 'display_order', 'visibility_type', 
-    'allowed_plan_ids', 'languages', 'appearance', 'city'
+    'height', 'weight', 'body_type', 'shoe_size', 'bust', 'waist', 'hip', 
+    'description', 'languages', 'appearance', 'city', 'is_active',
+    'display_order', 'visibility_type', 'allowed_plan_ids', 'silicone'
   ];
   
-  // Filtrar apenas campos personalizados ativos que NÃO são campos do sistema
+  // Filtrar campos personalizados ativos, excluindo apenas os campos do sistema já implementados
+  // MAS permitindo campos personalizados válidos como 'olhos', 'tatuagem', etc.
   const customFieldsOnly = customFields.filter(field => {
     const isActive = field.is_active;
-    const isSystemField = systemFields.includes(field.field_name);
+    const shouldExclude = systemFieldsToExclude.includes(field.field_name);
     const isInSystemSection = systemSections.includes(field.section || '');
     
-    console.log(`🔍 Field ${field.field_name}: active=${isActive}, isSystem=${isSystemField}, section=${field.section}, inSystemSection=${isInSystemSection}`);
+    console.log(`🔍 Field ${field.field_name}: active=${isActive}, shouldExclude=${shouldExclude}, section=${field.section}, inSystemSection=${isInSystemSection}`);
     
-    // Incluir apenas campos que são ativos E não são campos do sistema E não estão em seções do sistema
-    return isActive && !isSystemField && !isInSystemSection;
+    // Incluir campos que são ativos E não estão na lista de exclusão
+    // Não importa se estão em seções do sistema, pois podem ser campos personalizados válidos
+    return isActive && !shouldExclude;
   });
   
   console.log('✅ Custom fields to display:', customFieldsOnly.length);
   console.log('✅ Custom field names:', customFieldsOnly.map(f => f.field_name));
   
-  // Obter seções ativas ordenadas, excluindo as do sistema
-  const customSectionsOnly = customSections
-    .filter(section => section.is_active && !systemSections.includes(section.name))
+  // Obter seções ativas ordenadas, incluindo seções do sistema que têm campos personalizados
+  const activeSections = customSections
+    .filter(section => section.is_active)
     .sort((a, b) => a.display_order - b.display_order);
   
-  console.log('📂 Custom sections to display:', customSectionsOnly.map(s => ({ name: s.name, order: s.display_order })));
+  console.log('📂 Active sections to display:', activeSections.map(s => ({ name: s.name, order: s.display_order })));
   
   // Agrupar campos por seção
   const fieldsBySection = customFieldsOnly.reduce((acc, field) => {
@@ -84,11 +87,11 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
     fieldsBySection[sectionName].sort((a, b) => a.display_order - b.display_order);
   });
 
-  console.log('🗂️ Fields grouped by custom section:', Object.keys(fieldsBySection));
+  console.log('🗂️ Fields grouped by section:', Object.keys(fieldsBySection));
 
-  // Se não há campos personalizados ativos fora das seções do sistema, não mostrar nada
+  // Se não há campos personalizados ativos, não mostrar nada
   if (customFieldsOnly.length === 0) {
-    console.log('⚠️ No custom fields to display outside system sections');
+    console.log('⚠️ No custom fields to display');
     return null;
   }
 
@@ -96,14 +99,14 @@ const CustomFieldsSection = ({ form }: CustomFieldsSectionProps) => {
 
   return (
     <>
-      {/* Renderizar seções personalizadas (não do sistema) */}
-      {customSectionsOnly.map((section) => {
+      {/* Renderizar seções personalizadas que têm campos */}
+      {activeSections.map((section) => {
         const fieldsInSection = fieldsBySection[section.name] || [];
         
-        console.log(`🎨 Rendering custom section "${section.name}" with ${fieldsInSection.length} fields`);
+        console.log(`🎨 Checking section "${section.name}" with ${fieldsInSection.length} fields`);
         
         if (fieldsInSection.length === 0) {
-          console.log(`⏭️ Skipping empty custom section: ${section.name}`);
+          console.log(`⏭️ Skipping empty section: ${section.name}`);
           return null;
         }
         
