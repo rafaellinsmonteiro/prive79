@@ -2,9 +2,11 @@
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
-import { PhoneCall } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Model } from "@/hooks/useModels";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useCreateConversation } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ModelCardProps {
   model: Model;
@@ -12,11 +14,32 @@ interface ModelCardProps {
 }
 
 const ModelCard = ({ model, onClick }: ModelCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const createConversation = useCreateConversation();
+  
   // Pegar a primeira foto como imagem principal
   const primaryPhoto = model.photos.find(photo => photo.is_primary) || model.photos[0];
   const imageUrl = primaryPhoto?.photo_url || '/placeholder.svg';
 
-  const whatsappLink = `https://wa.me/${model.whatsapp_number || '5511999999999'}?text=Ol%C3%A1%20${encodeURIComponent(model.name)},%20gostaria%20de%20conversar`;
+  const handleMessageClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync(model.id);
+      navigate(`/chat?conversation=${conversation.id}`);
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+      // Fallback: navegar para chat geral
+      navigate('/chat');
+    }
+  };
 
   const handleClick = () => {
     if (onClick) {
@@ -47,13 +70,10 @@ const ModelCard = ({ model, onClick }: ModelCardProps) => {
             <Button 
               variant="default" 
               size="icon" 
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(whatsappLink, '_blank');
-              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={handleMessageClick}
             >
-              <PhoneCall className="h-5 w-5" />
+              <MessageCircle className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -81,14 +101,10 @@ const ModelCard = ({ model, onClick }: ModelCardProps) => {
             <Button 
               variant="default" 
               size="icon" 
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                window.open(whatsappLink, '_blank');
-              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={handleMessageClick}
             >
-              <PhoneCall className="h-5 w-5" />
+              <MessageCircle className="h-5 w-5" />
             </Button>
           </div>
         </div>

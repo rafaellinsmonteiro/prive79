@@ -1,10 +1,12 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowLeft, ArrowRight, X, Video, Play } from "lucide-react";
+import { MessageCircle, ArrowLeft, ArrowRight, X, Video, Play } from "lucide-react";
 import { Model } from "@/hooks/useModels";
 import { useModelMedia } from "@/hooks/useModelMedia";
 import { useCustomFields, useCustomSections } from "@/hooks/useCustomFields";
+import { useNavigate } from "react-router-dom";
+import { useCreateConversation } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ModelProfileProps {
   model: Model;
@@ -13,11 +15,28 @@ interface ModelProfileProps {
 
 const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const createConversation = useCreateConversation();
   const { data: mediaItems = [] } = useModelMedia(model.id);
   const { data: customFields = [] } = useCustomFields();
   const { data: customSections = [] } = useCustomSections();
-  
-  const whatsappLink = `https://wa.me/${model.whatsapp_number}?text=Ol%C3%A1%20${encodeURIComponent(model.name)},%20gostaria%20de%20conversar`;
+
+  const handleMessageClick = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync(model.id);
+      navigate(`/chat?conversation=${conversation.id}`);
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+      // Fallback: navegar para chat geral
+      navigate('/chat');
+    }
+  };
 
   const nextImage = () => {
     setCurrentImageIndex(prev => (prev + 1) % mediaItems.length);
@@ -259,13 +278,11 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
             {/* Right side - Model information organized by sections */}
             <div className="space-y-6">
-              {/* WhatsApp button */}
-              {model.whatsapp_number && (
-                <Button onClick={() => window.open(whatsappLink, '_blank')} className="w-full text-white py-3 bg-green-500 hover:bg-green-400">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Chamar no WhatsApp
-                </Button>
-              )}
+              {/* Message button */}
+              <Button onClick={handleMessageClick} className="w-full text-white py-3 bg-blue-500 hover:bg-blue-400">
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Enviar Mensagem
+              </Button>
 
               {/* Display sections with data in correct order */}
               {Object.entries(sectionsByData).map(([sectionName, fields]) => (

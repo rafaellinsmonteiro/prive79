@@ -1,11 +1,12 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Model } from "@/hooks/useModels";
 import { useModelMedia } from "@/hooks/useModelMedia";
 import { ReelsSettings } from "@/hooks/useReelsSettings";
-import { Heart, MessageCircle, Share, User, MapPin, Phone } from "lucide-react";
+import { Heart, MessageCircle, Share, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useCreateConversation } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ReelItemProps {
   model: Model;
@@ -21,6 +22,8 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
   const [isPlaying, setIsPlaying] = useState(false);
   const [startY, setStartY] = useState(0);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const createConversation = useCreateConversation();
   const { data: mediaItems = [] } = useModelMedia(model.id);
 
   // Pegar o primeiro vídeo ou usar a primeira foto como fallback
@@ -115,9 +118,19 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
     navigate(`/modelo/${model.id}`);
   };
 
-  const handleWhatsAppClick = () => {
-    if (model.whatsapp_number) {
-      window.open(`https://wa.me/${model.whatsapp_number}`, '_blank');
+  const handleMessageClick = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync(model.id);
+      navigate(`/chat?conversation=${conversation.id}`);
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+      // Fallback: navegar para chat geral
+      navigate('/chat');
     }
   };
 
@@ -204,21 +217,11 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
         <Button
           variant="ghost"
           size="icon"
-          className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
+          className="w-12 h-12 rounded-full bg-blue-500/80 hover:bg-blue-500 text-white"
+          onClick={handleMessageClick}
         >
           <MessageCircle className="w-6 h-6" />
         </Button>
-
-        {model.whatsapp_number && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-12 h-12 rounded-full bg-green-500/80 hover:bg-green-500 text-white"
-            onClick={handleWhatsAppClick}
-          >
-            <Phone className="w-6 h-6" />
-          </Button>
-        )}
 
         <Button
           variant="ghost"
