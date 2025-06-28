@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +23,7 @@ import ModelOnboarding from "./pages/ModelOnboarding";
 import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
+import ModelDashboard from "./pages/ModelDashboard";
 
 const queryClient = new QueryClient();
 
