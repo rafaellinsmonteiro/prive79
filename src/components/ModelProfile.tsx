@@ -37,7 +37,6 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     const basicInfo = [];
     if (model.name) basicInfo.push({ label: 'Nome', value: model.name });
     if (model.age) basicInfo.push({ label: 'Idade', value: model.age });
-    if (model.location) basicInfo.push({ label: 'Localização', value: model.location });
     if (model.neighborhood) basicInfo.push({ label: 'Bairro', value: model.neighborhood });
     if (basicInfo.length > 0) sections['Informações Básicas'] = basicInfo;
 
@@ -93,9 +92,9 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
     if (model.categories && model.categories.length > 0) {
       otherInfo.push({ label: 'Categorias', value: model.categories.map(c => c.name).join(', ') });
     }
-    
+    if (otherInfo.length > 0) sections['Outras Informações'] = otherInfo;
 
-    
+    return sections;
   };
 
   const formatFieldValue = (field: any, value: any) => {
