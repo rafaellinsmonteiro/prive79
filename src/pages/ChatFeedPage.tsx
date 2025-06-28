@@ -1,68 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useConversations } from '@/hooks/useChat';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useContactsUpdates, Contact } from '@/hooks/useContactsUpdates';
+import ContactStatusItem from '@/components/chat/ContactStatusItem';
+import ContactUpdatesModal from '@/components/chat/ContactUpdatesModal';
 
 const ChatFeedPage = () => {
   const navigate = useNavigate();
-  const { data: conversations = [] } = useConversations();
+  const { data: contacts = [], isLoading } = useContactsUpdates();
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock data for recent updates - in a real app, this would come from an API
-  const recentUpdates = [
-    {
-      id: '1',
-      name: 'Evelyn',
-      photo: '/placeholder.svg',
-      lastUpdate: new Date(Date.now() - 40 * 60 * 1000), // 40 min ago
-      hasUnread: true,
-    },
-    {
-      id: '2', 
-      name: 'Renata C12',
-      photo: '/placeholder.svg',
-      lastUpdate: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
-      hasUnread: false,
-    },
-    {
-      id: '3',
-      name: 'Mika Prima',
-      photo: '/placeholder.svg', 
-      lastUpdate: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
-      hasUnread: false,
-    },
-    {
-      id: '4',
-      name: 'Evelin Chacara',
-      photo: '/placeholder.svg',
-      lastUpdate: new Date(Date.now() - 13 * 60 * 1000), // 13 min ago
-      hasUnread: true,
-    },
-    {
-      id: '5',
-      name: 'Lorena Samara',
-      photo: '/placeholder.svg',
-      lastUpdate: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
-      hasUnread: false,
-    },
-    {
-      id: '6',
-      name: 'Ëla_msm',
-      photo: '/placeholder.svg',
-      lastUpdate: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
-      hasUnread: false,
-    },
-  ];
+  const handleContactClick = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsModalOpen(true);
+  };
 
-  const formatLastUpdate = (date: Date) => {
-    return formatDistanceToNow(date, { 
-      addSuffix: true, 
-      locale: ptBR 
-    });
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedContact(null);
   };
 
   return (
@@ -104,40 +62,39 @@ const ChatFeedPage = () => {
           {/* Recent Updates Section */}
           <div>
             <h2 className="text-sm font-medium text-zinc-400 mb-3">Atualizações recentes</h2>
-            <div className="space-y-3">
-              {recentUpdates.map((update) => (
-                <div
-                  key={update.id}
-                  className="flex items-center gap-3 p-3 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
-                >
-                  <div className="relative">
-                    <div className={`w-12 h-12 rounded-full p-0.5 ${
-                      update.hasUnread 
-                        ? 'bg-gradient-to-r from-green-400 to-green-600' 
-                        : 'bg-zinc-600'
-                    }`}>
-                      <img
-                        src={update.photo}
-                        alt={update.name}
-                        className="w-full h-full rounded-full object-cover bg-zinc-700"
-                        onError={(e) => {
-                          e.currentTarget.src = '/placeholder.svg';
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{update.name}</p>
-                    <p className="text-sm text-zinc-400">
-                      {formatLastUpdate(update.lastUpdate)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-zinc-400">Carregando atualizações...</p>
+              </div>
+            ) : contacts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-zinc-400">Nenhuma atualização disponível</p>
+                <p className="text-zinc-500 text-sm mt-2">
+                  Converse com alguém para ver as atualizações aqui
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contacts.map((contact) => (
+                  <ContactStatusItem
+                    key={contact.model_id}
+                    contact={contact}
+                    onClick={() => handleContactClick(contact)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Contact Updates Modal */}
+      <ContactUpdatesModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        contact={selectedContact}
+      />
     </div>
   );
 };
