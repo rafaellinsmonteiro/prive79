@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useModel } from '@/hooks/useModels';
 import { useModelMedia } from '@/hooks/useModelMedia';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Phone, Video, MessageCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -24,6 +25,24 @@ const ContactInfoSheet: React.FC<ContactInfoSheetProps> = ({
 }) => {
   const { data: model } = useModel(modelId || '');
   const { data: media = [] } = useModelMedia(modelId);
+  const { data: currentUser } = useCurrentUser();
+
+  // Filter media based on user's plan permissions
+  const filteredMedia = media.filter(item => {
+    // If no plan restrictions, show all public media
+    if (!item.allowed_plan_ids || item.allowed_plan_ids.length === 0) {
+      return item.visibility_type === 'public';
+    }
+    
+    // If user has no plan, only show public media with no restrictions
+    if (!currentUser?.plan_id) {
+      return item.visibility_type === 'public' && 
+             (!item.allowed_plan_ids || item.allowed_plan_ids.length === 0);
+    }
+    
+    // Check if user's plan is in the allowed plans
+    return item.allowed_plan_ids.includes(currentUser.plan_id);
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -101,7 +120,7 @@ const ContactInfoSheet: React.FC<ContactInfoSheetProps> = ({
               <h3 className="text-white font-semibold mb-4">Mídia</h3>
               <ScrollArea className="h-full">
                 <div className="grid grid-cols-3 gap-2">
-                  {media.map((item, index) => (
+                  {filteredMedia.map((item, index) => (
                     <div key={item.id} className="aspect-square relative rounded-lg overflow-hidden bg-zinc-800">
                       {item.media_type === 'photo' ? (
                         <img
@@ -129,9 +148,14 @@ const ContactInfoSheet: React.FC<ContactInfoSheetProps> = ({
                     </div>
                   ))}
                 </div>
-                {media.length === 0 && (
+                {filteredMedia.length === 0 && (
                   <div className="text-center py-8">
-                    <p className="text-zinc-400">Nenhuma mídia disponível</p>
+                    <p className="text-zinc-400">
+                      {media.length === 0 
+                        ? 'Nenhuma mídia disponível' 
+                        : 'Nenhuma mídia disponível para seu plano'
+                      }
+                    </p>
                   </div>
                 )}
               </ScrollArea>

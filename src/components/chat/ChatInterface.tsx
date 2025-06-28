@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import MediaUpload from './MediaUpload';
 import TypingIndicator from './TypingIndicator';
+import ContactInfoSheet from './ContactInfoSheet';
 
 interface ChatInterfaceProps {
   conversationId: string;
@@ -19,6 +19,7 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const [message, setMessage] = useState('');
   const [showMediaUpload, setShowMediaUpload] = useState(false);
+  const [showContactInfo, setShowContactInfo] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
@@ -161,7 +162,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
       {/* Header with Model Photo */}
       <CardHeader className="border-b border-zinc-800 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowContactInfo(true)}
+            className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors"
+          >
             <div className="relative">
               <img
                 src={getModelPhoto(currentConversation)}
@@ -179,7 +183,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
               </h3>
               <p className="text-xs text-green-400">Online agora</p>
             </div>
-          </div>
+          </button>
 
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full">
@@ -279,6 +283,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
           )}
         </div>
       </CardContent>
+
+      {/* Contact Info Sheet */}
+      <ContactInfoSheet
+        isOpen={showContactInfo}
+        onClose={() => setShowContactInfo(false)}
+        modelId={currentConversation?.model_id || undefined}
+        modelName={currentConversation?.models?.name}
+        modelPhoto={getModelPhoto(currentConversation)}
+      />
     </Card>
   );
 };
