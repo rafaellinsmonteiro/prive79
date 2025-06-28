@@ -18,6 +18,7 @@ import CategoryPage from "./pages/CategoryPage";
 import ReelsPage from "./pages/ReelsPage";
 import GalleryPage from "./pages/GalleryPage";
 import MediaPage from "./pages/MediaPage";
+import ModelOnboarding from "./pages/ModelOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const AppContent = () => {
       {/* Public routes */}
       <Route path="/home" element={<HomePage />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
       
       {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
       <Route path="/" element={user ? <Index /> : <HomePage />} />

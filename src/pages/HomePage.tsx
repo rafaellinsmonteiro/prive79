@@ -14,11 +14,10 @@ const HomePage = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <img 
-                src="/lovable-uploads/b79999d0-f8f1-48f6-aa79-16285eb7104d.png" 
-                alt="Prive City Logo" 
+                src="/lovable-uploads/a935e9c2-2b1f-481f-a98d-a750da629b13.png" 
+                alt="Prive Logo" 
                 className="h-10 w-auto"
               />
-              <h1 className="text-2xl font-bold text-primary">Prive City</h1>
             </div>
             <div className="flex gap-4">
               <Link to="/login">
@@ -205,6 +204,15 @@ const HomePage = () => {
               </Card>
             </TabsContent>
           </Tabs>
+          
+          {/* CTA for Models */}
+          <div className="text-center mt-12">
+            <Link to="/onboarding-modelo">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 py-4">
+                🌟 Quero fazer parte como Modelo
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
