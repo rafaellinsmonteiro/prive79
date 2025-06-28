@@ -12,6 +12,8 @@ export const useModelProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      console.log('Searching for model profile with user_id:', user.id);
+
       const { data, error } = await supabase
         .from('model_profiles')
         .select(`
@@ -19,9 +21,16 @@ export const useModelProfile = () => {
           models (*)
         `)
         .eq('user_id', user.id)
+        .eq('is_active', true)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      console.log('Model profile query result:', { data, error });
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('No model profile found for user:', user.id);
+          return null;
+        }
         throw error;
       }
 
