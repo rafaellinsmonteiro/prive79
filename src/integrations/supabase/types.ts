@@ -57,6 +57,45 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_settings: {
+        Row: {
+          allowed_file_types: string[] | null
+          auto_delete_messages_days: number | null
+          created_at: string
+          enable_file_upload: boolean
+          enable_read_receipts: boolean
+          enable_typing_indicators: boolean
+          id: string
+          is_enabled: boolean
+          max_file_size_mb: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_file_types?: string[] | null
+          auto_delete_messages_days?: number | null
+          created_at?: string
+          enable_file_upload?: boolean
+          enable_read_receipts?: boolean
+          enable_typing_indicators?: boolean
+          id?: string
+          is_enabled?: boolean
+          max_file_size_mb?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_file_types?: string[] | null
+          auto_delete_messages_days?: number | null
+          created_at?: string
+          enable_file_upload?: boolean
+          enable_read_receipts?: boolean
+          enable_typing_indicators?: boolean
+          id?: string
+          is_enabled?: boolean
+          max_file_size_mb?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           created_at: string
@@ -80,6 +119,44 @@ export type Database = {
           state?: string | null
         }
         Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_message_at: string | null
+          model_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_message_at?: string | null
+          model_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_message_at?: string | null
+          model_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_fields: {
         Row: {
@@ -248,6 +325,65 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          delivered_at: string | null
+          file_name: string | null
+          file_size: number | null
+          id: string
+          media_type: string | null
+          media_url: string | null
+          message_type: Database["public"]["Enums"]["message_type"]
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          status: Database["public"]["Enums"]["message_status"]
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          delivered_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: Database["public"]["Enums"]["message_type"]
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          status?: Database["public"]["Enums"]["message_status"]
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: Database["public"]["Enums"]["message_type"]
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          status?: Database["public"]["Enums"]["message_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -471,6 +607,8 @@ export type Database = {
           Privacy: string | null
           shoe_size: string | null
           silicone: boolean | null
+          silicone2: boolean | null
+          tamanho: string | null
           tatuagem: boolean | null
           telegram: boolean | null
           testedecampo: string | null
@@ -531,6 +669,8 @@ export type Database = {
           Privacy?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
+          silicone2?: boolean | null
+          tamanho?: string | null
           tatuagem?: boolean | null
           telegram?: boolean | null
           testedecampo?: string | null
@@ -591,6 +731,8 @@ export type Database = {
           Privacy?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
+          silicone2?: boolean | null
+          tamanho?: string | null
           tatuagem?: boolean | null
           telegram?: boolean | null
           testedecampo?: string | null
@@ -789,11 +931,47 @@ export type Database = {
           },
         ]
       }
+      typing_indicators: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_typing: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_typing?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_typing?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_indicators_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_typing_indicators: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_plan: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -809,6 +987,8 @@ export type Database = {
     }
     Enums: {
       menu_type: "url" | "category"
+      message_status: "sent" | "delivered" | "read"
+      message_type: "text" | "image" | "video" | "audio" | "file"
       user_role: "admin" | "modelo" | "cliente"
       user_type: "guest" | "authenticated" | "all"
     }
@@ -927,6 +1107,8 @@ export const Constants = {
   public: {
     Enums: {
       menu_type: ["url", "category"],
+      message_status: ["sent", "delivered", "read"],
+      message_type: ["text", "image", "video", "audio", "file"],
       user_role: ["admin", "modelo", "cliente"],
       user_type: ["guest", "authenticated", "all"],
     },

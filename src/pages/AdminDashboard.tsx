@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -16,6 +16,7 @@ import ZaiaAIManager from '@/components/admin/ZaiaAIManager';
 import UsersManager from '@/components/admin/UsersManager';
 import PlansManager from '@/components/admin/PlansManager';
 import CustomFieldsManager from '@/components/admin/CustomFieldsManager';
+import ChatManager from '@/components/admin/ChatManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -113,6 +114,7 @@ const AdminDashboard = () => {
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
     { key: 'custom-fields', label: 'Campos Personalizados', icon: Settings },
+    { key: 'chat', label: 'Chat', icon: MessageCircle },
     { key: 'media', label: 'Mídia', icon: Image },
     { key: 'menu', label: 'Menu', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
@@ -133,6 +135,8 @@ const AdminDashboard = () => {
         return <CategoriesManager />;
       case 'custom-fields':
         return <CustomFieldsManager />;
+      case 'chat':
+        return <ChatManager />;
       case 'media':
         return <MediaManagerContainer />;
       case 'menu':
