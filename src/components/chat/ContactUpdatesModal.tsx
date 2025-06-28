@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
@@ -13,16 +13,22 @@ interface ContactUpdatesModalProps {
   isOpen: boolean;
   onClose: () => void;
   contact: Contact | null;
+  initialUpdateIndex?: number;
 }
 
 const ContactUpdatesModal: React.FC<ContactUpdatesModalProps> = ({
   isOpen,
   onClose,
-  contact
+  contact,
+  initialUpdateIndex = 0
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialUpdateIndex);
   const navigate = useNavigate();
   const createConversation = useCreateConversation();
+
+  useEffect(() => {
+    setCurrentIndex(initialUpdateIndex);
+  }, [initialUpdateIndex]);
 
   if (!contact || !contact.updates.length) return null;
 
