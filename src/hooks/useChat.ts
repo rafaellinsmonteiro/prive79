@@ -27,12 +27,7 @@ export const useConversations = () => {
           *,
           models (
             *,
-            photos:model_photos(
-              id,
-              photo_url,
-              is_primary,
-              display_order
-            )
+            photos:model_photos(*)
           )
         `)
         .eq('user_id', user.id)
