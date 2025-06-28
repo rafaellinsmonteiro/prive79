@@ -79,10 +79,10 @@ const ContactInfoSheet: React.FC<ContactInfoSheetProps> = ({
                     <span className="text-white">{model.age} anos</span>
                   </div>
                 )}
-                {model.city && (
+                {model.location && (
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Cidade:</span>
-                    <span className="text-white">{model.city}</span>
+                    <span className="text-zinc-400">Localização:</span>
+                    <span className="text-white">{model.location}</span>
                   </div>
                 )}
                 {model.height && (
