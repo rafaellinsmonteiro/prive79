@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CityProvider } from "@/contexts/CityContext";
 import { useAuth } from "@/hooks/useAuth";
+import BottomNavigation from "@/components/ui/bottom-navigation";
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -35,38 +37,43 @@ const AppContent = () => {
   }
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
+    <div className="min-h-screen">
+      <Routes>
+        {/* Public routes */}
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
+        
+        {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
+        <Route path="/" element={user ? <Index /> : <HomePage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/modelo/:id" element={<ModelPage />} />
+        <Route path="/cidade/:cityId" element={<CityPage />} />
+        <Route path="/categoria/:categoryId" element={<CategoryPage />} />
+        <Route path="/reels" element={<ReelsPage />} />
+        <Route path="/galeria" element={<GalleryPage />} />
+        <Route path="/midia/:type/:id" element={<MediaPage />} />
+        <Route 
+          path="/chat" 
+          element={
+            user ? <ChatPage /> : <Navigate to="/" replace />
+          } 
+        />
+        <Route 
+          path="/mobile-chat" 
+          element={
+            user ? <MobileChatPage /> : <Navigate to="/" replace />
+          } 
+        />
+        
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       
-      {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
-      <Route path="/" element={user ? <Index /> : <HomePage />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/modelo/:id" element={<ModelPage />} />
-      <Route path="/cidade/:cityId" element={<CityPage />} />
-      <Route path="/categoria/:categoryId" element={<CategoryPage />} />
-      <Route path="/reels" element={<ReelsPage />} />
-      <Route path="/galeria" element={<GalleryPage />} />
-      <Route path="/midia/:type/:id" element={<MediaPage />} />
-      <Route 
-        path="/chat" 
-        element={
-          user ? <ChatPage /> : <Navigate to="/" replace />
-        } 
-      />
-      <Route 
-        path="/mobile-chat" 
-        element={
-          user ? <MobileChatPage /> : <Navigate to="/" replace />
-        } 
-      />
-      
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+      {/* Show bottom navigation only for logged in users */}
+      {user && <BottomNavigation />}
+    </div>
   );
 };
 
