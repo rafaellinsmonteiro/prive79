@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CityProvider } from "@/contexts/CityContext";
 import { useAuth } from "@/hooks/useAuth";
-import BottomNavigation from "@/components/ui/bottom-navigation";
-import DesktopSidebar from "@/components/ui/desktop-sidebar";
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -21,9 +19,7 @@ import GalleryPage from "./pages/GalleryPage";
 import MediaPage from "./pages/MediaPage";
 import ModelOnboarding from "./pages/ModelOnboarding";
 import ChatPage from "./pages/ChatPage";
-import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
-import ModelDashboard from "./pages/ModelDashboard";
 
 const queryClient = new QueryClient();
 
@@ -39,56 +35,38 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Show desktop sidebar only for logged in users */}
-      {user && <DesktopSidebar />}
+    <Routes>
+      {/* Public routes */}
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
       
-      {/* Main content with left margin on desktop when user is logged in */}
-      <div className={user ? "md:ml-20" : ""}>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
-          
-          {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
-          <Route path="/" element={user ? <Index /> : <HomePage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/model-dashboard" element={<ModelDashboard />} />
-          <Route path="/modelo/:id" element={<ModelPage />} />
-          <Route path="/cidade/:cityId" element={<CityPage />} />
-          <Route path="/categoria/:categoryId" element={<CategoryPage />} />
-          <Route path="/reels" element={<ReelsPage />} />
-          <Route path="/galeria" element={<GalleryPage />} />
-          <Route path="/midia/:type/:id" element={<MediaPage />} />
-          <Route 
-            path="/chat" 
-            element={
-              user ? <ChatPage /> : <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/chat-feed" 
-            element={
-              user ? <ChatFeedPage /> : <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/mobile-chat" 
-            element={
-              user ? <MobileChatPage /> : <Navigate to="/" replace />
-            } 
-          />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+      {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
+      <Route path="/" element={user ? <Index /> : <HomePage />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/modelo/:id" element={<ModelPage />} />
+      <Route path="/cidade/:cityId" element={<CityPage />} />
+      <Route path="/categoria/:categoryId" element={<CategoryPage />} />
+      <Route path="/reels" element={<ReelsPage />} />
+      <Route path="/galeria" element={<GalleryPage />} />
+      <Route path="/midia/:type/:id" element={<MediaPage />} />
+      <Route 
+        path="/chat" 
+        element={
+          user ? <ChatPage /> : <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/mobile-chat" 
+        element={
+          user ? <MobileChatPage /> : <Navigate to="/" replace />
+        } 
+      />
       
-      {/* Show bottom navigation only for logged in users on mobile */}
-      {user && <BottomNavigation />}
-    </div>
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 

@@ -5,7 +5,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import MobileConversationsList from '@/components/chat/MobileConversationsList';
 import MobileChatInterface from '@/components/chat/MobileChatInterface';
 import { useConversations } from '@/hooks/useChat';
-import { useChatUser } from '@/hooks/useChatUsers';
 
 const MobileChatPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -14,7 +13,6 @@ const MobileChatPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { data: conversations = [] } = useConversations();
-  const { data: chatUser } = useChatUser();
 
   // Check for conversation ID in URL parameters
   useEffect(() => {
@@ -38,6 +36,20 @@ const MobileChatPage = () => {
     navigate('/chat');
   };
 
+  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+
+  const getModelPhoto = (conversation: any) => {
+    if (conversation?.models?.photos && conversation.models.photos.length > 0) {
+      // Try to get the primary photo first
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      
+      // If no primary photo, get the first one
+      return conversation.models.photos[0].photo_url;
+    }
+    return '/placeholder.svg';
+  };
+
   // Desktop fallback - redirect to original chat page
   if (!isMobile) {
     navigate('/chat');
@@ -48,6 +60,9 @@ const MobileChatPage = () => {
     return (
       <MobileChatInterface 
         conversationId={selectedConversationId}
+        modelName={selectedConversation?.models?.name}
+        modelPhoto={getModelPhoto(selectedConversation)}
+        modelId={selectedConversation?.model_id || undefined}
         onBack={handleBackToList}
       />
     );

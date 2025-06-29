@@ -1,44 +1,13 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useAuth } from './useAuth';
-import { useChatUser } from './useChatUsers';
 import { useEffect } from 'react';
 
 type Conversation = Tables<'conversations'> & {
-  sender_chat_user?: {
-    id: string;
-    chat_display_name: string | null;
-    model_profile?: {
-      model_id: string;
-      models?: {
-        id: string;
-        name: string;
-        model_photos?: Array<{
-          id: string;
-          photo_url: string;
-          is_primary: boolean;
-        }>;
-      };
-    } | null;
-  } | null;
-  receiver_chat_user?: {
-    id: string;
-    chat_display_name: string | null;
-    model_profile?: {
-      model_id: string;
-      models?: {
-        id: string;
-        name: string;
-        model_photos?: Array<{
-          id: string;
-          photo_url: string;
-          is_primary: boolean;
-        }>;
-      };
-    } | null;
-  } | null;
+  models?: (Tables<'models'> & {
+    photos?: Tables<'model_photos'>[];
+  }) | null;
   last_message_content?: string;
   last_message_type?: string;
 };
@@ -48,54 +17,22 @@ type TypingIndicator = Tables<'typing_indicators'>;
 
 export const useConversations = () => {
   const { user } = useAuth();
-  const { data: chatUser } = useChatUser();
   
   return useQuery({
-    queryKey: ['conversations', chatUser?.id],
+    queryKey: ['conversations', user?.id],
     queryFn: async (): Promise<Conversation[]> => {
-      if (!user || !chatUser) throw new Error('User not authenticated or no chat user');
-      
-      console.log('=== Conversations Query Debug ===');
-      console.log('Chat user:', { id: chatUser.id, display_name: chatUser.chat_display_name });
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
-          sender_chat_user:chat_users!sender_chat_id(
-            id, 
-            chat_display_name,
-            model_profile:model_profiles!chat_user_id(
-              model_id,
-              models(
-                id,
-                name,
-                model_photos!model_id(
-                  id,
-                  photo_url,
-                  is_primary
-                )
-              )
-            )
-          ),
-          receiver_chat_user:chat_users!receiver_chat_id(
-            id, 
-            chat_display_name,
-            model_profile:model_profiles!chat_user_id(
-              model_id,
-              models(
-                id,
-                name,
-                model_photos!model_id(
-                  id,
-                  photo_url,
-                  is_primary
-                )
-              )
-            )
+          models (
+            *,
+            photos:model_photos(*)
           )
         `)
-        .or(`sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${chatUser.id}`)
+        .eq('user_id', user.id)
         .eq('is_active', true)
         .order('last_message_at', { ascending: false });
 
@@ -104,28 +41,10 @@ export const useConversations = () => {
         throw error;
       }
       
-      console.log('Conversations loaded with model data:', data);
-      
-      // Transform the data to match our expected structure
-      const transformedData = data?.map(conversation => ({
-        ...conversation,
-        sender_chat_user: conversation.sender_chat_user ? {
-          ...conversation.sender_chat_user,
-          model_profile: Array.isArray(conversation.sender_chat_user.model_profile) && conversation.sender_chat_user.model_profile.length > 0
-            ? conversation.sender_chat_user.model_profile[0]
-            : null
-        } : null,
-        receiver_chat_user: conversation.receiver_chat_user ? {
-          ...conversation.receiver_chat_user,
-          model_profile: Array.isArray(conversation.receiver_chat_user.model_profile) && conversation.receiver_chat_user.model_profile.length > 0
-            ? conversation.receiver_chat_user.model_profile[0]
-            : null
-        } : null
-      })) || [];
-
-      return transformedData;
+      console.log('Conversations loaded:', data);
+      return data || [];
     },
-    enabled: !!user && !!chatUser,
+    enabled: !!user,
   });
 };
 
@@ -149,87 +68,40 @@ export const useMessages = (conversationId: string) => {
 export const useCreateConversation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: chatUser } = useChatUser();
 
   return useMutation({
     mutationFn: async (modelId: string) => {
-      if (!user || !chatUser) throw new Error('User not authenticated or no chat user');
+      if (!user) throw new Error('User not authenticated');
 
-      console.log('=== Creating Conversation Debug ===');
-      console.log('User chat ID:', chatUser.id);
-      console.log('Target model ID:', modelId);
+      // Primeiro, verificar se já existe uma conversa para este usuário e modelo
+      if (modelId) {
+        const { data: existingConversation } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('model_id', modelId)
+          .eq('is_active', true)
+          .single();
 
-      // Primeiro, garantir que a modelo tem um chat_user associado usando a função do banco
-      let receiverChatId: string;
-      
-      try {
-        console.log('Calling ensure_model_chat_user function...');
-        const { data: functionResult, error: functionError } = await supabase
-          .rpc('ensure_model_chat_user', { model_id: modelId });
-
-        if (functionError) {
-          console.error('Error calling ensure_model_chat_user:', functionError);
-          throw new Error('Erro ao configurar chat da modelo: ' + functionError.message);
+        if (existingConversation) {
+          return existingConversation;
         }
-
-        if (!functionResult) {
-          throw new Error('Função não retornou um chat_user_id válido');
-        }
-
-        receiverChatId = functionResult;
-        console.log('Model chat_user ID:', receiverChatId);
-
-      } catch (error) {
-        console.error('Error in ensure_model_chat_user:', error);
-        throw error;
       }
 
-      // Verificar se já existe uma conversa entre esses dois chat users
-      console.log('Checking for existing conversation...');
-      const { data: existingConversation, error: checkError } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`and(sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${receiverChatId}),and(sender_chat_id.eq.${receiverChatId},receiver_chat_id.eq.${chatUser.id})`)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking existing conversation:', checkError);
-        throw new Error('Erro ao verificar conversa existente: ' + checkError.message);
-      }
-
-      if (existingConversation) {
-        console.log('Found existing conversation:', existingConversation.id);
-        return existingConversation;
-      }
-
-      console.log('Creating new conversation between chat users:', { sender: chatUser.id, receiver: receiverChatId });
-
-      // Criar nova conversa usando APENAS os chat_user_ids
       const { data, error } = await supabase
         .from('conversations')
         .insert({
-          sender_chat_id: chatUser.id,
-          receiver_chat_id: receiverChatId,
           user_id: user.id,
-          // Não incluir model_id para evitar conflitos com constraints
+          model_id: modelId || null,
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating conversation:', error);
-        throw new Error('Erro ao criar conversa: ' + error.message);
-      }
-
-      console.log('Successfully created conversation:', data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    },
-    onError: (error) => {
-      console.error('Erro ao criar conversa:', error);
     },
   });
 };

@@ -6,7 +6,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Mic, MicOff, Phone, Video, Paperclip, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
-import { useChatUser } from '@/hooks/useChatUsers';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import MediaUpload from './MediaUpload';
@@ -24,7 +23,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
-  const { data: chatUser } = useChatUser();
   const { data: messages = [], isLoading } = useMessages(conversationId);
   const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
@@ -37,41 +35,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   // Find current conversation
   const currentConversation = conversations.find(c => c.id === conversationId);
 
-  const getOtherParticipant = (conversation: any) => {
-    if (!chatUser) return null;
-    
-    if (conversation.sender_chat_user?.id === chatUser.id) {
-      return conversation.receiver_chat_user;
-    } else {
-      return conversation.sender_chat_user;
+  const getModelPhoto = (conversation: any) => {
+    if (conversation?.models?.photos && conversation.models.photos.length > 0) {
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      return conversation.models.photos[0].photo_url;
     }
+    return '/placeholder.svg';
   };
-
-  const getParticipantInfo = (participant: any) => {
-    if (!participant) return { name: 'Chat', photo: null, modelId: null };
-    
-    // Se o participante tem um model_profile, usar dados da modelo
-    if (participant.model_profile?.models) {
-      const model = participant.model_profile.models;
-      const primaryPhoto = model.model_photos?.find((p: any) => p.is_primary)?.photo_url;
-      
-      return {
-        name: model.name || participant.chat_display_name || 'Modelo',
-        photo: primaryPhoto || null,
-        modelId: model.id
-      };
-    }
-    
-    // Senão, usar dados do chat_user
-    return {
-      name: participant.chat_display_name || 'Chat',
-      photo: null,
-      modelId: null
-    };
-  };
-
-  const otherParticipant = currentConversation ? getOtherParticipant(currentConversation) : null;
-  const participantInfo = getParticipantInfo(otherParticipant);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -188,7 +159,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
 
   return (
     <Card className="bg-zinc-900 border-zinc-700 h-[600px] flex flex-col">
-      {/* Header with Chat User Info */}
+      {/* Header with Model Photo */}
       <CardHeader className="border-b border-zinc-800 py-3">
         <div className="flex items-center justify-between">
           <button
@@ -196,25 +167,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
             className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors"
           >
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold border-2 border-zinc-600 shadow-md">
-                {participantInfo.photo ? (
-                  <img
-                    src={participantInfo.photo}
-                    alt={participantInfo.name}
-                    className="w-full h-full rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  participantInfo.name[0]?.toUpperCase() || '?'
-                )}
-              </div>
+              <img
+                src={getModelPhoto(currentConversation)}
+                alt={currentConversation?.models?.name || 'Model'}
+                className="w-10 h-10 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+              />
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
             </div>
             <div>
               <h3 className="text-white font-semibold">
-                {participantInfo.name}
+                {currentConversation?.models?.name || 'Chat'}
               </h3>
               <p className="text-xs text-green-400">Online agora</p>
             </div>
@@ -323,9 +288,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
       <ContactInfoSheet
         isOpen={showContactInfo}
         onClose={() => setShowContactInfo(false)}
-        modelId={participantInfo.modelId}
-        modelName={participantInfo.name}
-        modelPhoto={participantInfo.photo}
+        modelId={currentConversation?.model_id || undefined}
+        modelName={currentConversation?.models?.name}
+        modelPhoto={getModelPhoto(currentConversation)}
       />
     </Card>
   );

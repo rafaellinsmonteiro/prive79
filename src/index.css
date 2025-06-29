@@ -101,10 +101,3 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* Adicionar padding bottom para o menu inferior no mobile */
-@media (max-width: 768px) {
-  .mobile-content {
-    padding-bottom: 80px;
-  }
-}

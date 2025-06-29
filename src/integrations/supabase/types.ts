@@ -96,33 +96,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_users: {
-        Row: {
-          chat_display_name: string | null
-          created_at: string
-          id: string
-          is_active: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          chat_display_name?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          chat_display_name?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       cities: {
         Row: {
           created_at: string
@@ -156,8 +129,6 @@ export type Database = {
           last_message_content: string | null
           last_message_type: Database["public"]["Enums"]["message_type"] | null
           model_id: string | null
-          receiver_chat_id: string | null
-          sender_chat_id: string | null
           updated_at: string
           user_id: string
         }
@@ -169,8 +140,6 @@ export type Database = {
           last_message_content?: string | null
           last_message_type?: Database["public"]["Enums"]["message_type"] | null
           model_id?: string | null
-          receiver_chat_id?: string | null
-          sender_chat_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -182,8 +151,6 @@ export type Database = {
           last_message_content?: string | null
           last_message_type?: Database["public"]["Enums"]["message_type"] | null
           model_id?: string | null
-          receiver_chat_id?: string | null
-          sender_chat_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -193,20 +160,6 @@ export type Database = {
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_receiver_chat_id_fkey"
-            columns: ["receiver_chat_id"]
-            isOneToOne: false
-            referencedRelation: "chat_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_sender_chat_id_fkey"
-            columns: ["sender_chat_id"]
-            isOneToOne: false
-            referencedRelation: "chat_users"
             referencedColumns: ["id"]
           },
         ]
@@ -471,47 +424,6 @@ export type Database = {
           },
         ]
       }
-      model_dashboard_settings: {
-        Row: {
-          allow_direct_messages: boolean
-          auto_approve_photos: boolean
-          created_at: string
-          id: string
-          model_id: string
-          privacy_mode: boolean
-          show_online_status: boolean
-          updated_at: string
-        }
-        Insert: {
-          allow_direct_messages?: boolean
-          auto_approve_photos?: boolean
-          created_at?: string
-          id?: string
-          model_id: string
-          privacy_mode?: boolean
-          show_online_status?: boolean
-          updated_at?: string
-        }
-        Update: {
-          allow_direct_messages?: boolean
-          auto_approve_photos?: boolean
-          created_at?: string
-          id?: string
-          model_id?: string
-          privacy_mode?: boolean
-          show_online_status?: boolean
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "model_dashboard_settings_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: true
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       model_photos: {
         Row: {
           allowed_plan_ids: string[] | null
@@ -552,51 +464,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "model_photos_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      model_profiles: {
-        Row: {
-          chat_user_id: string | null
-          created_at: string
-          id: string
-          is_active: boolean
-          model_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          chat_user_id?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          model_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          chat_user_id?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          model_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "model_profiles_chat_user_id_fkey"
-            columns: ["chat_user_id"]
-            isOneToOne: false
-            referencedRelation: "chat_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "model_profiles_model_id_fkey"
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "models"
@@ -1110,10 +977,6 @@ export type Database = {
       cleanup_old_typing_indicators: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      ensure_model_chat_user: {
-        Args: { model_id: string }
-        Returns: string
       }
       get_current_user_plan: {
         Args: Record<PropertyKey, never>

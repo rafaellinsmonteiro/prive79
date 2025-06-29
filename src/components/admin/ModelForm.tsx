@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useCreateModel, useUpdateModel } from '@/hooks/useAdminModels';
 import { useModel, Model } from '@/hooks/useModels';
 import { useToast } from '@/hooks/use-toast';
@@ -13,16 +11,14 @@ import { useCities } from '@/hooks/useCities';
 import { Form } from "@/components/ui/form";
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 import { useCustomFields } from '@/hooks/useCustomFields';
-import { useAuth } from '@/hooks/useAuth';
-import { useModelChatInfo } from '@/hooks/useModelProfile';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import BasicInfoSection from './model-form/BasicInfoSection';
 import CategoriesSection from './model-form/CategoriesSection';
 import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';
 import SettingsSection from './model-form/SettingsSection';
 import VisibilitySection from './model-form/VisibilitySection';
 import CustomFieldsSection from './model-form/CustomFieldsSection';
-import { Copy } from 'lucide-react';
 
 interface ModelFormProps {
   modelId?: string;
@@ -49,9 +45,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
   const { toast } = useToast();
   const { user, isAdmin, session } = useAuth();
 
-  // Usar o novo hook para buscar informações do chat da modelo
-  const { data: modelChatInfo } = useModelChatInfo(modelId);
-
   const form: UseFormReturn<ModelFormData> = useForm<ModelFormData>({
     defaultValues: {
       name: '',
@@ -75,10 +68,16 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       category_ids: [],
       visibility_type: 'public',
       allowed_plan_ids: [],
+      
     }
   });
 
-  const { handleSubmit, setValue, watch, reset } = form;
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
 
   // Debug do estado de autenticação
   useEffect(() => {
@@ -148,11 +147,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     }
   }, [existingModel, customFields, reset]);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: "ID copiado!", description: "ID copiado para a área de transferência." });
-  };
-
   const onSubmit = async (data: ModelFormData) => {
     console.log('🚀 FORM SUBMISSION STARTED');
     console.log('📊 Raw form data:', data);
@@ -202,16 +196,30 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       
       if (modelId) {
         console.log('📝 UPDATING MODEL:', modelId);
-        modelResult = await updateModel.mutateAsync({ id: modelId, ...modelData });
+        
+        // Para atualização, vamos fazer a operação diretamente no Supabase
+        // para ter mais controle sobre os dados que estão sendo enviados
+        const { data: updatedModel, error: updateError } = await supabase
+          .from('models')
+          .update(modelData)
+          .eq('id', modelId)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error('💥 Direct update error:', updateError);
+          throw updateError;
+        }
+        
+        console.log('✅ Direct update success:', updatedModel);
+        modelResult = updatedModel;
+        
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
         
       } else {
         console.log('➕ CREATING NEW MODEL');
         modelResult = await createModel.mutateAsync(modelData as any);
-        toast({ 
-          title: "Modelo criada com sucesso!", 
-          description: `ID do Chat: ${modelResult.id}. Agora você pode adicionar fotos e vídeos.` 
-        });
+        toast({ title: "Modelo criada com sucesso!", description: "Agora você pode adicionar fotos e vídeos." });
       }
       
       const newModelId = modelResult.id;
@@ -309,93 +317,6 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
-            {/* Informações do Chat - Seção atualizada */}
-            {modelId && (
-              <div className="space-y-4 p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg">
-                <h3 className="text-lg font-medium text-blue-300 flex items-center gap-2">
-                  💬 Sistema de Chat Independente
-                </h3>
-                
-                {/* ID da Modelo */}
-                <div className="space-y-2">
-                  <Label className="text-blue-200">ID da Modelo</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={modelId}
-                      readOnly
-                      className="bg-blue-900/30 border-blue-600 text-blue-100 font-mono text-sm"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(modelId)}
-                      className="border-blue-600 text-blue-300 hover:bg-blue-800"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Informações do Chat */}
-                {modelChatInfo?.chat_users ? (
-                  <div className="space-y-2">
-                    <Label className="text-green-200">✅ Chat Integrado</Label>
-                    <div className="p-3 bg-green-900/30 border border-green-600 rounded">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Label className="text-green-200 text-sm">ID do Chat:</Label>
-                        <Input
-                          value={modelChatInfo.chat_users.id}
-                          readOnly
-                          className="bg-green-900/30 border-green-600 text-green-100 font-mono text-xs flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(modelChatInfo.chat_users.id)}
-                          className="border-green-600 text-green-300 hover:bg-green-800"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <p className="text-xs text-green-300 mb-1">
-                        <strong>Usuário no chat:</strong> {modelChatInfo.chat_users.chat_display_name || 'Não definido'}
-                      </p>
-                      <p className="text-xs text-green-300">
-                        <strong>Status:</strong> Chat ativo e integrado com fotos/vídeos da modelo
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label className="text-yellow-200">⚠️ Chat Não Integrado</Label>
-                    <div className="p-3 bg-yellow-900/30 border border-yellow-600 rounded text-yellow-100 text-sm">
-                      <p className="font-semibold mb-2">Esta modelo ainda não tem usuário associado.</p>
-                      <p className="mb-2">Para integrar ao chat:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-xs">
-                        <li>Vá para "Gestão de Usuários"</li>
-                        <li>Crie um usuário do tipo "modelo"</li>
-                        <li>Associe esta modelo ao usuário</li>
-                        <li>O chat será automaticamente integrado</li>
-                      </ol>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="text-xs text-blue-300 bg-blue-950/50 p-3 rounded">
-                  <p className="font-semibold mb-1">Como funciona a integração:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Cada usuário tem um ID de chat único e independente</li>
-                    <li>Quando uma modelo é atribuída a um usuário (model_profiles), o chat é integrado</li>
-                    <li>O chat acessa automaticamente fotos, vídeos e informações da modelo</li>
-                    <li>O sistema mantém a independência do chat para uso futuro</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-
             <BasicInfoSection form={form} cities={cities} />
             <CategoriesSection form={form} categories={categories || []} />
             <PhysicalCharacteristicsSection form={form} />
@@ -403,16 +324,14 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
 
-            {/* Debug info atualizado */}
+            {/* Debug info */}
             <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border-2 border-yellow-400">
-              <p className="font-bold text-yellow-300">🐛 DEBUG INFO:</p>
-              <p className="text-white">Model ID: <span className="text-green-400">{modelId || 'Será gerado'}</span></p>
-              <p className="text-white">Chat integrado: <span className="text-green-400">{modelChatInfo?.chat_users ? 'Sim' : 'Não'}</span></p>
-              {modelChatInfo?.chat_users && (
-                <p className="text-white">Chat ID: <span className="text-green-400">{modelChatInfo.chat_users.id}</span></p>
-              )}
+              <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
               <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
-              <p className="text-xs text-gray-400 mt-2">Sistema integrado: chat independente + dados da modelo</p>
+              <p className="text-white">allowed_plan_ids: <span className="text-green-400">{JSON.stringify(watch('allowed_plan_ids'))}</span></p>
+              <p className="text-white">olhos: <span className="text-green-400">{watch('olhos' as any)}</span></p>
+              <p className="text-white">tatuagem: <span className="text-green-400">{String(watch('tatuagem' as any))}</span></p>
+              <p className="text-xs text-gray-400 mt-2">Verificação dos valores dos campos personalizados</p>
             </div>
 
             {/* Gerenciar Mídia */}
