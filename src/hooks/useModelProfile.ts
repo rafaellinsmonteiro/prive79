@@ -106,3 +106,38 @@ export const useModelProfile = () => {
     modelId: profile?.model_id,
   };
 };
+
+// Nova função para buscar informações de chat de uma modelo específica
+export const useModelChatInfo = (modelId?: string) => {
+  return useQuery({
+    queryKey: ['model-chat-info', modelId],
+    queryFn: async () => {
+      if (!modelId) return null;
+      
+      console.log('=== Model Chat Info Debug ===');
+      console.log('Searching for model:', modelId);
+      
+      // Buscar model_profile com chat_user para esta modelo
+      const { data: modelProfile, error } = await supabase
+        .from('model_profiles')
+        .select(`
+          *,
+          chat_users (*),
+          models (name)
+        `)
+        .eq('model_id', modelId)
+        .eq('is_active', true)
+        .maybeSingle();
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching model chat info:', error);
+        throw error;
+      }
+      
+      console.log('Model profile found:', modelProfile);
+      
+      return modelProfile;
+    },
+    enabled: !!modelId,
+  });
+};
