@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -171,6 +172,10 @@ export const useCreateConversation = () => {
           throw new Error('Erro ao configurar chat da modelo: ' + functionError.message);
         }
 
+        if (!functionResult) {
+          throw new Error('Função não retornou um chat_user_id válido');
+        }
+
         receiverChatId = functionResult;
         console.log('Model chat_user ID:', receiverChatId);
 
@@ -198,15 +203,16 @@ export const useCreateConversation = () => {
         return existingConversation;
       }
 
-      console.log('Creating new conversation between:', { sender: chatUser.id, receiver: receiverChatId });
+      console.log('Creating new conversation between chat users:', { sender: chatUser.id, receiver: receiverChatId });
 
-      // Criar nova conversa
+      // Criar nova conversa usando APENAS os chat_user_ids
       const { data, error } = await supabase
         .from('conversations')
         .insert({
           sender_chat_id: chatUser.id,
           receiver_chat_id: receiverChatId,
           user_id: user.id,
+          // Não incluir model_id para evitar conflitos com constraints
         })
         .select()
         .single();
