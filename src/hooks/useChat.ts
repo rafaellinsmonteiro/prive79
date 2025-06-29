@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -15,7 +14,7 @@ type Conversation = Tables<'conversations'> & {
       models?: {
         id: string;
         name: string;
-        photos?: Array<{
+        model_photos?: Array<{
           id: string;
           photo_url: string;
           is_primary: boolean;
@@ -31,7 +30,7 @@ type Conversation = Tables<'conversations'> & {
       models?: {
         id: string;
         name: string;
-        photos?: Array<{
+        model_photos?: Array<{
           id: string;
           photo_url: string;
           is_primary: boolean;
@@ -105,7 +104,25 @@ export const useConversations = () => {
       }
       
       console.log('Conversations loaded with model data:', data);
-      return data || [];
+      
+      // Transform the data to match our expected structure
+      const transformedData = data?.map(conversation => ({
+        ...conversation,
+        sender_chat_user: conversation.sender_chat_user ? {
+          ...conversation.sender_chat_user,
+          model_profile: Array.isArray(conversation.sender_chat_user.model_profile) && conversation.sender_chat_user.model_profile.length > 0
+            ? conversation.sender_chat_user.model_profile[0]
+            : null
+        } : null,
+        receiver_chat_user: conversation.receiver_chat_user ? {
+          ...conversation.receiver_chat_user,
+          model_profile: Array.isArray(conversation.receiver_chat_user.model_profile) && conversation.receiver_chat_user.model_profile.length > 0
+            ? conversation.receiver_chat_user.model_profile[0]
+            : null
+        } : null
+      })) || [];
+
+      return transformedData;
     },
     enabled: !!user && !!chatUser,
   });
@@ -154,7 +171,7 @@ export const useCreateConversation = () => {
         .insert({
           sender_chat_id: chatUser.id,
           receiver_chat_id: receiverChatId,
-          user_id: user.id, // Manter user_id para compatibilidade
+          user_id: user.id,
         })
         .select()
         .single();
