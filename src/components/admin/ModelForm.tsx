@@ -21,6 +21,7 @@ import SettingsSection from './model-form/SettingsSection';
 import VisibilitySection from './model-form/VisibilitySection';
 import CustomFieldsSection from './model-form/CustomFieldsSection';
 import { Copy } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface ModelFormProps {
   modelId?: string;
@@ -142,6 +143,32 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       reset(formData);
     }
   }, [existingModel, customFields, reset]);
+
+  // Query para buscar o chat_user_id da modelo
+  const { data: modelChatUser } = useQuery({
+    queryKey: ['model-chat-user', modelId],
+    queryFn: async () => {
+      if (!modelId) return null;
+      
+      const { data, error } = await supabase
+        .from('model_profiles')
+        .select(`
+          *,
+          chat_users (*)
+        `)
+        .eq('model_id', modelId)
+        .eq('is_active', true)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching model chat user:', error);
+        return null;
+      }
+      
+      return data?.chat_users || null;
+    },
+    enabled: !!modelId,
+  });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -322,14 +349,16 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
-            {/* ID do Chat - Nova Seção */}
+            {/* ID do Chat - Seção atualizada */}
             {modelId && (
               <div className="space-y-4 p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg">
                 <h3 className="text-lg font-medium text-blue-300 flex items-center gap-2">
                   💬 Informações do Chat
                 </h3>
+                
+                {/* ID da Modelo (para referência) */}
                 <div className="space-y-2">
-                  <Label className="text-blue-200">ID do Chat da Modelo</Label>
+                  <Label className="text-blue-200">ID da Modelo</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       value={modelId}
@@ -346,11 +375,45 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-blue-300">
-                    Este é o ID único usado para identificar esta modelo no sistema de chat. 
-                    Quando um usuário for atribuído a este perfil, ele herdará este ID.
-                  </p>
                 </div>
+
+                {/* ID do Chat (independente) */}
+                {modelChatUser ? (
+                  <div className="space-y-2">
+                    <Label className="text-blue-200">ID do Chat da Modelo</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={modelChatUser.id}
+                        readOnly
+                        className="bg-green-900/30 border-green-600 text-green-100 font-mono text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(modelChatUser.id)}
+                        className="border-green-600 text-green-300 hover:bg-green-800"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-green-300">
+                      Este é o ID único usado para chat. Nome de exibição: {modelChatUser.chat_display_name || 'Não definido'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="text-yellow-200">Status do Chat</Label>
+                    <div className="p-3 bg-yellow-900/30 border border-yellow-600 rounded text-yellow-100 text-sm">
+                      Nenhum usuário atribuído a esta modelo ainda. Quando um usuário for atribuído, 
+                      ele receberá automaticamente um ID de chat exclusivo.
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-xs text-blue-300">
+                  O sistema de chat é independente dos IDs de modelo. Cada usuário tem seu próprio ID de chat único.
+                </p>
               </div>
             )}
 
@@ -361,13 +424,14 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
             <VisibilitySection form={form} />
             <SettingsSection form={form} />
 
-            {/* Debug info */}
+            {/* Debug info atualizado */}
             <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border-2 border-yellow-400">
               <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
-              <p className="text-white">Model ID (Chat ID): <span className="text-green-400">{modelId || 'Será gerado após criação'}</span></p>
+              <p className="text-white">Model ID: <span className="text-green-400">{modelId || 'Será gerado após criação'}</span></p>
+              <p className="text-white">Chat User ID: <span className="text-green-400">{modelChatUser?.id || 'Será gerado quando usuário for atribuído'}</span></p>
               <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
               <p className="text-white">allowed_plan_ids: <span className="text-green-400">{JSON.stringify(watch('allowed_plan_ids'))}</span></p>
-              <p className="text-xs text-gray-400 mt-2">O ID da modelo é usado como ID do chat</p>
+              <p className="text-xs text-gray-400 mt-2">Sistema de chat independente - cada usuário tem seu próprio ID de chat</p>
             </div>
 
             {/* Gerenciar Mídia */}

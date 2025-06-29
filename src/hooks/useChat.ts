@@ -2,12 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useAuth } from './useAuth';
+import { useChatUser } from './useChatUsers';
 import { useEffect } from 'react';
 
 type Conversation = Tables<'conversations'> & {
-  models?: (Tables<'models'> & {
-    photos?: Tables<'model_photos'>[];
-  }) | null;
+  sender_chat_user?: {
+    id: string;
+    chat_display_name: string | null;
+  } | null;
+  receiver_chat_user?: {
+    id: string;
+    chat_display_name: string | null;
+  } | null;
   last_message_content?: string;
   last_message_type?: string;
 };
@@ -17,76 +23,36 @@ type TypingIndicator = Tables<'typing_indicators'>;
 
 export const useConversations = () => {
   const { user } = useAuth();
+  const { data: chatUser } = useChatUser();
   
   return useQuery({
-    queryKey: ['conversations', user?.id],
+    queryKey: ['conversations', chatUser?.id],
     queryFn: async (): Promise<Conversation[]> => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user || !chatUser) throw new Error('User not authenticated or no chat user');
       
       console.log('=== Conversations Query Debug ===');
-      console.log('Authenticated user:', { id: user.id, email: user.email });
-      
-      // Nova lógica: verificar se o usuário tem um model_profile
-      const { data: modelProfile } = await supabase
-        .from('model_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      console.log('User model profile:', modelProfile);
-      
-      // Se for uma modelo, usar o model_id como chat_id
-      if (modelProfile) {
-        console.log('User is a model, using model_id as chat_id:', modelProfile.model_id);
-        
-        const { data, error } = await supabase
-          .from('conversations')
-          .select(`
-            *,
-            models (
-              *,
-              photos:model_photos(*)
-            )
-          `)
-          .eq('model_id', modelProfile.model_id)
-          .eq('is_active', true)
-          .order('last_message_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching model conversations:', error);
-          throw error;
-        }
-        
-        console.log('Model conversations loaded:', data);
-        return data || [];
-      }
-      
-      // Se for um cliente, buscar conversas onde ele é o usuário
-      console.log('User is a client, fetching conversations for user_id:', user.id);
+      console.log('Chat user:', { id: chatUser.id, display_name: chatUser.chat_display_name });
       
       const { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
-          models (
-            *,
-            photos:model_photos(*)
-          )
+          sender_chat_user:chat_users!sender_chat_id(id, chat_display_name),
+          receiver_chat_user:chat_users!receiver_chat_id(id, chat_display_name)
         `)
-        .eq('user_id', user.id)
+        .or(`sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${chatUser.id}`)
         .eq('is_active', true)
         .order('last_message_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching client conversations:', error);
+        console.error('Error fetching conversations:', error);
         throw error;
       }
       
-      console.log('Client conversations loaded:', data);
+      console.log('Conversations loaded:', data);
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user && !!chatUser,
   });
 };
 
@@ -110,31 +76,29 @@ export const useMessages = (conversationId: string) => {
 export const useCreateConversation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { data: chatUser } = useChatUser();
 
   return useMutation({
-    mutationFn: async (modelId: string) => {
-      if (!user) throw new Error('User not authenticated');
+    mutationFn: async (receiverChatId: string) => {
+      if (!user || !chatUser) throw new Error('User not authenticated or no chat user');
 
-      // Primeiro, verificar se já existe uma conversa para este usuário e modelo
-      if (modelId) {
-        const { data: existingConversation } = await supabase
-          .from('conversations')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('model_id', modelId)
-          .eq('is_active', true)
-          .single();
+      // Verificar se já existe uma conversa entre esses dois chat users
+      const { data: existingConversation } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${receiverChatId}),and(sender_chat_id.eq.${receiverChatId},receiver_chat_id.eq.${chatUser.id})`)
+        .eq('is_active', true)
+        .single();
 
-        if (existingConversation) {
-          return existingConversation;
-        }
+      if (existingConversation) {
+        return existingConversation;
       }
 
       const { data, error } = await supabase
         .from('conversations')
         .insert({
-          user_id: user.id,
-          model_id: modelId || null,
+          sender_chat_id: chatUser.id,
+          receiver_chat_id: receiverChatId,
         })
         .select()
         .single();
