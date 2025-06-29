@@ -144,13 +144,14 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     }
   }, [existingModel, customFields, reset]);
 
-  // Query para buscar o chat_user_id da modelo
-  const { data: modelChatUser } = useQuery({
-    queryKey: ['model-chat-user', modelId],
+  // Query para buscar informações do chat da modelo
+  const { data: modelChatInfo } = useQuery({
+    queryKey: ['model-chat-info', modelId],
     queryFn: async () => {
       if (!modelId) return null;
       
-      const { data, error } = await supabase
+      // Buscar model_profile com chat_user
+      const { data: modelProfile, error } = await supabase
         .from('model_profiles')
         .select(`
           *,
@@ -161,18 +162,18 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         .single();
         
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching model chat user:', error);
+        console.error('Error fetching model chat info:', error);
         return null;
       }
       
-      return data?.chat_users || null;
+      return modelProfile;
     },
     enabled: !!modelId,
   });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "ID copiado!", description: "ID do chat copiado para a área de transferência." });
+    toast({ title: "ID copiado!", description: "ID copiado para a área de transferência." });
   };
 
   const onSubmit = async (data: ModelFormData) => {
@@ -349,14 +350,14 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
-            {/* ID do Chat - Seção atualizada */}
+            {/* Informações do Chat - Seção atualizada */}
             {modelId && (
               <div className="space-y-4 p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg">
                 <h3 className="text-lg font-medium text-blue-300 flex items-center gap-2">
-                  💬 Informações do Chat
+                  💬 Sistema de Chat Independente
                 </h3>
                 
-                {/* ID da Modelo (para referência) */}
+                {/* ID da Modelo */}
                 <div className="space-y-2">
                   <Label className="text-blue-200">ID da Modelo</Label>
                   <div className="flex items-center gap-2">
@@ -377,13 +378,13 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
                   </div>
                 </div>
 
-                {/* ID do Chat (independente) */}
-                {modelChatUser ? (
+                {/* Informações do Chat */}
+                {modelChatInfo?.chat_users ? (
                   <div className="space-y-2">
-                    <Label className="text-blue-200">ID do Chat da Modelo</Label>
+                    <Label className="text-green-200">ID de Chat da Modelo</Label>
                     <div className="flex items-center gap-2">
                       <Input
-                        value={modelChatUser.id}
+                        value={modelChatInfo.chat_users.id}
                         readOnly
                         className="bg-green-900/30 border-green-600 text-green-100 font-mono text-sm"
                       />
@@ -391,29 +392,38 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => copyToClipboard(modelChatUser.id)}
+                        onClick={() => copyToClipboard(modelChatInfo.chat_users.id)}
                         className="border-green-600 text-green-300 hover:bg-green-800"
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                     <p className="text-xs text-green-300">
-                      Este é o ID único usado para chat. Nome de exibição: {modelChatUser.chat_display_name || 'Não definido'}
+                      Nome no chat: {modelChatInfo.chat_users.chat_display_name || 'Não definido'}
+                    </p>
+                    <p className="text-xs text-green-300">
+                      Este chat está integrado com as informações e mídias da modelo.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Label className="text-yellow-200">Status do Chat</Label>
                     <div className="p-3 bg-yellow-900/30 border border-yellow-600 rounded text-yellow-100 text-sm">
-                      Nenhum usuário atribuído a esta modelo ainda. Quando um usuário for atribuído, 
-                      ele receberá automaticamente um ID de chat exclusivo.
+                      Nenhum usuário atribuído a esta modelo ainda. Quando um usuário for atribuído 
+                      através do model_profiles, ele será automaticamente integrado ao sistema de chat.
                     </div>
                   </div>
                 )}
                 
-                <p className="text-xs text-blue-300">
-                  O sistema de chat é independente dos IDs de modelo. Cada usuário tem seu próprio ID de chat único.
-                </p>
+                <div className="text-xs text-blue-300 bg-blue-950/50 p-3 rounded">
+                  <p className="font-semibold mb-1">Como funciona a integração:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Cada usuário tem um ID de chat único e independente</li>
+                    <li>Quando uma modelo é atribuída a um usuário (model_profiles), o chat é integrado</li>
+                    <li>O chat acessa automaticamente fotos, vídeos e informações da modelo</li>
+                    <li>O sistema mantém a independência do chat para uso futuro</li>
+                  </ul>
+                </div>
               </div>
             )}
 
@@ -426,12 +436,14 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
 
             {/* Debug info atualizado */}
             <div className="text-xs text-yellow-400 p-4 bg-zinc-800 rounded border-2 border-yellow-400">
-              <p className="font-bold text-yellow-300">🐛 DEBUG FORM VALUES:</p>
-              <p className="text-white">Model ID: <span className="text-green-400">{modelId || 'Será gerado após criação'}</span></p>
-              <p className="text-white">Chat User ID: <span className="text-green-400">{modelChatUser?.id || 'Será gerado quando usuário for atribuído'}</span></p>
+              <p className="font-bold text-yellow-300">🐛 DEBUG INFO:</p>
+              <p className="text-white">Model ID: <span className="text-green-400">{modelId || 'Será gerado'}</span></p>
+              <p className="text-white">Chat integrado: <span className="text-green-400">{modelChatInfo?.chat_users ? 'Sim' : 'Não'}</span></p>
+              {modelChatInfo?.chat_users && (
+                <p className="text-white">Chat ID: <span className="text-green-400">{modelChatInfo.chat_users.id}</span></p>
+              )}
               <p className="text-white">visibility_type: <span className="text-green-400">{watch('visibility_type')}</span></p>
-              <p className="text-white">allowed_plan_ids: <span className="text-green-400">{JSON.stringify(watch('allowed_plan_ids'))}</span></p>
-              <p className="text-xs text-gray-400 mt-2">Sistema de chat independente - cada usuário tem seu próprio ID de chat</p>
+              <p className="text-xs text-gray-400 mt-2">Sistema integrado: chat independente + dados da modelo</p>
             </div>
 
             {/* Gerenciar Mídia */}

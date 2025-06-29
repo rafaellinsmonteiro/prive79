@@ -38,18 +38,6 @@ const MobileChatPage = () => {
     navigate('/chat');
   };
 
-  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
-
-  const getOtherParticipant = (conversation: any) => {
-    if (!chatUser) return null;
-    
-    if (conversation.sender_chat_user?.id === chatUser.id) {
-      return conversation.receiver_chat_user;
-    } else {
-      return conversation.sender_chat_user;
-    }
-  };
-
   // Desktop fallback - redirect to original chat page
   if (!isMobile) {
     navigate('/chat');
@@ -57,14 +45,9 @@ const MobileChatPage = () => {
   }
 
   if (showConversation && selectedConversationId) {
-    const otherParticipant = selectedConversation ? getOtherParticipant(selectedConversation) : null;
-    
     return (
       <MobileChatInterface 
         conversationId={selectedConversationId}
-        modelName={otherParticipant?.chat_display_name || 'Chat'}
-        modelPhoto={undefined}
-        modelId={undefined}
         onBack={handleBackToList}
       />
     );

@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Mic, MicOff, ArrowLeft, MoreVertical, Phone, Video, Paperclip } from 'lucide-react';
-import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator } from '@/hooks/useChat';
+import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useChatUser } from '@/hooks/useChatUsers';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
@@ -21,9 +21,6 @@ interface MobileChatInterfaceProps {
 
 const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({ 
   conversationId, 
-  modelName = "Chat",
-  modelPhoto,
-  modelId,
   onBack
 }) => {
   const [message, setMessage] = useState('');
@@ -31,13 +28,54 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
+  const { data: chatUser } = useChatUser();
   const { data: messages = [], isLoading } = useMessages(conversationId);
+  const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
   const { isRecording, startRecording, stopRecording, audioBlob, error } = useVoiceRecorder();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
+
+  // Find current conversation and get participant info
+  const currentConversation = conversations.find(c => c.id === conversationId);
+
+  const getOtherParticipant = (conversation: any) => {
+    if (!chatUser) return null;
+    
+    if (conversation.sender_chat_user?.id === chatUser.id) {
+      return conversation.receiver_chat_user;
+    } else {
+      return conversation.sender_chat_user;
+    }
+  };
+
+  const getParticipantInfo = (participant: any) => {
+    if (!participant) return { name: 'Chat', photo: null, modelId: null };
+    
+    // Se o participante tem um model_profile, usar dados da modelo
+    if (participant.model_profile?.models) {
+      const model = participant.model_profile.models;
+      const primaryPhoto = model.model_photos?.find((p: any) => p.is_primary)?.photo_url;
+      
+      return {
+        name: model.name || participant.chat_display_name || 'Modelo',
+        photo: primaryPhoto || null,
+        modelId: model.id
+      };
+    }
+    
+    // Senão, usar dados do chat_user
+    return {
+      name: participant.chat_display_name || 'Chat',
+      photo: null,
+      modelId: null
+    };
+  };
+
+  const otherParticipant = currentConversation ? getOtherParticipant(currentConversation) : null;
+  const participantInfo = getParticipantInfo(otherParticipant);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -146,18 +184,24 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
             className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors"
           >
             <div className="relative">
-              <img
-                src={modelPhoto || '/placeholder.svg'}
-                alt={modelName}
-                className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
-              />
+              {participantInfo.photo ? (
+                <img
+                  src={participantInfo.photo}
+                  alt={participantInfo.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold border-2 border-zinc-600 shadow-md">
+                  {participantInfo.name[0]?.toUpperCase() || '?'}
+                </div>
+              )}
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
             </div>
             <div>
-              <h3 className="text-white font-semibold text-lg">{modelName}</h3>
+              <h3 className="text-white font-semibold text-lg">{participantInfo.name}</h3>
               <p className="text-xs text-green-400 font-medium">Online agora</p>
             </div>
           </button>
@@ -252,9 +296,9 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       <ContactInfoSheet
         isOpen={showContactInfo}
         onClose={() => setShowContactInfo(false)}
-        modelId={modelId}
-        modelName={modelName}
-        modelPhoto={modelPhoto}
+        modelId={participantInfo.modelId}
+        modelName={participantInfo.name}
+        modelPhoto={participantInfo.photo}
       />
     </div>
   );

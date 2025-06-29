@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
     }
   };
 
+  const getParticipantInfo = (participant: any) => {
+    if (!participant) return { name: 'Chat', photo: null, modelId: null };
+    
+    // Se o participante tem um model_profile, usar dados da modelo
+    if (participant.model_profile?.models) {
+      const model = participant.model_profile.models;
+      const primaryPhoto = model.model_photos?.find((p: any) => p.is_primary)?.photo_url;
+      
+      return {
+        name: model.name || participant.chat_display_name || 'Modelo',
+        photo: primaryPhoto || null,
+        modelId: model.id
+      };
+    }
+    
+    // Senão, usar dados do chat_user
+    return {
+      name: participant.chat_display_name || 'Chat',
+      photo: null,
+      modelId: null
+    };
+  };
+
   const otherParticipant = currentConversation ? getOtherParticipant(currentConversation) : null;
+  const participantInfo = getParticipantInfo(otherParticipant);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -174,13 +197,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
           >
             <div className="relative">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold border-2 border-zinc-600 shadow-md">
-                {otherParticipant?.chat_display_name?.[0]?.toUpperCase() || '?'}
+                {participantInfo.photo ? (
+                  <img
+                    src={participantInfo.photo}
+                    alt={participantInfo.name}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  participantInfo.name[0]?.toUpperCase() || '?'
+                )}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
             </div>
             <div>
               <h3 className="text-white font-semibold">
-                {otherParticipant?.chat_display_name || 'Chat'}
+                {participantInfo.name}
               </h3>
               <p className="text-xs text-green-400">Online agora</p>
             </div>
@@ -289,9 +323,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
       <ContactInfoSheet
         isOpen={showContactInfo}
         onClose={() => setShowContactInfo(false)}
-        modelId={undefined}
-        modelName={otherParticipant?.chat_display_name}
-        modelPhoto={undefined}
+        modelId={participantInfo.modelId}
+        modelName={participantInfo.name}
+        modelPhoto={participantInfo.photo}
       />
     </Card>
   );

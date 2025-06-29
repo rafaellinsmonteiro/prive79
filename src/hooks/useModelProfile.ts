@@ -20,7 +20,8 @@ export const useModelProfile = () => {
         .from('model_profiles')
         .select(`
           *,
-          models (*)
+          models (*),
+          chat_users (*)
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
@@ -37,7 +38,8 @@ export const useModelProfile = () => {
       }
 
       console.log('Found model profile:', profileData);
-      console.log('Model ID (Chat ID):', profileData.model_id);
+      console.log('Model ID:', profileData.model_id);
+      console.log('Chat User ID:', profileData.chat_user_id);
       
       return profileData;
     },
@@ -48,12 +50,37 @@ export const useModelProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // O ID do chat será o mesmo que o model_id
+      // Primeiro, buscar ou criar o chat_user para este usuário
+      let { data: chatUser, error: chatUserError } = await supabase
+        .from('chat_users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (chatUserError && chatUserError.code === 'PGRST116') {
+        // Criar chat_user se não existir
+        const { data: newChatUser, error: createChatUserError } = await supabase
+          .from('chat_users')
+          .insert({
+            user_id: user.id,
+            chat_display_name: user.email?.split('@')[0] || 'Modelo',
+          })
+          .select()
+          .single();
+
+        if (createChatUserError) throw createChatUserError;
+        chatUser = newChatUser;
+      } else if (chatUserError) {
+        throw chatUserError;
+      }
+
+      // Criar o model_profile ligando o modelo ao chat_user
       const { data, error } = await supabase
         .from('model_profiles')
         .insert({
           user_id: user.id,
-          model_id: modelId, // Este é também o chat_id
+          model_id: modelId,
+          chat_user_id: chatUser.id, // Conectar com o chat_user
         })
         .select()
         .single();
@@ -75,6 +102,7 @@ export const useModelProfile = () => {
     profile,
     isLoading,
     createProfile,
-    chatId: profile?.model_id, // O ID do chat é o mesmo que o model_id
+    chatId: profile?.chat_users?.id, // Usar o ID do chat_user, não do modelo
+    modelId: profile?.model_id,
   };
 };

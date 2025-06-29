@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -9,10 +10,34 @@ type Conversation = Tables<'conversations'> & {
   sender_chat_user?: {
     id: string;
     chat_display_name: string | null;
+    model_profile?: {
+      model_id: string;
+      models?: {
+        id: string;
+        name: string;
+        photos?: Array<{
+          id: string;
+          photo_url: string;
+          is_primary: boolean;
+        }>;
+      };
+    } | null;
   } | null;
   receiver_chat_user?: {
     id: string;
     chat_display_name: string | null;
+    model_profile?: {
+      model_id: string;
+      models?: {
+        id: string;
+        name: string;
+        photos?: Array<{
+          id: string;
+          photo_url: string;
+          is_primary: boolean;
+        }>;
+      };
+    } | null;
   } | null;
   last_message_content?: string;
   last_message_type?: string;
@@ -37,8 +62,38 @@ export const useConversations = () => {
         .from('conversations')
         .select(`
           *,
-          sender_chat_user:chat_users!sender_chat_id(id, chat_display_name),
-          receiver_chat_user:chat_users!receiver_chat_id(id, chat_display_name)
+          sender_chat_user:chat_users!sender_chat_id(
+            id, 
+            chat_display_name,
+            model_profile:model_profiles!chat_user_id(
+              model_id,
+              models(
+                id,
+                name,
+                model_photos!model_id(
+                  id,
+                  photo_url,
+                  is_primary
+                )
+              )
+            )
+          ),
+          receiver_chat_user:chat_users!receiver_chat_id(
+            id, 
+            chat_display_name,
+            model_profile:model_profiles!chat_user_id(
+              model_id,
+              models(
+                id,
+                name,
+                model_photos!model_id(
+                  id,
+                  photo_url,
+                  is_primary
+                )
+              )
+            )
+          )
         `)
         .or(`sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${chatUser.id}`)
         .eq('is_active', true)
@@ -49,7 +104,7 @@ export const useConversations = () => {
         throw error;
       }
       
-      console.log('Conversations loaded:', data);
+      console.log('Conversations loaded with model data:', data);
       return data || [];
     },
     enabled: !!user && !!chatUser,
