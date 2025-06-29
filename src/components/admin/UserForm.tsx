@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useCreateUser, useUpdateUser, useAdminUsers } from '@/hooks/useAdminUsers';
 import { useAdminPlans } from '@/hooks/useAdminPlans';
+import { useAdminModels } from '@/hooks/useAdminModels';
 import { toast } from 'sonner';
 
 const createUserSchema = z.object({
@@ -19,6 +20,7 @@ const createUserSchema = z.object({
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   user_role: z.enum(['admin', 'modelo', 'cliente']),
   plan_id: z.string().optional(),
+  model_id: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -29,6 +31,7 @@ const updateUserSchema = z.object({
   password: z.string().optional(),
   user_role: z.enum(['admin', 'modelo', 'cliente']),
   plan_id: z.string().optional(),
+  model_id: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -43,6 +46,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: users = [] } = useAdminUsers();
   const { data: plans = [] } = useAdminPlans();
+  const { data: models = [] } = useAdminModels();
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
 
@@ -77,6 +81,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           password: '',
           user_role: user.user_role as 'admin' | 'modelo' | 'cliente',
           plan_id: user.plan_id || '',
+          model_id: (user as any).model_id || '',
           is_active: user.is_active,
         });
       }
@@ -92,6 +97,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         phone: data.phone,
         user_role: data.user_role,
         plan_id: data.plan_id && data.plan_id !== 'no_plan' ? data.plan_id : null,
+        model_id: data.user_role === 'modelo' && data.model_id && data.model_id !== 'no_model' ? data.model_id : null,
         is_active: data.is_active,
         ...(data.password && { password: data.password }),
       };
@@ -100,7 +106,6 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         await updateUserMutation.mutateAsync({ id: userId, ...submitData });
         toast.success('Usuário atualizado com sucesso!');
       } else {
-        // Para criação, senha é obrigatória
         if (!data.password) {
           toast.error('Senha é obrigatória para criar um usuário');
           return;
@@ -195,6 +200,28 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
           <p className="text-red-500 text-sm">{errors.user_role.message}</p>
         )}
       </div>
+
+      {userRole === 'modelo' && (
+        <div>
+          <Label className="text-white">Modelo Associado</Label>
+          <Select onValueChange={(value) => setValue('model_id', value)}>
+            <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+              <SelectValue placeholder="Selecione um modelo" />
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-800 border-zinc-700">
+              <SelectItem value="no_model" className="text-white hover:bg-zinc-700">Nenhum modelo</SelectItem>
+              {models.map((model) => (
+                <SelectItem key={model.id} value={model.id} className="text-white hover:bg-zinc-700">
+                  {model.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-zinc-400 text-xs mt-1">
+            Associe este usuário a um perfil de modelo existente
+          </p>
+        </div>
+      )}
 
       {userRole === 'cliente' && (
         <div>

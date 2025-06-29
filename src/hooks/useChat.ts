@@ -23,6 +23,48 @@ export const useConversations = () => {
     queryFn: async (): Promise<Conversation[]> => {
       if (!user) throw new Error('User not authenticated');
       
+      console.log('=== Conversations Query Debug ===');
+      console.log('Authenticated user:', { id: user.id, email: user.email });
+      
+      // Nova lógica: verificar se o usuário tem um model_profile
+      const { data: modelProfile } = await supabase
+        .from('model_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      console.log('User model profile:', modelProfile);
+      
+      // Se for uma modelo, usar o model_id como chat_id
+      if (modelProfile) {
+        console.log('User is a model, using model_id as chat_id:', modelProfile.model_id);
+        
+        const { data, error } = await supabase
+          .from('conversations')
+          .select(`
+            *,
+            models (
+              *,
+              photos:model_photos(*)
+            )
+          `)
+          .eq('model_id', modelProfile.model_id)
+          .eq('is_active', true)
+          .order('last_message_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching model conversations:', error);
+          throw error;
+        }
+        
+        console.log('Model conversations loaded:', data);
+        return data || [];
+      }
+      
+      // Se for um cliente, buscar conversas onde ele é o usuário
+      console.log('User is a client, fetching conversations for user_id:', user.id);
+      
       const { data, error } = await supabase
         .from('conversations')
         .select(`
@@ -37,11 +79,11 @@ export const useConversations = () => {
         .order('last_message_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching conversations:', error);
+        console.error('Error fetching client conversations:', error);
         throw error;
       }
       
-      console.log('Conversations loaded:', data);
+      console.log('Client conversations loaded:', data);
       return data || [];
     },
     enabled: !!user,
