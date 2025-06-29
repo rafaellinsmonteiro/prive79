@@ -1111,6 +1111,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      ensure_model_chat_user: {
+        Args: { model_id: string }
+        Returns: string
+      }
       get_current_user_plan: {
         Args: Record<PropertyKey, never>
         Returns: string

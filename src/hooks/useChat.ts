@@ -151,8 +151,63 @@ export const useCreateConversation = () => {
   const { data: chatUser } = useChatUser();
 
   return useMutation({
-    mutationFn: async (receiverChatId: string) => {
+    mutationFn: async (modelId: string) => {
       if (!user || !chatUser) throw new Error('User not authenticated or no chat user');
+
+      console.log('=== Creating Conversation Debug ===');
+      console.log('User chat ID:', chatUser.id);
+      console.log('Target model ID:', modelId);
+
+      // Primeiro, garantir que a modelo tem um chat_user associado
+      let receiverChatId: string;
+      
+      try {
+        // Tentar buscar o chat_user através do model_profile
+        const { data: modelProfile, error: profileError } = await supabase
+          .from('model_profiles')
+          .select(`
+            *,
+            chat_users (*)
+          `)
+          .eq('model_id', modelId)
+          .eq('is_active', true)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching model profile:', profileError);
+          throw new Error('Modelo não encontrada ou não tem perfil ativo');
+        }
+
+        if (!modelProfile) {
+          throw new Error('Modelo não tem perfil ativo');
+        }
+
+        // Verificar se a modelo já tem um chat_user
+        if (modelProfile.chat_users && Array.isArray(modelProfile.chat_users) && modelProfile.chat_users.length > 0) {
+          receiverChatId = modelProfile.chat_users[0].id;
+          console.log('Found existing chat_user for model:', receiverChatId);
+        } else if (modelProfile.chat_user_id) {
+          receiverChatId = modelProfile.chat_user_id;
+          console.log('Using chat_user_id from model_profile:', receiverChatId);
+        } else {
+          // Criar chat_user para a modelo usando a função do banco
+          console.log('Creating chat_user for model using database function...');
+          const { data: functionResult, error: functionError } = await supabase
+            .rpc('ensure_model_chat_user', { model_id: modelId });
+
+          if (functionError) {
+            console.error('Error creating chat_user:', functionError);
+            throw new Error('Erro ao criar usuário de chat para a modelo: ' + functionError.message);
+          }
+
+          receiverChatId = functionResult;
+          console.log('Created new chat_user:', receiverChatId);
+        }
+
+      } catch (error) {
+        console.error('Error in chat_user setup:', error);
+        throw error;
+      }
 
       // Verificar se já existe uma conversa entre esses dois chat users
       const { data: existingConversation } = await supabase
@@ -163,9 +218,13 @@ export const useCreateConversation = () => {
         .single();
 
       if (existingConversation) {
+        console.log('Found existing conversation:', existingConversation.id);
         return existingConversation;
       }
 
+      console.log('Creating new conversation between:', { sender: chatUser.id, receiver: receiverChatId });
+
+      // Criar nova conversa
       const { data, error } = await supabase
         .from('conversations')
         .insert({
@@ -176,11 +235,19 @@ export const useCreateConversation = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating conversation:', error);
+        throw error;
+      }
+
+      console.log('Successfully created conversation:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar conversa:', error);
     },
   });
 };
