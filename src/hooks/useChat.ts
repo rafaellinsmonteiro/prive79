@@ -158,64 +158,40 @@ export const useCreateConversation = () => {
       console.log('User chat ID:', chatUser.id);
       console.log('Target model ID:', modelId);
 
-      // Primeiro, garantir que a modelo tem um chat_user associado
+      // Primeiro, garantir que a modelo tem um chat_user associado usando a função do banco
       let receiverChatId: string;
       
       try {
-        // Tentar buscar o chat_user através do model_profile
-        const { data: modelProfile, error: profileError } = await supabase
-          .from('model_profiles')
-          .select(`
-            *,
-            chat_users (*)
-          `)
-          .eq('model_id', modelId)
-          .eq('is_active', true)
-          .single();
+        console.log('Calling ensure_model_chat_user function...');
+        const { data: functionResult, error: functionError } = await supabase
+          .rpc('ensure_model_chat_user', { model_id: modelId });
 
-        if (profileError) {
-          console.error('Error fetching model profile:', profileError);
-          throw new Error('Modelo não encontrada ou não tem perfil ativo');
+        if (functionError) {
+          console.error('Error calling ensure_model_chat_user:', functionError);
+          throw new Error('Erro ao configurar chat da modelo: ' + functionError.message);
         }
 
-        if (!modelProfile) {
-          throw new Error('Modelo não tem perfil ativo');
-        }
-
-        // Verificar se a modelo já tem um chat_user
-        if (modelProfile.chat_users && Array.isArray(modelProfile.chat_users) && modelProfile.chat_users.length > 0) {
-          receiverChatId = modelProfile.chat_users[0].id;
-          console.log('Found existing chat_user for model:', receiverChatId);
-        } else if (modelProfile.chat_user_id) {
-          receiverChatId = modelProfile.chat_user_id;
-          console.log('Using chat_user_id from model_profile:', receiverChatId);
-        } else {
-          // Criar chat_user para a modelo usando a função do banco
-          console.log('Creating chat_user for model using database function...');
-          const { data: functionResult, error: functionError } = await supabase
-            .rpc('ensure_model_chat_user', { model_id: modelId });
-
-          if (functionError) {
-            console.error('Error creating chat_user:', functionError);
-            throw new Error('Erro ao criar usuário de chat para a modelo: ' + functionError.message);
-          }
-
-          receiverChatId = functionResult;
-          console.log('Created new chat_user:', receiverChatId);
-        }
+        receiverChatId = functionResult;
+        console.log('Model chat_user ID:', receiverChatId);
 
       } catch (error) {
-        console.error('Error in chat_user setup:', error);
+        console.error('Error in ensure_model_chat_user:', error);
         throw error;
       }
 
       // Verificar se já existe uma conversa entre esses dois chat users
-      const { data: existingConversation } = await supabase
+      console.log('Checking for existing conversation...');
+      const { data: existingConversation, error: checkError } = await supabase
         .from('conversations')
         .select('id')
         .or(`and(sender_chat_id.eq.${chatUser.id},receiver_chat_id.eq.${receiverChatId}),and(sender_chat_id.eq.${receiverChatId},receiver_chat_id.eq.${chatUser.id})`)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing conversation:', checkError);
+        throw new Error('Erro ao verificar conversa existente: ' + checkError.message);
+      }
 
       if (existingConversation) {
         console.log('Found existing conversation:', existingConversation.id);
@@ -237,7 +213,7 @@ export const useCreateConversation = () => {
 
       if (error) {
         console.error('Error creating conversation:', error);
-        throw error;
+        throw new Error('Erro ao criar conversa: ' + error.message);
       }
 
       console.log('Successfully created conversation:', data);
