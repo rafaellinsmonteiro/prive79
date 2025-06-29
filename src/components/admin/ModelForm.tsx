@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { useAdminCategories } from '@/hooks/useAdminCategories';
 import { useCustomFields } from '@/hooks/useCustomFields';
 import { useAuth } from '@/hooks/useAuth';
 import { useModelChatInfo } from '@/hooks/useModelProfile';
+import { supabase } from '@/integrations/supabase/client';
 import BasicInfoSection from './model-form/BasicInfoSection';
 import CategoriesSection from './model-form/CategoriesSection';
 import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';
