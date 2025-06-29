@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -37,7 +38,7 @@ export const useConversations = () => {
 
       console.log('User model profile:', modelProfile);
       
-      // Se for uma modelo, buscar conversas onde ela é a modelo
+      // Se for uma modelo, buscar conversas onde ela é a modelo (model_id corresponde)
       if (modelProfile) {
         console.log('User is a model, fetching conversations for model_id:', modelProfile.model_id);
         
