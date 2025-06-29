@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ const ModelCard = ({ model, showViewButton = true }: ModelCardProps) => {
     navigate(`/model/${model.id}`);
   };
 
-  const primaryPhoto = model.model_photos?.find(photo => photo.is_primary) || model.model_photos?.[0];
+  const primaryPhoto = model.photos?.find(photo => photo.is_primary) || model.photos?.[0];
 
   return (
     <Card 
