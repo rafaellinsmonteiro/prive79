@@ -99,6 +99,7 @@ export const useCreateConversation = () => {
         .insert({
           sender_chat_id: chatUser.id,
           receiver_chat_id: receiverChatId,
+          user_id: user.id, // Manter user_id para compatibilidade
         })
         .select()
         .single();
