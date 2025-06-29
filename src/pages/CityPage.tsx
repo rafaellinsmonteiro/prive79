@@ -1,3 +1,4 @@
+
 import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useModels } from "@/hooks/useModels";
@@ -17,9 +18,7 @@ const CityPage = () => {
   }
 
   const currentCity = cities.find(city => city.id === cityId);
-  const { data: models = [], isLoading, error } = useModels({
-    cityId: cityId || null,
-  });
+  const { data: models = [], isLoading, error } = useModels();
 
   useEffect(() => {
     if (currentCity) {
@@ -56,6 +55,9 @@ const CityPage = () => {
     );
   }
 
+  // Filter models by city
+  const cityModels = models.filter(model => model.city_id === cityId);
+
   return (
     <div className="min-h-screen bg-black">
       <Header />
@@ -65,12 +67,12 @@ const CityPage = () => {
             {currentCity.name} - {currentCity.state}
           </h1>
           <p className="text-zinc-400 text-lg">
-            {models.length} modelo{models.length !== 1 ? 's' : ''} disponível{models.length !== 1 ? 'is' : ''}
+            {cityModels.length} modelo{cityModels.length !== 1 ? 's' : ''} disponível{cityModels.length !== 1 ? 'is' : ''}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {models.map((model) => (
+          {cityModels.map((model) => (
             <ModelCard 
               key={model.id} 
               model={model}
@@ -78,7 +80,7 @@ const CityPage = () => {
           ))}
         </div>
 
-        {models.length === 0 && (
+        {cityModels.length === 0 && (
           <div className="text-center text-zinc-400 mt-16">
             <p>Nenhum modelo encontrado para esta cidade.</p>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -16,9 +17,7 @@ const CategoryPage = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const { data: categories = [] } = useCategories();
-  const { data: models = [], isLoading, error } = useModels({
-    categoryId: categoryId || null,
-  });
+  const { data: models = [], isLoading, error } = useModels();
 
   const [ageRange, setAgeRange] = useState<number[]>([18, 30]);
   const [cityFilter, setCityFilter] = useState<string | undefined>(undefined);
@@ -60,9 +59,10 @@ const CategoryPage = () => {
     );
   }
 
-  const handleModelClick = (modelId: string) => {
-    navigate(`/model/${modelId}`);
-  };
+  // Filter models by category
+  const filteredModels = models.filter(model => 
+    model.categories?.some(cat => cat.id === categoryId)
+  );
 
   return (
     <div className="min-h-screen bg-black">
@@ -138,7 +138,7 @@ const CategoryPage = () => {
         
         {/* Models Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {models.map((model) => (
+          {filteredModels.map((model) => (
             <ModelCard 
               key={model.id} 
               model={model}
@@ -147,7 +147,7 @@ const CategoryPage = () => {
         </div>
 
         {/* Empty State */}
-        {models.length === 0 && (
+        {filteredModels.length === 0 && (
           <Card className="bg-zinc-900 border-zinc-700">
             <CardHeader>
               <CardTitle className="text-white">Nenhum modelo encontrado</CardTitle>
@@ -164,7 +164,7 @@ const CategoryPage = () => {
         )}
 
         {/* Pagination */}
-        {models.length > modelsPerPage && (
+        {filteredModels.length > modelsPerPage && (
           <div className="flex justify-center mt-8">
             <Button
               onClick={() => setCurrentPage(currentPage - 1)}
@@ -175,7 +175,7 @@ const CategoryPage = () => {
             </Button>
             <Button
               onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={models.length <= currentPage * modelsPerPage}
+              disabled={filteredModels.length <= currentPage * modelsPerPage}
               className="bg-zinc-800 text-white hover:bg-zinc-700"
             >
               Próximo

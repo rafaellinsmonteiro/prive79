@@ -115,11 +115,11 @@ const ModelCard = ({ model, showViewButton = true }: ModelCardProps) => {
           </span>
         </div>
 
-        {(model.city || model.neighborhood) && (
+        {(model.location || model.neighborhood) && (
           <div className="flex items-center gap-1 mb-2">
             <MapPin className="h-3 w-3 text-zinc-400" />
             <span className="text-sm text-zinc-400">
-              {[model.neighborhood, model.city].filter(Boolean).join(', ')}
+              {[model.neighborhood, model.location].filter(Boolean).join(', ')}
             </span>
           </div>
         )}
