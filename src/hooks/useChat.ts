@@ -1,5 +1,3 @@
-
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -28,7 +26,7 @@ export const useConversations = () => {
       console.log('=== Conversations Query Debug ===');
       console.log('Authenticated user:', { id: user.id, email: user.email });
       
-      // Primeiro, vamos verificar se o usuário tem um model_profile
+      // Nova lógica: verificar se o usuário tem um model_profile
       const { data: modelProfile } = await supabase
         .from('model_profiles')
         .select('*')
@@ -38,9 +36,9 @@ export const useConversations = () => {
 
       console.log('User model profile:', modelProfile);
       
-      // Se for uma modelo, buscar conversas onde ela é a modelo (model_id corresponde)
+      // Se for uma modelo, usar o model_id como chat_id
       if (modelProfile) {
-        console.log('User is a model, fetching conversations for model_id:', modelProfile.model_id);
+        console.log('User is a model, using model_id as chat_id:', modelProfile.model_id);
         
         const { data, error } = await supabase
           .from('conversations')
