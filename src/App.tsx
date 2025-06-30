@@ -1,8 +1,9 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { CityProvider } from "@/contexts/CityContext";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/ui/bottom-navigation";
@@ -24,11 +25,17 @@ import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ModelDashboard from "./pages/ModelDashboard";
+import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Rotas onde o header deve ser ocultado
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat', '/chat-feed', '/mobile-chat', '/model-dashboard'];
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
 
   if (loading) {
     return (
@@ -45,6 +52,9 @@ const AppContent = () => {
       
       {/* Main content with left margin on desktop when user is logged in */}
       <div className={user ? "md:ml-20" : ""}>
+        {/* Conditionally show header */}
+        {!shouldHideHeader && <Header />}
+        
         <Routes>
           {/* Public routes */}
           <Route path="/home" element={<HomePage />} />

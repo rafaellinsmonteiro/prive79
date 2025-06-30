@@ -2,7 +2,6 @@
 import { useModels } from "@/hooks/useModels";
 import { useReelsSettings } from "@/hooks/useReelsSettings";
 import { useCity } from "@/contexts/CityContext";
-import Header from "@/components/Header";
 import ReelsFeed from "@/components/reels/ReelsFeed";
 
 const ReelsPage = () => {
@@ -45,7 +44,6 @@ const ReelsPage = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <Header />
       <ReelsFeed 
         models={modelsWithReelsVideos} 
         settings={reelsSettings}
