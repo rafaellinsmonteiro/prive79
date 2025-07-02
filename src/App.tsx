@@ -61,11 +61,13 @@ const AppContent = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
           
-          {/* Protected routes - show main app if user is logged in, otherwise redirect to home */}
-          <Route path="/" element={user ? <Index /> : <HomePage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/model-dashboard" element={<ModelDashboard />} />
+          {/* Home route - show login if not authenticated, otherwise show main app */}
+          <Route path="/" element={user ? <Index /> : <Login />} />
+          
+          {/* Protected routes - redirect to login if not authenticated */}
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+          <Route path="/admin" element={user ? <AdminDashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/model-dashboard" element={user ? <ModelDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
           <Route path="/cidade/:cityId" element={<CityPage />} />
           <Route path="/categoria/:categoryId" element={<CategoryPage />} />
@@ -75,19 +77,19 @@ const AppContent = () => {
           <Route 
             path="/chat" 
             element={
-              user ? <ChatPage /> : <Navigate to="/" replace />
+              user ? <ChatPage /> : <Navigate to="/login" replace />
             } 
           />
           <Route 
             path="/chat-feed" 
             element={
-              user ? <ChatFeedPage /> : <Navigate to="/" replace />
+              user ? <ChatFeedPage /> : <Navigate to="/login" replace />
             } 
           />
           <Route 
             path="/mobile-chat" 
             element={
-              user ? <MobileChatPage /> : <Navigate to="/" replace />
+              user ? <MobileChatPage /> : <Navigate to="/login" replace />
             } 
           />
           
