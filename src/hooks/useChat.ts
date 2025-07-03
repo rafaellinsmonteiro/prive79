@@ -121,27 +121,32 @@ export const useConversations = () => {
               .eq('user_id', conversation.user_id)
               .maybeSingle();
             
-            // Se não encontrar em system_users, buscar email em auth.users via RPC
+            console.log('System user for conversation:', conversation.id, systemUser);
+            
+            // Se não encontrar em system_users, buscar em chat_users
+            let clientName = systemUser?.name;
             let clientEmail = systemUser?.email;
+            
             if (!clientEmail) {
-              try {
-                const { data: authData } = await supabase
-                  .from('chat_users')
-                  .select('chat_display_name')
-                  .eq('user_id', conversation.user_id)
-                  .maybeSingle();
-                
-                clientEmail = authData?.chat_display_name || 'Cliente';
-              } catch {
-                clientEmail = 'Cliente';
-              }
+              const { data: chatUser } = await supabase
+                .from('chat_users')
+                .select('chat_display_name')
+                .eq('user_id', conversation.user_id)
+                .maybeSingle();
+              
+              console.log('Chat user for conversation:', conversation.id, chatUser);
+              
+              clientEmail = chatUser?.chat_display_name || 'Cliente';
+              clientName = clientEmail; // usar o mesmo valor para nome se não tiver nome específico
             }
+            
+            console.log('Final client info:', { name: clientName, email: clientEmail });
             
             return {
               ...conversation,
               client_info: {
                 id: conversation.user_id,
-                name: systemUser?.name || null,
+                name: clientName,
                 email: clientEmail
               }
             };
