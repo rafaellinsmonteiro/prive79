@@ -1,17 +1,20 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Check, CheckCheck, Play, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EnhancedMessageItemProps {
   message: Tables<'messages'>;
 }
 
 const EnhancedMessageItem = ({ message }: EnhancedMessageItemProps) => {
-  const isFromUser = message.sender_type === 'user';
+  const { user } = useAuth();
+  
+  // A mensagem é "minha" se eu enviei ela
+  const isFromCurrentUser = message.sender_id === user?.id;
   
   const getStatusIcon = () => {
     switch (message.status) {
@@ -32,23 +35,21 @@ const EnhancedMessageItem = ({ message }: EnhancedMessageItemProps) => {
     switch (message.message_type) {
       case 'image':
         return (
-          <div className="relative max-w-xs rounded-2xl overflow-hidden mb-2">
-            <img
-              src={message.media_url}
-              alt="Imagem enviada"
-              className="w-full h-auto cursor-pointer"
-              onClick={() => window.open(message.media_url!, '_blank')}
-            />
-          </div>
+          <img
+            src={message.media_url}
+            alt="Imagem enviada"
+            className="max-w-xs rounded-lg cursor-pointer"
+            onClick={() => window.open(message.media_url!, '_blank')}
+          />
         );
       
       case 'video':
         return (
-          <div className="relative max-w-xs rounded-2xl overflow-hidden mb-2">
+          <div className="relative max-w-xs">
             <video
               src={message.media_url}
               controls
-              className="w-full h-auto"
+              className="rounded-lg w-full"
               style={{ maxHeight: '300px' }}
             />
           </div>
@@ -56,25 +57,21 @@ const EnhancedMessageItem = ({ message }: EnhancedMessageItemProps) => {
       
       case 'audio':
         return (
-          <div className="flex items-center space-x-2 bg-zinc-700 p-3 rounded-2xl max-w-xs mb-2">
-            <Button variant="ghost" size="sm" className="text-white">
+          <div className="flex items-center space-x-2 bg-zinc-800 p-3 rounded-lg max-w-xs">
+            <Button variant="ghost" size="sm">
               <Play className="h-4 w-4" />
             </Button>
-            <div className="flex-1 h-8 bg-zinc-600 rounded-full relative">
-              <div className="absolute left-0 top-0 h-full w-1/3 bg-blue-500 rounded-full"></div>
-            </div>
-            <span className="text-xs text-zinc-300">0:32</span>
+            <audio src={message.media_url} controls className="flex-1" />
           </div>
         );
       
       case 'file':
         return (
-          <div className="flex items-center space-x-2 bg-zinc-700 p-3 rounded-2xl max-w-xs mb-2">
+          <div className="flex items-center space-x-2 bg-zinc-800 p-3 rounded-lg max-w-xs">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => window.open(message.media_url!, '_blank')}
-              className="text-white"
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -93,34 +90,30 @@ const EnhancedMessageItem = ({ message }: EnhancedMessageItemProps) => {
   };
 
   return (
-    <div className={`flex ${isFromUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex ${isFromCurrentUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[80%] ${
-          isFromUser
-            ? 'bg-blue-500 text-white rounded-2xl rounded-br-sm'
-            : 'bg-zinc-800 text-white rounded-2xl rounded-bl-sm'
+        className={`max-w-[70%] rounded-lg p-3 ${
+          isFromCurrentUser
+            ? 'bg-blue-600 text-white'
+            : 'bg-zinc-800 text-white'
         }`}
       >
-        <div className="p-3">
-          {/* Media Content */}
-          {renderMediaContent()}
-          
-          {/* Text Content */}
-          {message.content && (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-              {message.content}
-            </p>
-          )}
-        </div>
+        {/* Media Content */}
+        {renderMediaContent()}
+        
+        {/* Text Content */}
+        {message.content && (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        )}
         
         {/* Timestamp and Status */}
-        <div className={`flex items-center justify-end space-x-1 px-3 pb-2 text-xs ${
-          isFromUser ? 'text-blue-100' : 'text-zinc-400'
+        <div className={`flex items-center justify-end space-x-1 mt-2 text-xs ${
+          isFromCurrentUser ? 'text-blue-100' : 'text-zinc-400'
         }`}>
           <span>
             {format(new Date(message.created_at), 'HH:mm', { locale: ptBR })}
           </span>
-          {isFromUser && getStatusIcon()}
+          {isFromCurrentUser && getStatusIcon()}
         </div>
       </div>
     </div>

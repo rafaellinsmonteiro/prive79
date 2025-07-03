@@ -7,7 +7,7 @@ import { Send, Mic, MicOff, ArrowLeft, MoreVertical, Phone, Video, Paperclip } f
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
-import MessageItem from './MessageItem';
+import EnhancedMessageItem from './EnhancedMessageItem';
 import TypingIndicator from './TypingIndicator';
 import ContactInfoSheet from './ContactInfoSheet';
 
@@ -180,7 +180,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       <ScrollArea className="flex-1 px-4 bg-zinc-950" ref={scrollAreaRef}>
         <div className="py-6 space-y-6">
           {messages.map((msg) => (
-            <MessageItem key={msg.id} message={msg} />
+            <EnhancedMessageItem key={msg.id} message={msg} />
           ))}
           <TypingIndicator conversationId={conversationId} />
         </div>

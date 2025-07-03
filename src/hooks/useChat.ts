@@ -136,9 +136,16 @@ export const useConversations = () => {
               
               console.log('Chat user for conversation:', conversation.id, chatUser);
               
-              // Usar o chat_display_name diretamente, sem fallback genérico
-              clientEmail = chatUser?.chat_display_name || `usuario_${conversation.user_id.slice(0, 8)}`;
-              clientName = clientName || clientEmail; // usar o chat_display_name se não tiver nome específico
+              if (chatUser?.chat_display_name) {
+                clientEmail = chatUser.chat_display_name;
+                clientName = chatUser.chat_display_name;
+              } else {
+                clientEmail = `usuario_${conversation.user_id.slice(0, 8)}`;
+                clientName = clientEmail;
+              }
+            } else {
+              // Se tem email do system_users, usar o nome ou o email como nome
+              clientName = clientName || clientEmail;
             }
             
             console.log('Final client info:', { name: clientName, email: clientEmail });
