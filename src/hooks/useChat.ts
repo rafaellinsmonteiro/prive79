@@ -123,30 +123,33 @@ export const useConversations = () => {
             
             console.log('System user for conversation:', conversation.id, systemUser);
             
-            // Se não encontrar em system_users, buscar em chat_users
-            let clientName = systemUser?.name;
+            console.log('System user found:', systemUser);
+            
+            // Primeiro tentar usar o chat_display_name
+            const { data: chatUser } = await supabase
+              .from('chat_users')
+              .select('chat_display_name')
+              .eq('user_id', conversation.user_id)
+              .maybeSingle();
+            
+            console.log('Chat user found:', chatUser);
+            
+            let clientName = chatUser?.chat_display_name;
             let clientEmail = systemUser?.email;
             
-            if (!clientEmail) {
-              const { data: chatUser } = await supabase
-                .from('chat_users')
-                .select('chat_display_name')
-                .eq('user_id', conversation.user_id)
-                .maybeSingle();
-              
-              console.log('Chat user for conversation:', conversation.id, chatUser);
-              
-              if (chatUser?.chat_display_name) {
-                clientEmail = chatUser.chat_display_name;
-                clientName = chatUser.chat_display_name;
-              } else {
-                clientEmail = `usuario_${conversation.user_id.slice(0, 8)}`;
-                clientName = clientEmail;
-              }
-            } else {
-              // Se tem email do system_users, usar o nome ou o email como nome
-              clientName = clientName || clientEmail;
+            // Se não tem chat_display_name, usar system_users
+            if (!clientName) {
+              clientName = systemUser?.name || systemUser?.email;
+              clientEmail = systemUser?.email;
             }
+            
+            // Se ainda não tem nome, usar fallback com user_id
+            if (!clientName) {
+              clientName = `Usuario ${conversation.user_id.slice(0, 8)}`;
+              clientEmail = clientName;
+            }
+            
+            console.log('Final client info:', { name: clientName, email: clientEmail });
             
             console.log('Final client info:', { name: clientName, email: clientEmail });
             
