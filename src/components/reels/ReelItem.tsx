@@ -27,10 +27,8 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
   const createConversation = useCreateConversation();
   const { data: mediaItems = [] } = useModelMedia(model.id);
 
-  // Pegar o primeiro vídeo ou usar a primeira foto como fallback
+  // Pegar apenas vídeos para exibir nos reels
   const videoItem = mediaItems.find(item => item.media_type === 'video');
-  const photoItem = mediaItems.find(item => item.media_type === 'photo' && item.is_primary) || 
-                   mediaItems.find(item => item.media_type === 'photo');
 
   useEffect(() => {
     const video = videoRef.current;
@@ -154,7 +152,7 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Video ou Imagem de fundo */}
+      {/* Apenas vídeos nos reels */}
       {videoItem ? (
         <video
           ref={videoRef}
@@ -168,20 +166,12 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
           preload="metadata"
           controls={settings?.show_controls}
           onClick={!settings?.show_controls ? handleVideoClick : undefined}
-          poster={videoItem.thumbnail_url || photoItem?.media_url}
-        />
-      ) : photoItem ? (
-        <img
-          src={photoItem.media_url}
-          alt={model.name}
-          className={`absolute inset-0 w-full h-full ${
-            isMobile ? 'object-cover' : 'object-contain'
-          }`}
-          onClick={handleProfileClick}
+          poster={videoItem.thumbnail_url}
         />
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gray-800 flex items-center justify-center">
           <User className="w-24 h-24 text-gray-400" />
+          <p className="text-white mt-4">Nenhum vídeo disponível</p>
         </div>
       )}
 

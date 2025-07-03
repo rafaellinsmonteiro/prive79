@@ -1,13 +1,18 @@
 
 import { useModels } from "@/hooks/useModels";
 import { useReelsSettings } from "@/hooks/useReelsSettings";
+import { useReelsVideos } from "@/hooks/useReelsMedia";
 import { useCity } from "@/contexts/CityContext";
 import ReelsFeed from "@/components/reels/ReelsFeed";
 
 const ReelsPage = () => {
   const { selectedCityId } = useCity();
-  const { data: models = [], isLoading, error } = useModels(selectedCityId);
+  const { data: models = [], isLoading: modelsLoading, error: modelsError } = useModels(selectedCityId);
+  const { data: reelsVideos = [], isLoading: videosLoading, error: videosError } = useReelsVideos(selectedCityId);
   const { data: reelsSettings } = useReelsSettings();
+
+  const isLoading = modelsLoading || videosLoading;
+  const error = modelsError || videosError;
 
   // Verificar se o módulo de reels está habilitado - apenas se as configurações forem carregadas e explicitamente desabilitadas
   if (reelsSettings && reelsSettings.is_enabled === false) {
@@ -21,9 +26,9 @@ const ReelsPage = () => {
     );
   }
 
-  // Filtrar apenas modelos que têm vídeos featured nos reels
+  // Filtrar apenas modelos que têm vídeos
   const modelsWithReelsVideos = models.filter(model => 
-    model.id // Para agora, vamos usar todos os modelos - depois podemos filtrar por vídeos reais featured
+    reelsVideos.some(video => video.model_id === model.id)
   );
 
   if (isLoading) {
