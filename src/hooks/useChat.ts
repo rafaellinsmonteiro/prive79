@@ -8,12 +8,65 @@ type Conversation = Tables<'conversations'> & {
   models?: (Tables<'models'> & {
     photos?: Tables<'model_photos'>[];
   }) | null;
+  client_info?: {
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
   last_message_content?: string;
   last_message_type?: string;
 };
 
 type Message = Tables<'messages'>;
 type TypingIndicator = Tables<'typing_indicators'>;
+
+// Hook para verificar se o usuário é uma modelo
+export const useIsUserModel = () => {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['isUserModel', user?.id],
+    queryFn: async (): Promise<boolean> => {
+      if (!user) return false;
+      
+      const { data: modelProfile } = await supabase
+        .from('model_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      return !!modelProfile;
+    },
+    enabled: !!user,
+  });
+};
+
+// Funções helper para exibição de conversas
+export const getConversationDisplayName = (conversation: Conversation, isModel: boolean) => {
+  if (isModel) {
+    // Se for modelo, mostrar nome do cliente
+    return conversation.client_info?.name || conversation.client_info?.email || 'Cliente';
+  } else {
+    // Se for cliente, mostrar nome da modelo
+    return conversation.models?.name || 'Modelo';
+  }
+};
+
+export const getConversationDisplayPhoto = (conversation: Conversation, isModel: boolean) => {
+  if (isModel) {
+    // Se for modelo, não há foto do cliente ainda, usar placeholder
+    return '/placeholder.svg';
+  } else {
+    // Se for cliente, mostrar foto da modelo
+    if (conversation.models?.photos && conversation.models.photos.length > 0) {
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      return conversation.models.photos[0].photo_url;
+    }
+    return '/placeholder.svg';
+  }
+};
 
 export const useConversations = () => {
   const { user } = useAuth();
@@ -36,7 +89,7 @@ export const useConversations = () => {
 
       console.log('User model profile:', modelProfile);
       
-      // Se for uma modelo, usar o model_id como chat_id
+      // Se for uma modelo, buscar conversas e informações dos clientes
       if (modelProfile) {
         console.log('User is a model, using model_id as chat_id:', modelProfile.model_id);
         
@@ -58,8 +111,32 @@ export const useConversations = () => {
           throw error;
         }
         
-        console.log('Model conversations loaded:', data);
-        return data || [];
+        // Para cada conversa, buscar informações do cliente
+        const conversationsWithClientInfo = await Promise.all(
+          (data || []).map(async (conversation) => {
+            const { data: systemUser } = await supabase
+              .from('system_users')
+              .select('name, email')
+              .eq('user_id', conversation.user_id)
+              .maybeSingle();
+            
+            return {
+              ...conversation,
+              client_info: systemUser ? {
+                id: conversation.user_id,
+                name: systemUser.name,
+                email: systemUser.email
+              } : {
+                id: conversation.user_id,
+                name: null,
+                email: user.email || 'Cliente'
+              }
+            };
+          })
+        );
+        
+        console.log('Model conversations with client info loaded:', conversationsWithClientInfo);
+        return conversationsWithClientInfo;
       }
       
       // Se for um cliente, buscar conversas onde ele é o usuário

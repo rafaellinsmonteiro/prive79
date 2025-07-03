@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Plus, Search, MoreVertical } from 'lucide-react';
-import { useConversations, useCreateConversation } from '@/hooks/useChat';
+import { useConversations, useCreateConversation, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -15,6 +15,7 @@ interface ConversationsListProps {
 
 const ConversationsList = ({ onSelectConversation, selectedConversationId }: ConversationsListProps) => {
   const { data: conversations = [] } = useConversations();
+  const { data: isModel = false } = useIsUserModel();
   const createConversation = useCreateConversation();
 
   const handleCreateConversation = async (modelId: string) => {
@@ -24,15 +25,6 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
     }
-  };
-
-  const getModelPhoto = (conversation: any) => {
-    if (conversation.models?.photos && conversation.models.photos.length > 0) {
-      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
-      if (primaryPhoto) return primaryPhoto.photo_url;
-      return conversation.models.photos[0].photo_url;
-    }
-    return '/placeholder.svg';
   };
 
   const getLastMessageDisplay = (conversation: any) => {
@@ -100,8 +92,8 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                 >
                   <div className="relative flex-shrink-0">
                     <img
-                      src={getModelPhoto(conversation)}
-                      alt={conversation.models?.name || 'Model'}
+                      src={getConversationDisplayPhoto(conversation, isModel)}
+                      alt={getConversationDisplayName(conversation, isModel)}
                       className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder.svg';
@@ -113,7 +105,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="text-white font-semibold truncate">
-                        {conversation.models?.name || 'Modelo'}
+                        {getConversationDisplayName(conversation, isModel)}
                       </h4>
                       <span className="text-xs text-zinc-500 ml-2 flex-shrink-0">
                         {conversation.last_message_at &&
