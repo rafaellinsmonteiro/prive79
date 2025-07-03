@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileConversationsList from '@/components/chat/MobileConversationsList';
 import MobileChatInterface from '@/components/chat/MobileChatInterface';
-import { useConversations } from '@/hooks/useChat';
+import { useConversations, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
 
 const MobileChatPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -13,6 +13,7 @@ const MobileChatPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { data: conversations = [] } = useConversations();
+  const { data: isModel = false } = useIsUserModel();
 
   // Check for conversation ID in URL parameters
   useEffect(() => {
@@ -38,16 +39,18 @@ const MobileChatPage = () => {
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
-  const getModelPhoto = (conversation: any) => {
-    if (conversation?.models?.photos && conversation.models.photos.length > 0) {
-      // Try to get the primary photo first
-      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
-      if (primaryPhoto) return primaryPhoto.photo_url;
-      
-      // If no primary photo, get the first one
-      return conversation.models.photos[0].photo_url;
-    }
-    return '/placeholder.svg';
+  // Get the correct display name and photo based on user type
+  const getDisplayName = (conversation: any) => {
+    return getConversationDisplayName(conversation, isModel);
+  };
+
+  const getDisplayPhoto = (conversation: any) => {
+    return getConversationDisplayPhoto(conversation, isModel);
+  };
+
+  // Get model ID for contact info (only when user is client)
+  const getContactModelId = (conversation: any) => {
+    return isModel ? undefined : conversation?.model_id;
   };
 
   // Desktop fallback - redirect to original chat page
@@ -60,9 +63,9 @@ const MobileChatPage = () => {
     return (
       <MobileChatInterface 
         conversationId={selectedConversationId}
-        modelName={selectedConversation?.models?.name}
-        modelPhoto={getModelPhoto(selectedConversation)}
-        modelId={selectedConversation?.model_id || undefined}
+        modelName={getDisplayName(selectedConversation)}
+        modelPhoto={getDisplayPhoto(selectedConversation)}
+        modelId={getContactModelId(selectedConversation)}
         onBack={handleBackToList}
       />
     );
