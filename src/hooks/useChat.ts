@@ -114,22 +114,35 @@ export const useConversations = () => {
         // Para cada conversa, buscar informações do cliente
         const conversationsWithClientInfo = await Promise.all(
           (data || []).map(async (conversation) => {
+            // Primeiro tentar buscar em system_users
             const { data: systemUser } = await supabase
               .from('system_users')
               .select('name, email')
               .eq('user_id', conversation.user_id)
               .maybeSingle();
             
+            // Se não encontrar em system_users, buscar email em auth.users via RPC
+            let clientEmail = systemUser?.email;
+            if (!clientEmail) {
+              try {
+                const { data: authData } = await supabase
+                  .from('chat_users')
+                  .select('chat_display_name')
+                  .eq('user_id', conversation.user_id)
+                  .maybeSingle();
+                
+                clientEmail = authData?.chat_display_name || 'Cliente';
+              } catch {
+                clientEmail = 'Cliente';
+              }
+            }
+            
             return {
               ...conversation,
-              client_info: systemUser ? {
+              client_info: {
                 id: conversation.user_id,
-                name: systemUser.name,
-                email: systemUser.email
-              } : {
-                id: conversation.user_id,
-                name: null,
-                email: user.email || 'Cliente'
+                name: systemUser?.name || null,
+                email: clientEmail
               }
             };
           })
