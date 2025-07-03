@@ -128,7 +128,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   }
 
   return (
-    <div className="h-screen bg-zinc-950 flex flex-col">
+    <div className="h-screen bg-zinc-950 flex flex-col pb-20 md:pb-0">
       {/* Header with Model Photo */}
       <div className="bg-zinc-900 px-4 py-4 flex items-center justify-between border-b border-zinc-800 shadow-lg">
         <div className="flex items-center space-x-3">

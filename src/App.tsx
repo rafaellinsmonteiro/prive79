@@ -51,7 +51,7 @@ const AppContent = () => {
       {user && <DesktopSidebar />}
       
       {/* Main content with left margin on desktop when user is logged in */}
-      <div className={user ? "md:ml-20" : ""}>
+      <div className={user ? "md:ml-20 pb-20 md:pb-0" : ""}>
         {/* Conditionally show header */}
         {!shouldHideHeader && <Header />}
         

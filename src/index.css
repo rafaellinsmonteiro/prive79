@@ -105,6 +105,11 @@
 /* Adicionar padding bottom para o menu inferior no mobile */
 @media (max-width: 768px) {
   .mobile-content {
-    padding-bottom: 80px;
+    padding-bottom: 90px;
+  }
+  
+  /* Aplicar padding em todas as páginas no mobile */
+  body {
+    padding-bottom: 90px;
   }
 }
