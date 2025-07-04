@@ -33,9 +33,9 @@ const navigationItems: BottomNavigationItem[] = [
   },
   {
     id: 'settings',
-    label: 'Configurações',
+    label: 'Perfil',
     icon: Settings,
-    path: '/profile',
+    path: '/model-dashboard',
   },
 ];
 

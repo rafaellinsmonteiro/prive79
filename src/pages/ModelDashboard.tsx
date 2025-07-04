@@ -6,8 +6,8 @@ import { User, Image, Settings, BarChart3, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useModelProfile } from '@/hooks/useModelProfile';
 import { toast } from 'sonner';
-import ModelProfileManager from '@/components/model/ModelProfileManager';
-import ModelMediaManager from '@/components/model/ModelMediaManager';
+import EnhancedModelProfileManager from '@/components/model/EnhancedModelProfileManager';
+import EnhancedModelMediaManager from '@/components/model/EnhancedModelMediaManager';
 import ModelPrivacySettings from '@/components/model/ModelPrivacySettings';
 import ModelStats from '@/components/model/ModelStats';
 
@@ -107,15 +107,15 @@ const ModelDashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'profile':
-        return <ModelProfileManager profile={profile} />;
+        return <EnhancedModelProfileManager profile={profile} />;
       case 'media':
-        return <ModelMediaManager modelId={profile.model_id} />;
+        return <EnhancedModelMediaManager modelId={profile.model_id} />;
       case 'privacy':
         return <ModelPrivacySettings modelId={profile.model_id} />;
       case 'stats':
         return <ModelStats modelId={profile.model_id} />;
       default:
-        return <ModelProfileManager profile={profile} />;
+        return <EnhancedModelProfileManager profile={profile} />;
     }
   };
 
