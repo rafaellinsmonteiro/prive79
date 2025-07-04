@@ -120,51 +120,56 @@ const ModelDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-zinc-900 min-h-screen border-r border-zinc-800">
-          <div className="p-6">
-            <h1 className="text-xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-zinc-400 text-sm mb-6">{profile.models?.name}</p>
-            
-            <nav className="space-y-2">
-              {menuItems.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => setActiveSection(item.key)}
-                    className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-colors ${
-                      activeSection === item.key
-                        ? 'bg-blue-600 text-white'
-                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-                    }`}
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-            
-            <div className="mt-8 pt-8 border-t border-zinc-800">
-              <Button
-                onClick={handleSignOut}
-                variant="ghost"
-                className="w-full justify-start text-zinc-400 hover:text-white"
-              >
-                <LogOut className="h-5 w-5 mr-3" />
-                Sair
-              </Button>
+    <div className="min-h-screen bg-zinc-950 pb-20">
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <User className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-white font-semibold text-sm">{profile.models?.name}</h1>
+              <p className="text-zinc-400 text-xs">Dashboard</p>
             </div>
           </div>
+          <Button
+            onClick={handleSignOut}
+            variant="ghost"
+            size="sm"
+            className="text-zinc-400 hover:text-white"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          {renderContent()}
+      {/* Mobile Navigation Tabs */}
+      <div className="bg-zinc-900 border-b border-zinc-800 overflow-x-auto">
+        <div className="flex space-x-1 px-4 py-2 min-w-max">
+          {menuItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeSection === item.key
+                    ? 'bg-blue-600 text-white'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-4">
+        {renderContent()}
       </div>
     </div>
   );
