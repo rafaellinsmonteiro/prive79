@@ -163,7 +163,7 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
           loop
           muted
           playsInline
-          preload="metadata"
+          preload={isActive ? "auto" : "none"}
           controls={settings?.show_controls}
           onClick={!settings?.show_controls ? handleVideoClick : undefined}
           poster={videoItem.thumbnail_url}

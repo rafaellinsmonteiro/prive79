@@ -72,17 +72,33 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
         }`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {models.map((model, index) => (
-          <ReelItem
-            key={model.id}
-            model={model}
-            isActive={index === currentIndex}
-            onSwipeUp={handleSwipeUp}
-            onSwipeDown={handleSwipeDown}
-            settings={settings}
-            isMobile={isMobile}
-          />
-        ))}
+        {models.map((model, index) => {
+          // Renderizar apenas o item atual e os adjacentes para melhor performance
+          const shouldRender = Math.abs(index - currentIndex) <= 1;
+          
+          if (!shouldRender) {
+            return (
+              <div 
+                key={model.id} 
+                className="h-screen w-full snap-start bg-black flex items-center justify-center"
+              >
+                <div className="text-white">Carregando...</div>
+              </div>
+            );
+          }
+          
+          return (
+            <ReelItem
+              key={model.id}
+              model={model}
+              isActive={index === currentIndex}
+              onSwipeUp={handleSwipeUp}
+              onSwipeDown={handleSwipeDown}
+              settings={settings}
+              isMobile={isMobile}
+            />
+          );
+        })}
       </div>
     </div>
   );
