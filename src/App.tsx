@@ -25,6 +25,7 @@ import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ModelDashboard from "./pages/ModelDashboard";
+import AgendaPage from "./pages/AgendaPage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -34,7 +35,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat', '/chat-feed', '/mobile-chat', '/model-dashboard'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat', '/chat-feed', '/mobile-chat', '/model-dashboard', '/agenda'];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
 
   if (loading) {
@@ -74,6 +75,12 @@ const AppContent = () => {
           <Route path="/reels" element={<ReelsPage />} />
           <Route path="/galeria" element={<GalleryPage />} />
           <Route path="/midia/:type/:id" element={<MediaPage />} />
+          <Route 
+            path="/agenda" 
+            element={
+              user ? <AgendaPage /> : <Navigate to="/login" replace />
+            } 
+          />
           <Route 
             path="/chat" 
             element={
