@@ -3,9 +3,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Clock, CalendarDays } from 'lucide-react';
 import { format, isSameDay, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface Appointment {
   id: string;
@@ -19,9 +24,7 @@ interface Appointment {
 
 const AgendaPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
-  // Mock data - posteriormente virá do banco de dados
-  const appointments: Appointment[] = [
+  const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: '1',
       date: new Date(),
@@ -40,7 +43,15 @@ const AgendaPage = () => {
       status: 'pending',
       type: '2 horas'
     }
-  ];
+  ]);
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAppointment, setNewAppointment] = useState({
+    client: '',
+    time: '',
+    duration: '',
+    type: ''
+  });
 
   const availableSlots = [
     '10:00', '11:00', '12:00', '13:00', '15:00', '17:00', '18:00', '19:00', '20:00'
@@ -60,6 +71,33 @@ const AgendaPage = () => {
     }
   };
 
+  const handleCreateAppointment = () => {
+    if (!selectedDate || !newAppointment.client || !newAppointment.time || !newAppointment.duration) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    const appointment: Appointment = {
+      id: Date.now().toString(),
+      date: selectedDate,
+      time: newAppointment.time,
+      duration: parseInt(newAppointment.duration),
+      client: newAppointment.client,
+      status: 'pending',
+      type: newAppointment.type || `${newAppointment.duration} min`
+    };
+
+    setAppointments([...appointments, appointment]);
+    setNewAppointment({ client: '', time: '', duration: '', type: '' });
+    setIsDialogOpen(false);
+    toast.success('Compromisso criado com sucesso!');
+  };
+
+  const handleTimeSlotClick = (time: string) => {
+    setNewAppointment(prev => ({ ...prev, time }));
+    setIsDialogOpen(true);
+  };
+
   const dayAppointments = getDayAppointments(selectedDate);
 
   return (
@@ -76,10 +114,77 @@ const AgendaPage = () => {
               <p className="text-zinc-400 text-xs">Gerencie seus horários</p>
             </div>
           </div>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-1" />
-            Novo
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Novo Compromisso</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client">Cliente</Label>
+                  <Input
+                    id="client"
+                    value={newAppointment.client}
+                    onChange={(e) => setNewAppointment(prev => ({ ...prev, client: e.target.value }))}
+                    placeholder="Nome do cliente"
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="time">Horário</Label>
+                  <Select value={newAppointment.time} onValueChange={(value) => setNewAppointment(prev => ({ ...prev, time: value }))}>
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Selecione o horário" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      {availableSlots.filter(slot => !dayAppointments.some(apt => apt.time === slot)).map((slot) => (
+                        <SelectItem key={slot} value={slot} className="text-white focus:bg-zinc-700">
+                          {slot}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Duração</Label>
+                  <Select value={newAppointment.duration} onValueChange={(value) => setNewAppointment(prev => ({ ...prev, duration: value, type: value === '60' ? '1 hora' : value === '120' ? '2 horas' : value === '180' ? '3 horas' : `${value} min` }))}>
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Selecione a duração" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="60" className="text-white focus:bg-zinc-700">1 hora</SelectItem>
+                      <SelectItem value="120" className="text-white focus:bg-zinc-700">2 horas</SelectItem>
+                      <SelectItem value="180" className="text-white focus:bg-zinc-700">3 horas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleCreateAppointment}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Criar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -91,7 +196,7 @@ const AgendaPage = () => {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border-0"
+              className="rounded-md border-0 text-white [&_button]:text-white [&_button:hover]:bg-zinc-700 [&_[aria-selected='true']]:bg-blue-600 [&_[aria-selected='true']]:text-white [&_.rdp-day_today]:bg-zinc-700 [&_.rdp-day_today]:text-white [&_.rdp-head_cell]:text-zinc-400"
               locale={ptBR}
             />
           </CardContent>
@@ -158,10 +263,11 @@ const AgendaPage = () => {
                         variant={isBooked ? "secondary" : "outline"}
                         size="sm"
                         disabled={isBooked}
+                        onClick={() => !isBooked && handleTimeSlotClick(slot)}
                         className={`text-xs ${
                           isBooked 
                             ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
-                            : 'border-zinc-600 text-zinc-300 hover:bg-zinc-800'
+                            : 'border-zinc-600 text-zinc-300 hover:bg-zinc-800 cursor-pointer'
                         }`}
                       >
                         {slot}
