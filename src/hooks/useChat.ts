@@ -43,7 +43,9 @@ export const useIsUserModel = () => {
 };
 
 // Funções helper para exibição de conversas
-export const getConversationDisplayName = (conversation: Conversation, isModel: boolean) => {
+export const getConversationDisplayName = (conversation: Conversation | undefined, isModel: boolean) => {
+  if (!conversation) return 'Carregando...';
+  
   if (isModel) {
     // Se for modelo, mostrar nome do cliente
     return conversation.client_info?.name || conversation.client_info?.email || 'Cliente';
@@ -53,7 +55,9 @@ export const getConversationDisplayName = (conversation: Conversation, isModel: 
   }
 };
 
-export const getConversationDisplayPhoto = (conversation: Conversation, isModel: boolean) => {
+export const getConversationDisplayPhoto = (conversation: Conversation | undefined, isModel: boolean) => {
+  if (!conversation) return '/placeholder.svg';
+  
   if (isModel) {
     // Se for modelo, não há foto do cliente ainda, usar placeholder
     return '/placeholder.svg';
