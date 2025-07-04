@@ -160,7 +160,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
   const sectionsByData = organizeFieldsBySection();
 
   return (
-    <div className="fixed inset-0 bg-zinc-950 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-zinc-950 z-50 overflow-y-auto pb-20 md:pb-0">
       <div className="min-h-screen bg-zinc-950 text-zinc-100">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
