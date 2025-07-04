@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, MessageCircle, Settings } from 'lucide-react';
+import { Home, Film, MessageSquare, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BottomNavigationItem {
@@ -14,15 +14,21 @@ interface BottomNavigationItem {
 
 const navigationItems: BottomNavigationItem[] = [
   {
-    id: 'feed',
-    label: 'Feed',
+    id: 'home',
+    label: 'Início',
     icon: Home,
-    path: '/chat-feed',
+    path: '/',
   },
   {
-    id: 'conversations',
-    label: 'Conversas',
-    icon: MessageCircle,
+    id: 'reels',
+    label: 'Reels',
+    icon: Film,
+    path: '/reels',
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    icon: MessageSquare,
     path: '/chat',
   },
   {
