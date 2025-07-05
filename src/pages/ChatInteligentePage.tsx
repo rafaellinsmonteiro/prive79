@@ -10,14 +10,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 
 const ChatInteligentePage = () => {
-  const { user, loading, authComplete } = useAuth();
+  const { user } = useAuth();
   const { messages, isLoading, sendMessage, startNewSession } = useOpenAIChat();
-  
-  // Debug log
-  console.log('ChatInteligentePage - user:', !!user, user?.email, 'loading:', loading, 'authComplete:', authComplete);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -30,20 +32,6 @@ const ChatInteligentePage = () => {
       startNewSession();
     }
   }, [messages.length, startNewSession]);
-
-  // Show loading while auth is not complete
-  if (loading || !authComplete) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center">
-        <div className="text-foreground">Carregando...</div>
-      </div>
-    );
-  }
-
-  // Redirect to login if not authenticated
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
