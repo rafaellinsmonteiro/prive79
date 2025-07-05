@@ -37,7 +37,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat', '/chat-feed', '/mobile-chat', '/model-dashboard', '/agenda', '/clientes', '/servicos'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat', '/chat-feed', '/mobile-chat'];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
 
   if (loading) {

@@ -121,28 +121,6 @@ const ModelDashboard = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-semibold text-sm">{profile.models?.name}</h1>
-              <p className="text-zinc-400 text-xs">Dashboard</p>
-            </div>
-          </div>
-          <Button
-            onClick={handleSignOut}
-            variant="ghost"
-            size="sm"
-            className="text-zinc-400 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
 
       {/* Mobile Navigation Tabs */}
       <div className="bg-zinc-900 border-b border-zinc-800 overflow-x-auto">

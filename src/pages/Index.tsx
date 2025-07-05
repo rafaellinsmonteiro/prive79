@@ -4,7 +4,6 @@ import { useCity } from "@/contexts/CityContext";
 import { useModelProfile } from "@/hooks/useModelProfile";
 import { useAuth } from "@/hooks/useAuth";
 import ModelCard from "@/components/ModelCard";
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, MessageCircle, Image, BarChart3 } from "lucide-react";
@@ -36,9 +35,8 @@ const Index = () => {
   }
   // Se o usuário é uma modelo logada, mostrar dashboard em vez da vitrine
   if (user && modelProfile) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100">
-        <Header />
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
         
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
@@ -123,7 +121,6 @@ const Index = () => {
   // Se é um cliente ou usuário não-modelo, mostrar a vitrine normalmente
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <Header />
       
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">

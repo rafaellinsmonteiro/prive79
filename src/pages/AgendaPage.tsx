@@ -305,18 +305,10 @@ const AgendaPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <CalendarDays className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-semibold text-sm">Agenda</h1>
-              <p className="text-zinc-400 text-xs">{filteredAppointments.length} agendamentos</p>
-            </div>
-          </div>
+      <div className="p-4">
+        {/* Botão para novo agendamento */}
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-white text-lg font-semibold">Agenda</h1>
           <div className="flex items-center space-x-2">
             <Button
               onClick={() => handleOpenModal()}
@@ -326,44 +318,9 @@ const AgendaPage = () => {
               <Plus className="h-4 w-4 mr-1" />
               Novo
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-zinc-400">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-zinc-800 border-zinc-700 z-50">
-                <DropdownMenuItem 
-                  onClick={() => setFilterStatus('all')}
-                  className="text-white focus:bg-zinc-700"
-                >
-                  Todos
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setFilterStatus('confirmed')}
-                  className="text-white focus:bg-zinc-700"
-                >
-                  Confirmados
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setFilterStatus('pending')}
-                  className="text-white focus:bg-zinc-700"
-                >
-                  Pendentes
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setFilterStatus('cancelled')}
-                  className="text-white focus:bg-zinc-700"
-                >
-                  Cancelados
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
-      </div>
-
-      <div className="p-4">
+        
         {/* Search */}
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />

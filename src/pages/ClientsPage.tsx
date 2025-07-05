@@ -212,63 +212,22 @@ const ClientsPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <Users className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-semibold text-sm">Meus Clientes</h1>
-              <p className="text-zinc-400 text-xs">{filteredClients.length} clientes</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => handleOpenModal()}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Novo Cliente
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-zinc-400">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
-              <DropdownMenuItem 
-                onClick={() => setFilterStatus('all')}
-                className="text-white focus:bg-zinc-700"
-              >
-                Todos
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setFilterStatus('active')}
-                className="text-white focus:bg-zinc-700"
-              >
-                Ativos
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setFilterStatus('vip')}
-                className="text-white focus:bg-zinc-700"
-              >
-                VIP
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setFilterStatus('inactive')}
-                className="text-white focus:bg-zinc-700"
-              >
-                Inativos
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
       <div className="p-4">
+        {/* Botão para novo cliente */}
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-white text-lg font-semibold">Meus Clientes</h1>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => handleOpenModal()}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Novo Cliente
+            </Button>
+          </div>
+        </div>
+        
         {/* Search */}
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
