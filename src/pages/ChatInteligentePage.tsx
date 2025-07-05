@@ -19,6 +19,18 @@ const ChatInteligentePage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Start new session on component mount
+  useEffect(() => {
+    if (messages.length === 0) {
+      startNewSession();
+    }
+  }, [messages.length, startNewSession]);
+
   // Show loading while auth is not complete
   if (loading || !authComplete) {
     return (
@@ -32,18 +44,6 @@ const ChatInteligentePage = () => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-
-  // Auto scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Start new session on component mount
-  useEffect(() => {
-    if (messages.length === 0) {
-      startNewSession();
-    }
-  }, [messages.length, startNewSession]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
