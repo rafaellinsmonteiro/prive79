@@ -27,6 +27,7 @@ import ModelDashboard from "./pages/ModelDashboard";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
+import ChatInteligentePage from "./pages/ChatInteligentePage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -107,6 +108,12 @@ const AppContent = () => {
             path="/mobile-chat" 
             element={
               user ? <MobileChatPage /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/chat-inteligente" 
+            element={
+              user ? <ChatInteligentePage /> : <Navigate to="/login" replace />
             } 
           />
           
