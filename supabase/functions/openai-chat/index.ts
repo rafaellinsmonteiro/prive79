@@ -2,10 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-const openAIApiKey = Deno.env.get('OPEN_AI_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -17,11 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Edge function called, method:', req.method);
+    console.log('OpenAI Chat function called');
     
+    const openAIApiKey = Deno.env.get('OPEN_AI_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    console.log('Environment check:', {
+      hasOpenAI: !!openAIApiKey,
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey
+    });
+
+    if (!openAIApiKey) {
+      throw new Error('OPEN_AI_KEY não configurada');
+    }
+
     const body = await req.json();
-    console.log('Request body:', body);
-    
     const { message, conversationHistory = [] } = body;
     
     if (!message) {
@@ -29,58 +37,45 @@ serve(async (req) => {
     }
 
     console.log('Processing message:', message);
-    console.log('OpenAI API Key available:', !!openAIApiKey);
-
-    if (!openAIApiKey) {
-      throw new Error('OPEN_AI_KEY não configurada nas secrets');
-    }
 
     // Criar cliente Supabase
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    // Buscar dados atuais de modelos, categorias e cidades
-    const [modelsRes, categoriesRes, citiesRes] = await Promise.all([
-      supabase.from('models').select(`
-        id, name, age, city, city_id, height, weight, bust, waist, hip, 
-        cabelo, olhos, etnia, description, whatsapp_number, is_active,
+    // Buscar modelos
+    const { data: models, error: modelsError } = await supabase
+      .from('models')
+      .select(`
+        id, name, age, city, height, weight, 
+        cabelo, olhos, etnia, description, 
         "1hora", "2horas", "3horas", pernoite, diaria
-      `).eq('is_active', true),
-      supabase.from('categories').select('id, name').order('display_order'),
-      supabase.from('cities').select('id, name, state').eq('is_active', true).order('name')
-    ]);
+      `)
+      .eq('is_active', true)
+      .limit(10);
 
-    const models = modelsRes.data || [];
-    const categories = categoriesRes.data || [];
-    const cities = citiesRes.data || [];
+    if (modelsError) {
+      console.error('Error fetching models:', modelsError);
+      throw new Error('Erro ao buscar modelos');
+    }
 
-    console.log(`Found ${models.length} models, ${categories.length} categories, ${cities.length} cities`);
+    console.log(`Found ${models?.length || 0} models`);
 
-    // Prompt especializado para busca de modelos
-    const systemPrompt = `Você é um assistente especializado em conectar clientes com modelos/acompanhantes. Sua função é entender as preferências do usuário e encontrar as melhores opções.
+    // Prompt para IA
+    const systemPrompt = `Você é um assistente especializado em conectar clientes com modelos/acompanhantes.
 
-DADOS DISPONÍVEIS:
-Modelos: ${JSON.stringify(models.slice(0, 10))} (mostrando apenas 10 primeiros como exemplo)
-Categorias: ${JSON.stringify(categories)}
-Cidades: ${JSON.stringify(cities)}
+MODELOS DISPONÍVEIS:
+${JSON.stringify(models, null, 2)}
 
 INSTRUÇÕES:
-1. Analise a mensagem do usuário para extrair critérios como: idade, altura, cor de cabelo, cor dos olhos, cidade, disponibilidade, preços, serviços específicos
-2. Busque modelos que correspondam aos critérios mencionados
-3. Apresente as opções de forma amigável e detalhada
-4. Se não houver critérios específicos, faça perguntas para entender melhor as preferências
-5. Sempre seja respeitoso e profissional
-6. Forneça informações úteis como preços, localização e como entrar em contato
+1. Analise a mensagem do usuário para extrair critérios como altura, idade, cor de cabelo, cidade, preços, etc.
+2. Busque nas modelos disponíveis aquelas que melhor correspondem aos critérios
+3. Apresente 2-3 opções principais de forma amigável e detalhada
+4. Inclua informações relevantes como preços e características
+5. Seja respeitoso e profissional
+6. Responda sempre em português brasileiro
 
-FORMATO DE RESPOSTA:
-- Seja conversacional e natural
-- Se encontrar modelos, apresente 2-3 opções principais
-- Inclua informações relevantes de cada modelo
-- Ofereça opções para refinar a busca
-- Se necessário, faça perguntas para esclarecer preferências
+Se o usuário não fornecer critérios específicos, faça perguntas para entender melhor suas preferências.`;
 
-Responda sempre em português brasileiro.`;
-
-    // Construir histórico da conversa
+    // Construir mensagens para OpenAI
     const messages = [
       { role: 'system', content: systemPrompt },
       ...conversationHistory.map((msg: any) => ({
@@ -90,7 +85,7 @@ Responda sempre em português brasileiro.`;
       { role: 'user', content: message }
     ];
 
-    console.log('Sending request to OpenAI...');
+    console.log('Calling OpenAI API...');
 
     // Chamar OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -108,24 +103,24 @@ Responda sempre em português brasileiro.`;
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    console.log('OpenAI response received');
+    console.log('AI response generated successfully');
 
-    // Extrair modelos mencionados na resposta (opcional, para uso futuro)
-    const extractedModels = models.filter(model => 
+    // Tentar extrair modelos mencionados na resposta
+    const mentionedModels = models?.filter(model => 
       aiResponse.toLowerCase().includes(model.name.toLowerCase())
-    ).slice(0, 3);
+    ).slice(0, 3) || [];
 
     return new Response(JSON.stringify({
       response: aiResponse,
-      suggestedModels: extractedModels,
+      suggestedModels: mentionedModels,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
