@@ -87,25 +87,56 @@ Se o usuário não fornecer critérios específicos, faça perguntas para entend
 
     console.log('Calling OpenAI API...');
 
-    // Chamar OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
+    // Chamar OpenAI com retry logic
+    let response;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 1000,
+          }),
+        });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+        if (response.ok) {
+          break; // Success, exit retry loop
+        }
+        
+        if (response.status === 429) {
+          console.log(`Rate limit hit, retry ${retryCount + 1}/${maxRetries + 1}`);
+          if (retryCount < maxRetries) {
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+            retryCount++;
+            continue;
+          } else {
+            throw new Error('Rate limit exceeded. Tente novamente em alguns minutos.');
+          }
+        }
+        
+        // Other HTTP errors
+        const errorText = await response.text();
+        console.error('OpenAI API error:', errorText);
+        throw new Error(`OpenAI API error: ${response.status}`);
+        
+      } catch (error) {
+        if (retryCount >= maxRetries) {
+          throw error;
+        }
+        retryCount++;
+        console.log(`Request failed, retry ${retryCount}/${maxRetries + 1}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
     const data = await response.json();
