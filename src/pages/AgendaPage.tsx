@@ -227,7 +227,7 @@ const AgendaPage = () => {
   };
 
   const handleSaveAppointment = () => {
-    if (!formData.client.trim() || !formData.service.trim() || !formData.date || !formData.time || !formData.location.trim()) {
+    if (!formData.client.trim() || !formData.service.trim() || !formData.date || !formData.time) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -627,19 +627,17 @@ const AgendaPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Local *</Label>
-              <Select value={formData.location} onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Selecione o local" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
-                  {locations.map((location) => (
-                    <SelectItem key={location} value={location} className="text-white focus:bg-zinc-700">
-                      {location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="location">Local</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="Ex: Hotel, Domicílio, Restaurante..."
+                  className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
