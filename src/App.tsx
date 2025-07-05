@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { CityProvider } from "@/contexts/CityContext";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/ui/bottom-navigation";
-import DesktopSidebar from "@/components/ui/desktop-sidebar";
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -50,11 +49,8 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Show desktop sidebar only for logged in users */}
-      {user && <DesktopSidebar />}
-      
-      {/* Main content with left margin on desktop when user is logged in */}
-      <div className={user ? "md:ml-20 pb-20 md:pb-0" : ""}>
+      {/* Main content without sidebar */}
+      <div className="pb-20 md:pb-0">
         {/* Conditionally show header */}
         {!shouldHideHeader && <Header />}
         

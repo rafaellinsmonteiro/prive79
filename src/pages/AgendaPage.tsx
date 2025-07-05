@@ -110,8 +110,7 @@ const AgendaPage = () => {
 
   const totalAppointments = appointments.length;
   const totalRevenue = appointments
-    .filter(apt => apt.status === 'confirmed')
-    .reduce((sum, apt) => sum + apt.price, 0);
+    .reduce((sum, apt) => sum + (apt.total_paid || 0), 0);
   const todayAppointments = appointments.filter(apt => 
     format(new Date(apt.appointment_date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
   ).length;
