@@ -20,49 +20,12 @@ import {
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-
-interface Service {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  duration: number; // em minutos
-  isActive: boolean;
-  createdAt: Date;
-}
+import { useServices, Service } from '@/hooks/useServices';
 
 const ServicesPage = () => {
+  const { services, isLoading, createService, updateService, deleteService } = useServices();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: '1',
-      name: 'Corte + Escova',
-      description: 'Corte de cabelo profissional com escova modeladora',
-      price: 150,
-      duration: 90,
-      isActive: true,
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Massagem Relaxante',
-      description: 'Massagem completa para relaxamento total',
-      price: 200,
-      duration: 60,
-      isActive: true,
-      createdAt: new Date('2024-01-10')
-    },
-    {
-      id: '3',
-      name: 'Companhia VIP',
-      description: 'Acompanhamento para eventos especiais',
-      price: 500,
-      duration: 120,
-      isActive: false,
-      createdAt: new Date('2024-01-08')
-    }
-  ]);
 
   // Estados para modal de edição/criação
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,7 +35,7 @@ const ServicesPage = () => {
     description: '',
     price: 0,
     duration: 60,
-    isActive: true
+    is_active: true
   });
 
   const getStatusColor = (isActive: boolean) => {
@@ -86,8 +49,8 @@ const ServicesPage = () => {
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || 
-      (filterStatus === 'active' && service.isActive) ||
-      (filterStatus === 'inactive' && !service.isActive);
+      (filterStatus === 'active' && service.is_active) ||
+      (filterStatus === 'inactive' && !service.is_active);
     return matchesSearch && matchesFilter;
   });
 
@@ -104,7 +67,7 @@ const ServicesPage = () => {
         description: service.description || '',
         price: service.price,
         duration: service.duration,
-        isActive: service.isActive
+        is_active: service.is_active
       });
     } else {
       setEditingService(null);
@@ -113,13 +76,13 @@ const ServicesPage = () => {
         description: '',
         price: 0,
         duration: 60,
-        isActive: true
+        is_active: true
       });
     }
     setIsModalOpen(true);
   };
 
-  const handleSaveService = () => {
+  const handleSaveService = async () => {
     if (!formData.name.trim()) {
       toast.error('Nome do serviço é obrigatório');
       return;
@@ -130,54 +93,53 @@ const ServicesPage = () => {
       return;
     }
 
-    if (editingService) {
-      // Editar serviço existente
-      setServices(services.map(service => 
-        service.id === editingService.id 
-          ? {
-              ...service,
-              name: formData.name,
-              description: formData.description,
-              price: formData.price,
-              duration: formData.duration,
-              isActive: formData.isActive
-            }
-          : service
-      ));
-      toast.success('Serviço atualizado com sucesso!');
-    } else {
-      // Criar novo serviço
-      const newService: Service = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        duration: formData.duration,
-        isActive: formData.isActive,
-        createdAt: new Date()
-      };
-      setServices([...services, newService]);
-      toast.success('Serviço criado com sucesso!');
+    try {
+      if (editingService) {
+        await updateService.mutateAsync({
+          id: editingService.id,
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          duration: formData.duration,
+          is_active: formData.is_active
+        });
+      } else {
+        await createService.mutateAsync({
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          duration: formData.duration,
+          is_active: formData.is_active
+        });
+      }
+
+      setIsModalOpen(false);
+      setEditingService(null);
+    } catch (error) {
+      console.error('Error saving service:', error);
     }
-
-    setIsModalOpen(false);
-    setEditingService(null);
   };
 
-  const handleDuplicateService = (service: Service) => {
-    const duplicatedService: Service = {
-      ...service,
-      id: Date.now().toString(),
-      name: `${service.name} (Cópia)`,
-      createdAt: new Date()
-    };
-    setServices([...services, duplicatedService]);
-    toast.success('Serviço duplicado com sucesso!');
+  const handleDuplicateService = async (service: Service) => {
+    try {
+      await createService.mutateAsync({
+        name: `${service.name} (Cópia)`,
+        description: service.description,
+        price: service.price,
+        duration: service.duration,
+        is_active: service.is_active
+      });
+    } catch (error) {
+      console.error('Error duplicating service:', error);
+    }
   };
 
-  const handleDeleteService = (serviceId: string) => {
-    setServices(services.filter(service => service.id !== serviceId));
-    toast.success('Serviço removido com sucesso!');
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      await deleteService.mutateAsync(serviceId);
+    } catch (error) {
+      console.error('Error deleting service:', error);
+    }
   };
 
   const formatDuration = (minutes: number) => {
@@ -259,9 +221,9 @@ const ServicesPage = () => {
                         {service.name}
                       </h3>
                       <Badge 
-                        className={`${getStatusColor(service.isActive)} text-white text-xs px-2 py-0.5`}
+                        className={`${getStatusColor(service.is_active)} text-white text-xs px-2 py-0.5`}
                       >
-                        {getStatusLabel(service.isActive)}
+                        {getStatusLabel(service.is_active)}
                       </Badge>
                     </div>
                     
@@ -409,8 +371,8 @@ const ServicesPage = () => {
               <input
                 type="checkbox"
                 id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                checked={formData.is_active}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
                 className="rounded border-zinc-700 bg-zinc-800 text-pink-600 focus:ring-pink-500"
               />
               <Label htmlFor="isActive" className="text-sm">
