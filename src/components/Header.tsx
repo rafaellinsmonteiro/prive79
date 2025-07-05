@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, Star, LogOut } from "lucide-react";
+import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, Star, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +33,10 @@ const Header = () => {
     label: 'Chat',
     icon: MessageCircle,
     path: '/chat'
+  }, {
+    label: 'Chat Inteligente',
+    icon: Sparkles,
+    path: '/chat-inteligente'
   }, {
     label: 'Serviços',
     icon: Star,
