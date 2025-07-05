@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const openAIApiKey = Deno.env.get('OPEN_AI_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -17,13 +17,23 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory = [] } = await req.json();
+    console.log('Edge function called, method:', req.method);
+    
+    const body = await req.json();
+    console.log('Request body:', body);
+    
+    const { message, conversationHistory = [] } = body;
     
     if (!message) {
       throw new Error('Mensagem é obrigatória');
     }
 
     console.log('Processing message:', message);
+    console.log('OpenAI API Key available:', !!openAIApiKey);
+
+    if (!openAIApiKey) {
+      throw new Error('OPEN_AI_KEY não configurada nas secrets');
+    }
 
     // Criar cliente Supabase
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
