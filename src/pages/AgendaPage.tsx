@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
 import { 
   CalendarDays, 
   Search, 
@@ -18,13 +19,15 @@ import {
   Edit,
   Copy,
   Trash2,
-  MapPin
+  MapPin,
+  CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useAppointments, Appointment } from '@/hooks/useAppointments';
 import { useClientOptions, useServiceOptions } from '@/hooks/useSelectOptions';
+import { usePayments } from '@/hooks/usePayments';
 
 const AgendaPage = () => {
   const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -36,6 +39,13 @@ const AgendaPage = () => {
   // Estados para modal de edição/criação
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    amount: 0,
+    payment_method: '',
+    notes: ''
+  });
+  const { payments, createPayment, deletePayment, totalPaid } = usePayments(editingAppointment?.id);
   const [formData, setFormData] = useState({
     client_id: '',
     service_id: '',
@@ -44,6 +54,7 @@ const AgendaPage = () => {
     duration: 60,
     price: 0,
     status: 'pending' as 'confirmed' | 'pending' | 'cancelled',
+    payment_status: 'pending' as 'pending' | 'partial' | 'paid',
     location: '',
     observations: ''
   });
@@ -66,6 +77,24 @@ const AgendaPage = () => {
       case 'confirmed': return 'Confirmado';
       case 'pending': return 'Pendente';
       case 'cancelled': return 'Cancelado';
+      default: return 'Desconhecido';
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-500';
+      case 'partial': return 'bg-yellow-500';
+      case 'pending': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getPaymentStatusLabel = (status: string) => {
+    switch (status) {
+      case 'paid': return 'Pago';
+      case 'partial': return 'Parcial';
+      case 'pending': return 'Pendente';
       default: return 'Desconhecido';
     }
   };
@@ -110,6 +139,7 @@ const AgendaPage = () => {
         duration: appointment.duration,
         price: appointment.price,
         status: appointment.status,
+        payment_status: appointment.payment_status,
         location: appointment.location || '',
         observations: appointment.observations || ''
       });
@@ -123,6 +153,7 @@ const AgendaPage = () => {
         duration: 60,
         price: 0,
         status: 'pending',
+        payment_status: 'pending',
         location: '',
         observations: ''
       });
@@ -136,8 +167,8 @@ const AgendaPage = () => {
       return;
     }
 
-    if (formData.price <= 0) {
-      toast.error('Preço deve ser maior que zero');
+    if (formData.price < 0) {
+      toast.error('Preço não pode ser negativo');
       return;
     }
 
@@ -162,6 +193,37 @@ const AgendaPage = () => {
       await deleteAppointment.mutateAsync(appointmentId);
     } catch (error) {
       console.error('Error deleting appointment:', error);
+    }
+  };
+
+  const handleOpenPaymentModal = (appointment: Appointment) => {
+    setEditingAppointment(appointment);
+    setPaymentFormData({
+      amount: 0,
+      payment_method: '',
+      notes: ''
+    });
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleAddPayment = async () => {
+    if (!editingAppointment || paymentFormData.amount <= 0) {
+      toast.error('Valor do pagamento deve ser maior que zero');
+      return;
+    }
+
+    try {
+      await createPayment.mutateAsync({
+        appointment_id: editingAppointment.id,
+        amount: paymentFormData.amount,
+        payment_date: new Date().toISOString(),
+        payment_method: paymentFormData.payment_method,
+        notes: paymentFormData.notes
+      });
+      setIsPaymentModalOpen(false);
+      setPaymentFormData({ amount: 0, payment_method: '', notes: '' });
+    } catch (error) {
+      console.error('Error adding payment:', error);
     }
   };
 
@@ -254,6 +316,9 @@ const AgendaPage = () => {
                       <Badge className={`${getStatusColor(appointment.status)} text-white text-xs px-2 py-0.5`}>
                         {getStatusLabel(appointment.status)}
                       </Badge>
+                      <Badge className={`${getPaymentStatusColor(appointment.payment_status)} text-white text-xs px-2 py-0.5`}>
+                        {getPaymentStatusLabel(appointment.payment_status)}
+                      </Badge>
                     </div>
                     
                     <p className="text-zinc-400 text-xs mb-2">
@@ -271,6 +336,11 @@ const AgendaPage = () => {
                         <DollarSign className="h-3 w-3 text-green-500" />
                         <span className="text-green-500 text-xs font-medium">
                           R$ {appointment.price.toFixed(2)}
+                          {appointment.total_paid && appointment.total_paid > 0 && (
+                            <span className="text-blue-400 ml-1">
+                              (Pago: R$ {appointment.total_paid.toFixed(2)})
+                            </span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -293,6 +363,10 @@ const AgendaPage = () => {
                       <DropdownMenuItem onClick={() => handleOpenModal(appointment)} className="text-white focus:bg-zinc-700">
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleOpenPaymentModal(appointment)} className="text-blue-400 focus:bg-zinc-700">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Pagamentos
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteAppointment(appointment.id)} className="text-red-400 focus:bg-zinc-700">
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -428,6 +502,119 @@ const AgendaPage = () => {
               </Button>
               <Button onClick={handleSaveAppointment} className="flex-1 bg-blue-600 hover:bg-blue-700">
                 {editingAppointment ? 'Atualizar' : 'Criar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Modal */}
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Pagamentos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {editingAppointment && (
+              <div className="p-3 bg-zinc-800 rounded-lg">
+                <p className="text-sm font-medium">{editingAppointment.client?.name}</p>
+                <p className="text-xs text-zinc-400">{editingAppointment.service?.name}</p>
+                <p className="text-sm mt-1">
+                  <span className="text-zinc-400">Total: </span>
+                  <span className="text-green-500 font-medium">R$ {editingAppointment.price.toFixed(2)}</span>
+                </p>
+                <p className="text-sm">
+                  <span className="text-zinc-400">Pago: </span>
+                  <span className="text-blue-400 font-medium">R$ {totalPaid.toFixed(2)}</span>
+                </p>
+                <p className="text-sm">
+                  <span className="text-zinc-400">Restante: </span>
+                  <span className="text-orange-400 font-medium">
+                    R$ {Math.max(0, editingAppointment.price - totalPaid).toFixed(2)}
+                  </span>
+                </p>
+              </div>
+            )}
+
+            {payments.length > 0 && (
+              <div className="space-y-2">
+                <Label>Pagamentos Anteriores</Label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {payments.map((payment) => (
+                    <div key={payment.id} className="flex justify-between items-center p-2 bg-zinc-800 rounded text-sm">
+                      <div>
+                        <span className="text-green-400">R$ {payment.amount.toFixed(2)}</span>
+                        {payment.payment_method && (
+                          <span className="text-zinc-400 ml-2">({payment.payment_method})</span>
+                        )}
+                        <p className="text-xs text-zinc-500">
+                          {format(new Date(payment.payment_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deletePayment.mutateAsync(payment.id)}
+                        className="text-red-400 hover:text-red-300 h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Separator className="bg-zinc-700" />
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <Label>Adicionar Pagamento</Label>
+              
+              <div className="space-y-2">
+                <Label>Valor *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={paymentFormData.amount}
+                  onChange={(e) => setPaymentFormData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Forma de Pagamento</Label>
+                <Select value={paymentFormData.payment_method} onValueChange={(value) => setPaymentFormData(prev => ({ ...prev, payment_method: value }))}>
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder="Selecione a forma" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="dinheiro" className="text-white focus:bg-zinc-700">Dinheiro</SelectItem>
+                    <SelectItem value="pix" className="text-white focus:bg-zinc-700">PIX</SelectItem>
+                    <SelectItem value="cartao" className="text-white focus:bg-zinc-700">Cartão</SelectItem>
+                    <SelectItem value="transferencia" className="text-white focus:bg-zinc-700">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Observações</Label>
+                <Textarea
+                  value={paymentFormData.notes}
+                  onChange={(e) => setPaymentFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
+                  placeholder="Observações sobre o pagamento..."
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button variant="outline" onClick={() => setIsPaymentModalOpen(false)} className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+                Fechar
+              </Button>
+              <Button onClick={handleAddPayment} className="flex-1 bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar
               </Button>
             </div>
           </div>

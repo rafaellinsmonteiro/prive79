@@ -12,6 +12,7 @@ export interface Appointment {
   duration: number;
   price: number;
   status: 'confirmed' | 'pending' | 'cancelled';
+  payment_status: 'pending' | 'partial' | 'paid';
   location?: string;
   observations?: string;
   created_at: string;
@@ -28,6 +29,8 @@ export interface Appointment {
     price: number;
     duration: number;
   };
+  // Dados de pagamento calculados
+  total_paid?: number;
 }
 
 export const useAppointments = () => {
@@ -49,7 +52,7 @@ export const useAppointments = () => {
 
       if (!profile) throw new Error('Perfil de modelo não encontrado');
 
-      const { data, error } = await supabase
+      const { data: appointmentsData, error } = await supabase
         .from('appointments')
         .select(`
           *,
@@ -60,7 +63,32 @@ export const useAppointments = () => {
         .order('appointment_date', { ascending: true });
 
       if (error) throw error;
-      return data as Appointment[];
+
+      // Buscar pagamentos para cada agendamento
+      const appointmentsWithPayments = await Promise.all(
+        appointmentsData.map(async (appointment) => {
+          const { data: paymentsData } = await supabase
+            .from('payments')
+            .select('amount')
+            .eq('appointment_id', appointment.id);
+
+          const totalPaid = paymentsData?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+          
+          // Calcular status de pagamento
+          let paymentStatus: 'pending' | 'partial' | 'paid' = 'pending';
+          if (totalPaid > 0) {
+            paymentStatus = totalPaid >= appointment.price ? 'paid' : 'partial';
+          }
+
+          return {
+            ...appointment,
+            payment_status: paymentStatus,
+            total_paid: totalPaid,
+          };
+        })
+      );
+
+      return appointmentsWithPayments as Appointment[];
     },
   });
 

@@ -47,6 +47,7 @@ export type Database = {
           location: string | null
           model_id: string
           observations: string | null
+          payment_status: string
           price: number
           service_id: string
           status: string
@@ -62,6 +63,7 @@ export type Database = {
           location?: string | null
           model_id: string
           observations?: string | null
+          payment_status?: string
           price?: number
           service_id: string
           status?: string
@@ -77,6 +79,7 @@ export type Database = {
           location?: string | null
           model_id?: string
           observations?: string | null
+          payment_status?: string
           price?: number
           service_id?: string
           status?: string
@@ -1006,6 +1009,47 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
         ]
