@@ -58,8 +58,8 @@ const Header = () => {
           )}
           
           <img 
-            src={logo} 
-            alt="VITRINE" 
+            src="/lovable-uploads/70971ded-9507-4b5c-8989-708b248ff733.png" 
+            alt="Privê" 
             className="h-8 w-auto"
           />
         </div>

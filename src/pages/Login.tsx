@@ -80,7 +80,7 @@ const Login = () => {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <a href="/">
-              <img src="/lovable-uploads/97e61247-cb21-4158-8ebe-519e4fbec3e1.png" alt="Privé79 Logo" className="h-10" />
+              <img src="/lovable-uploads/70971ded-9507-4b5c-8989-708b248ff733.png" alt="Privê Logo" className="h-10" />
             </a>
           </div>
           <CardTitle className="text-zinc-100">Entre em sua conta</CardTitle>
