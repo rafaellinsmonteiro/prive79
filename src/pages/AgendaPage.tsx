@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -18,11 +19,25 @@ import {
   Edit,
   Copy,
   Trash2,
-  User
+  User,
+  MapPin
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+
+interface Client {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+}
 
 interface Appointment {
   id: string;
@@ -33,43 +48,66 @@ interface Appointment {
   service: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   price: number;
-  notes?: string;
+  location: string;
+  observations?: string;
 }
 
 const AgendaPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
+  
+  // Dados mockados de clientes
+  const clients: Client[] = [
+    { id: '1', name: 'Maria Silva', phone: '(11) 99999-1111' },
+    { id: '2', name: 'Ana Santos', phone: '(11) 99999-2222' },
+    { id: '3', name: 'Carla Lima', phone: '(11) 99999-3333' },
+    { id: '4', name: 'Julia Costa', phone: '(11) 99999-4444' },
+    { id: '5', name: 'Patricia Oliveira', phone: '(11) 99999-5555' }
+  ];
+
+  // Dados mockados de serviços
+  const services: Service[] = [
+    { id: '1', name: 'Corte + Escova', price: 150, duration: 90 },
+    { id: '2', name: 'Massagem Relaxante', price: 200, duration: 60 },
+    { id: '3', name: 'Companhia VIP', price: 500, duration: 120 },
+    { id: '4', name: 'Jantar Executivo', price: 300, duration: 180 },
+    { id: '5', name: 'Spa Completo', price: 250, duration: 120 }
+  ];
+
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: '1',
       date: new Date(),
       time: '14:00',
-      duration: 60,
+      duration: 90,
       client: 'Maria Silva',
       service: 'Corte + Escova',
       status: 'confirmed',
       price: 150,
-      notes: 'Cliente preferencial'
+      location: 'Domicílio',
+      observations: 'Cliente preferencial'
     },
     {
       id: '2',
       date: new Date(),
       time: '16:00',
-      duration: 120,
+      duration: 60,
       client: 'Ana Santos',
       service: 'Massagem Relaxante',
       status: 'pending',
-      price: 200
+      price: 200,
+      location: 'Hotel'
     },
     {
       id: '3',
       date: new Date(Date.now() + 86400000),
       time: '15:00',
-      duration: 90,
+      duration: 120,
       client: 'Carla Lima',
       service: 'Companhia VIP',
       status: 'confirmed',
-      price: 500
+      price: 500,
+      location: 'Restaurante'
     }
   ]);
 
@@ -84,7 +122,8 @@ const AgendaPage = () => {
     duration: number;
     price: number;
     status: 'confirmed' | 'pending' | 'cancelled';
-    notes: string;
+    location: string;
+    observations: string;
   }>({
     client: '',
     service: '',
@@ -93,11 +132,22 @@ const AgendaPage = () => {
     duration: 60,
     price: 0,
     status: 'pending',
-    notes: ''
+    location: '',
+    observations: ''
   });
 
   const availableSlots = [
     '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
+  ];
+
+  const locations = [
+    'Domicílio',
+    'Hotel',
+    'Motel',
+    'Restaurante',
+    'Com Local',
+    'Escritório',
+    'Evento'
   ];
 
   const getStatusColor = (status: string) => {
@@ -133,6 +183,18 @@ const AgendaPage = () => {
     format(apt.date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
   ).length;
 
+  const handleServiceChange = (serviceId: string) => {
+    const selectedService = services.find(s => s.id === serviceId);
+    if (selectedService) {
+      setFormData(prev => ({
+        ...prev,
+        service: selectedService.name,
+        price: selectedService.price,
+        duration: selectedService.duration
+      }));
+    }
+  };
+
   const handleOpenModal = (appointment?: Appointment) => {
     if (appointment) {
       setEditingAppointment(appointment);
@@ -144,7 +206,8 @@ const AgendaPage = () => {
         duration: appointment.duration,
         price: appointment.price,
         status: appointment.status,
-        notes: appointment.notes || ''
+        location: appointment.location,
+        observations: appointment.observations || ''
       });
     } else {
       setEditingAppointment(null);
@@ -156,14 +219,15 @@ const AgendaPage = () => {
         duration: 60,
         price: 0,
         status: 'pending',
-        notes: ''
+        location: '',
+        observations: ''
       });
     }
     setIsModalOpen(true);
   };
 
   const handleSaveAppointment = () => {
-    if (!formData.client.trim() || !formData.service.trim() || !formData.date || !formData.time) {
+    if (!formData.client.trim() || !formData.service.trim() || !formData.date || !formData.time || !formData.location.trim()) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -186,7 +250,8 @@ const AgendaPage = () => {
               duration: formData.duration,
               price: formData.price,
               status: formData.status,
-              notes: formData.notes
+              location: formData.location,
+              observations: formData.observations
             }
           : apt
       ));
@@ -202,7 +267,8 @@ const AgendaPage = () => {
         duration: formData.duration,
         price: formData.price,
         status: formData.status,
-        notes: formData.notes
+        location: formData.location,
+        observations: formData.observations
       };
       setAppointments([...appointments, newAppointment]);
       toast.success('Agendamento criado com sucesso!');
@@ -266,7 +332,7 @@ const AgendaPage = () => {
                   <Filter className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
+              <DropdownMenuContent className="bg-zinc-800 border-zinc-700 z-50">
                 <DropdownMenuItem 
                   onClick={() => setFilterStatus('all')}
                   className="text-white focus:bg-zinc-700"
@@ -372,7 +438,7 @@ const AgendaPage = () => {
                       {appointment.service}
                     </p>
                     
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 mb-1">
                       <div className="flex items-center space-x-1">
                         <CalendarDays className="h-3 w-3 text-zinc-400" />
                         <span className="text-zinc-400 text-xs">
@@ -392,6 +458,13 @@ const AgendaPage = () => {
                         </span>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-3 w-3 text-zinc-400" />
+                      <span className="text-zinc-400 text-xs">
+                        {appointment.location}
+                      </span>
+                    </div>
                   </div>
 
                   <DropdownMenu>
@@ -404,7 +477,7 @@ const AgendaPage = () => {
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
+                    <DropdownMenuContent className="bg-zinc-800 border-zinc-700 z-50">
                       <DropdownMenuItem 
                         onClick={() => handleOpenModal(appointment)}
                         className="text-white focus:bg-zinc-700"
@@ -447,7 +520,7 @@ const AgendaPage = () => {
 
       {/* Modal de Criar/Editar Agendamento */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -458,25 +531,38 @@ const AgendaPage = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="client">Nome do Cliente *</Label>
-              <Input
-                id="client"
-                value={formData.client}
-                onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
-                placeholder="Ex: Maria Silva"
-                className="bg-zinc-800 border-zinc-700 text-white"
-              />
+              <Label htmlFor="client">Cliente *</Label>
+              <Select value={formData.client} onValueChange={(value) => setFormData(prev => ({ ...prev, client: value }))}>
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.name} className="text-white focus:bg-zinc-700">
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="service">Serviço *</Label>
-              <Input
-                id="service"
-                value={formData.service}
-                onChange={(e) => setFormData(prev => ({ ...prev, service: e.target.value }))}
-                placeholder="Ex: Corte + Escova"
-                className="bg-zinc-800 border-zinc-700 text-white"
-              />
+              <Select 
+                value={services.find(s => s.name === formData.service)?.id || ''} 
+                onValueChange={handleServiceChange}
+              >
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue placeholder="Selecione um serviço" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id} className="text-white focus:bg-zinc-700">
+                      {service.name} - R$ {service.price.toFixed(2)} ({formatDuration(service.duration)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -497,7 +583,7 @@ const AgendaPage = () => {
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Horário" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                  <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
                     {availableSlots.map((slot) => (
                       <SelectItem key={slot} value={slot} className="text-white focus:bg-zinc-700">
                         {slot}
@@ -541,17 +627,44 @@ const AgendaPage = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="location">Local *</Label>
+              <Select value={formData.location} onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}>
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue placeholder="Selecione o local" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
+                  {locations.map((location) => (
+                    <SelectItem key={location} value={location} className="text-white focus:bg-zinc-700">
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value: 'confirmed' | 'pending' | 'cancelled') => setFormData(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
+                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
                   <SelectItem value="pending" className="text-white focus:bg-zinc-700">Pendente</SelectItem>
                   <SelectItem value="confirmed" className="text-white focus:bg-zinc-700">Confirmado</SelectItem>
                   <SelectItem value="cancelled" className="text-white focus:bg-zinc-700">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="observations">Observações</Label>
+              <Textarea
+                id="observations"
+                value={formData.observations}
+                onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
+                placeholder="Observações sobre o agendamento..."
+                className="bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
+              />
             </div>
 
             <div className="flex gap-2 pt-4">
