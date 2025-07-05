@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, MessageSquare, Settings, Users } from 'lucide-react';
+import { Home, CalendarDays, MessageSquare, Settings, Users, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BottomNavigationItem {
@@ -30,6 +30,12 @@ const navigationItems: BottomNavigationItem[] = [
     label: 'Chat',
     icon: MessageSquare,
     path: '/chat',
+  },
+  {
+    id: 'services',
+    label: 'Serviços',
+    icon: Star,
+    path: '/servicos',
   },
   {
     id: 'clients',
