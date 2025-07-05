@@ -12,6 +12,9 @@ import { Navigate } from 'react-router-dom';
 const ChatInteligentePage = () => {
   const { user } = useAuth();
   const { messages, isLoading, sendMessage, startNewSession } = useOpenAIChat();
+  
+  // Debug log
+  console.log('ChatInteligentePage - user:', !!user, user?.email);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
