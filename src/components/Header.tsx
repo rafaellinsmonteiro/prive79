@@ -4,6 +4,7 @@ import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, 
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.png";
 const Header = () => {
   const {
     user,
@@ -55,9 +56,11 @@ const Header = () => {
             </DropdownMenu>
           )}
           
-          <div className="text-xl font-bold text-white">
-            VITRINE
-          </div>
+          <img 
+            src={logo} 
+            alt="VITRINE" 
+            className="h-8 w-auto"
+          />
         </div>
 
         {/* User Info */}
