@@ -43,7 +43,7 @@ const AgendaPage = () => {
     appointment_time: '',
     duration: 60,
     price: 0,
-    status: 'pending' as const,
+    status: 'pending' as 'confirmed' | 'pending' | 'cancelled',
     location: '',
     observations: ''
   });
