@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, Star } from "lucide-react";
+import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, Star, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,8 @@ const Header = () => {
   const {
     user,
     authComplete,
-    loading
+    loading,
+    signOut
   } = useAuth();
   const { data: currentUser } = useCurrentUser();
   const navigate = useNavigate();
@@ -63,14 +64,28 @@ const Header = () => {
           />
         </div>
 
-        {/* User Info */}
+        {/* User Info Dropdown */}
         {user && currentUser && (
-          <div className="flex items-center gap-2 text-zinc-100">
-            <User className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              {currentUser.name || currentUser.email}
-            </span>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 text-zinc-100 hover:bg-zinc-800">
+                <User className="h-5 w-5" />
+                <span className="text-sm font-medium">
+                  {currentUser.name || currentUser.email}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <User className="h-4 w-4 mr-2" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
 
         {/* Login button if not authenticated */}
