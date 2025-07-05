@@ -386,6 +386,42 @@ const AgendaPage = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Valor do Serviço *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Duração (minutos)</Label>
+                <Input
+                  type="number"
+                  value={formData.duration}
+                  onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="60"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea
+                value={formData.observations}
+                onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
+                placeholder="Observações sobre o agendamento..."
+                rows={3}
+              />
+            </div>
+
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800">
                 Cancelar
