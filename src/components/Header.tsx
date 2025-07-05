@@ -4,6 +4,7 @@ import { Menu, MapPin, ChevronDown, LogIn, User, MessageCircle } from "lucide-re
 import { useCities } from "@/hooks/useCities";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCity } from "@/contexts/CityContext";
 import { useNavigate } from "react-router-dom";
 const Header = () => {
@@ -15,6 +16,7 @@ const Header = () => {
     authComplete,
     loading
   } = useAuth();
+  const { data: currentUser } = useCurrentUser();
   const {
     selectedCityId,
     selectedCityName,
@@ -65,8 +67,40 @@ const Header = () => {
 
   // Determine if login icon should be shown
   const shouldShowLoginIcon = !user || !authComplete && !loading;
-  return <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
-      
-    </header>;
+  
+  return (
+    <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" className="p-2">
+            <Menu className="h-5 w-5 text-zinc-100" />
+          </Button>
+          
+          <div className="text-xl font-bold text-white">
+            VITRINE
+          </div>
+        </div>
+
+        {/* User Info */}
+        {user && currentUser && (
+          <div className="flex items-center gap-2 text-zinc-100">
+            <User className="h-5 w-5" />
+            <span className="text-sm font-medium">
+              {currentUser.name || currentUser.email}
+            </span>
+          </div>
+        )}
+
+        {/* Login button if not authenticated */}
+        {shouldShowLoginIcon && (
+          <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
+            <LogIn className="h-4 w-4 mr-2" />
+            Entrar
+          </Button>
+        )}
+      </div>
+    </header>
+  );
 };
 export default Header;
