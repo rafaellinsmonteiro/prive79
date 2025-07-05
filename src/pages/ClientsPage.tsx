@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Users, 
@@ -15,9 +19,12 @@ import {
   UserCheck,
   Clock,
   Heart,
-  Star
+  Star,
+  Plus,
+  Edit
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface Client {
   id: string;
@@ -35,7 +42,7 @@ interface Client {
 const ClientsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'vip'>('all');
-  const [clients] = useState<Client[]>([
+  const [clients, setClients] = useState<Client[]>([
     {
       id: '1',
       name: 'João Silva',
@@ -78,6 +85,17 @@ const ClientsPage = () => {
     }
   ]);
 
+  // Estados para modal de edição/criação
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    status: 'active' as Client['status'],
+    notes: '',
+    favorite: false
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500';
@@ -113,6 +131,85 @@ const ClientsPage = () => {
     return `${Math.ceil(diffDays / 30)} meses atrás`;
   };
 
+  const handleOpenModal = (client?: Client) => {
+    if (client) {
+      setEditingClient(client);
+      setFormData({
+        name: client.name,
+        phone: client.phone,
+        status: client.status,
+        notes: client.notes || '',
+        favorite: client.favorite
+      });
+    } else {
+      setEditingClient(null);
+      setFormData({
+        name: '',
+        phone: '',
+        status: 'active',
+        notes: '',
+        favorite: false
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveClient = () => {
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      toast.error('Nome e telefone são obrigatórios');
+      return;
+    }
+
+    if (editingClient) {
+      // Editar cliente existente
+      setClients(clients.map(client => 
+        client.id === editingClient.id 
+          ? {
+              ...client,
+              name: formData.name,
+              phone: formData.phone,
+              status: formData.status,
+              notes: formData.notes,
+              favorite: formData.favorite
+            }
+          : client
+      ));
+      toast.success('Cliente atualizado com sucesso!');
+    } else {
+      // Criar novo cliente
+      const newClient: Client = {
+        id: Date.now().toString(),
+        name: formData.name,
+        phone: formData.phone, 
+        status: formData.status,
+        lastContact: new Date(),
+        totalSessions: 0,
+        rating: 0,
+        notes: formData.notes,
+        favorite: formData.favorite
+      };
+      setClients([...clients, newClient]);
+      toast.success('Cliente criado com sucesso!');
+    }
+
+    setIsModalOpen(false);
+    setEditingClient(null);
+  };
+
+  const handleToggleFavorite = (clientId: string) => {
+    setClients(clients.map(client => 
+      client.id === clientId 
+        ? { ...client, favorite: !client.favorite }
+        : client
+    ));
+    const client = clients.find(c => c.id === clientId);
+    toast.success(
+      client?.favorite 
+        ? 'Cliente removido dos favoritos' 
+        : 'Cliente adicionado aos favoritos'
+    );
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
       {/* Header */}
@@ -127,6 +224,14 @@ const ClientsPage = () => {
               <p className="text-zinc-400 text-xs">{filteredClients.length} clientes</p>
             </div>
           </div>
+          <Button
+            onClick={() => handleOpenModal()}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Novo Cliente
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-zinc-400">
@@ -293,13 +398,22 @@ const ClientsPage = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
-                        <DropdownMenuItem className="text-white focus:bg-zinc-700">
-                          Ver perfil completo
+                        <DropdownMenuItem 
+                          onClick={() => handleOpenModal(client)}
+                          className="text-white focus:bg-zinc-700"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar cliente
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-white focus:bg-zinc-700">
+                          <Calendar className="h-4 w-4 mr-2" />
                           Agendar compromisso
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-white focus:bg-zinc-700">
+                        <DropdownMenuItem 
+                          onClick={() => handleToggleFavorite(client.id)}
+                          className="text-white focus:bg-zinc-700"
+                        >
+                          <Heart className="h-4 w-4 mr-2" />
                           {client.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-white focus:bg-zinc-700">
@@ -324,6 +438,103 @@ const ClientsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Criar/Editar Cliente */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Nome completo do cliente"
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefone *</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="(11) 99999-9999"
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: Client['status']) => setFormData(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  <SelectItem value="active" className="text-white focus:bg-zinc-700">
+                    Ativo
+                  </SelectItem>
+                  <SelectItem value="vip" className="text-white focus:bg-zinc-700">
+                    VIP
+                  </SelectItem>
+                  <SelectItem value="inactive" className="text-white focus:bg-zinc-700">
+                    Inativo
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Observações sobre o cliente..."
+                className="bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="favorite"
+                checked={formData.favorite}
+                onChange={(e) => setFormData(prev => ({ ...prev, favorite: e.target.checked }))}
+                className="rounded border-zinc-700 bg-zinc-800 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="favorite" className="text-sm">
+                Marcar como favorito
+              </Label>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSaveClient}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                {editingClient ? 'Salvar' : 'Criar Cliente'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
