@@ -12,142 +12,44 @@ import {
   CalendarDays, 
   Search, 
   MoreVertical,
-  Filter,
   DollarSign,
   Clock,
   Plus,
   Edit,
   Copy,
   Trash2,
-  User,
   MapPin
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-
-interface Client {
-  id: string;
-  name: string;
-  phone: string;
-}
-
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-}
-
-interface Appointment {
-  id: string;
-  date: Date;
-  time: string;
-  duration: number;
-  client: string;
-  service: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
-  price: number;
-  location: string;
-  observations?: string;
-}
+import { useAppointments, Appointment } from '@/hooks/useAppointments';
+import { useClientOptions, useServiceOptions } from '@/hooks/useSelectOptions';
 
 const AgendaPage = () => {
+  const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment } = useAppointments();
+  const { data: clientOptions = [] } = useClientOptions();
+  const { data: serviceOptions = [] } = useServiceOptions();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
-  
-  // Dados mockados de clientes
-  const clients: Client[] = [
-    { id: '1', name: 'Maria Silva', phone: '(11) 99999-1111' },
-    { id: '2', name: 'Ana Santos', phone: '(11) 99999-2222' },
-    { id: '3', name: 'Carla Lima', phone: '(11) 99999-3333' },
-    { id: '4', name: 'Julia Costa', phone: '(11) 99999-4444' },
-    { id: '5', name: 'Patricia Oliveira', phone: '(11) 99999-5555' }
-  ];
-
-  // Dados mockados de serviços
-  const services: Service[] = [
-    { id: '1', name: 'Corte + Escova', price: 150, duration: 90 },
-    { id: '2', name: 'Massagem Relaxante', price: 200, duration: 60 },
-    { id: '3', name: 'Companhia VIP', price: 500, duration: 120 },
-    { id: '4', name: 'Jantar Executivo', price: 300, duration: 180 },
-    { id: '5', name: 'Spa Completo', price: 250, duration: 120 }
-  ];
-
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      date: new Date(),
-      time: '14:00',
-      duration: 90,
-      client: 'Maria Silva',
-      service: 'Corte + Escova',
-      status: 'confirmed',
-      price: 150,
-      location: 'Domicílio',
-      observations: 'Cliente preferencial'
-    },
-    {
-      id: '2',
-      date: new Date(),
-      time: '16:00',
-      duration: 60,
-      client: 'Ana Santos',
-      service: 'Massagem Relaxante',
-      status: 'pending',
-      price: 200,
-      location: 'Hotel'
-    },
-    {
-      id: '3',
-      date: new Date(Date.now() + 86400000),
-      time: '15:00',
-      duration: 120,
-      client: 'Carla Lima',
-      service: 'Companhia VIP',
-      status: 'confirmed',
-      price: 500,
-      location: 'Restaurante'
-    }
-  ]);
 
   // Estados para modal de edição/criação
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
-  const [formData, setFormData] = useState<{
-    client: string;
-    service: string;
-    date: string;
-    time: string;
-    duration: number;
-    price: number;
-    status: 'confirmed' | 'pending' | 'cancelled';
-    location: string;
-    observations: string;
-  }>({
-    client: '',
-    service: '',
-    date: '',
-    time: '',
+  const [formData, setFormData] = useState({
+    client_id: '',
+    service_id: '',
+    appointment_date: '',
+    appointment_time: '',
     duration: 60,
     price: 0,
-    status: 'pending',
+    status: 'pending' as const,
     location: '',
     observations: ''
   });
 
   const availableSlots = [
     '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
-  ];
-
-  const locations = [
-    'Domicílio',
-    'Hotel',
-    'Motel',
-    'Restaurante',
-    'Com Local',
-    'Escritório',
-    'Evento'
   ];
 
   const getStatusColor = (status: string) => {
@@ -169,8 +71,10 @@ const AgendaPage = () => {
   };
 
   const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = appointment.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         appointment.service.toLowerCase().includes(searchTerm.toLowerCase());
+    const clientName = appointment.client?.name || '';
+    const serviceName = appointment.service?.name || '';
+    const matchesSearch = clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         serviceName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || appointment.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
@@ -180,15 +84,15 @@ const AgendaPage = () => {
     .filter(apt => apt.status === 'confirmed')
     .reduce((sum, apt) => sum + apt.price, 0);
   const todayAppointments = appointments.filter(apt => 
-    format(apt.date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+    format(new Date(apt.appointment_date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
   ).length;
 
   const handleServiceChange = (serviceId: string) => {
-    const selectedService = services.find(s => s.id === serviceId);
+    const selectedService = serviceOptions.find(s => s.id === serviceId);
     if (selectedService) {
       setFormData(prev => ({
         ...prev,
-        service: selectedService.name,
+        service_id: serviceId,
         price: selectedService.price,
         duration: selectedService.duration
       }));
@@ -199,23 +103,23 @@ const AgendaPage = () => {
     if (appointment) {
       setEditingAppointment(appointment);
       setFormData({
-        client: appointment.client,
-        service: appointment.service,
-        date: format(appointment.date, 'yyyy-MM-dd'),
-        time: appointment.time,
+        client_id: appointment.client_id,
+        service_id: appointment.service_id,
+        appointment_date: appointment.appointment_date,
+        appointment_time: appointment.appointment_time,
         duration: appointment.duration,
         price: appointment.price,
         status: appointment.status,
-        location: appointment.location,
+        location: appointment.location || '',
         observations: appointment.observations || ''
       });
     } else {
       setEditingAppointment(null);
       setFormData({
-        client: '',
-        service: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        time: '',
+        client_id: '',
+        service_id: '',
+        appointment_date: format(new Date(), 'yyyy-MM-dd'),
+        appointment_time: '',
         duration: 60,
         price: 0,
         status: 'pending',
@@ -226,8 +130,8 @@ const AgendaPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveAppointment = () => {
-    if (!formData.client.trim() || !formData.service.trim() || !formData.date || !formData.time) {
+  const handleSaveAppointment = async () => {
+    if (!formData.client_id || !formData.service_id || !formData.appointment_date || !formData.appointment_time) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -237,61 +141,28 @@ const AgendaPage = () => {
       return;
     }
 
-    if (editingAppointment) {
-      // Editar agendamento existente
-      setAppointments(appointments.map(apt => 
-        apt.id === editingAppointment.id 
-          ? {
-              ...apt,
-              client: formData.client,
-              service: formData.service,
-              date: new Date(formData.date),
-              time: formData.time,
-              duration: formData.duration,
-              price: formData.price,
-              status: formData.status,
-              location: formData.location,
-              observations: formData.observations
-            }
-          : apt
-      ));
-      toast.success('Agendamento atualizado com sucesso!');
-    } else {
-      // Criar novo agendamento
-      const newAppointment: Appointment = {
-        id: Date.now().toString(),
-        client: formData.client,
-        service: formData.service,
-        date: new Date(formData.date),
-        time: formData.time,
-        duration: formData.duration,
-        price: formData.price,
-        status: formData.status,
-        location: formData.location,
-        observations: formData.observations
-      };
-      setAppointments([...appointments, newAppointment]);
-      toast.success('Agendamento criado com sucesso!');
+    try {
+      if (editingAppointment) {
+        await updateAppointment.mutateAsync({
+          id: editingAppointment.id,
+          ...formData
+        });
+      } else {
+        await createAppointment.mutateAsync(formData);
+      }
+      setIsModalOpen(false);
+      setEditingAppointment(null);
+    } catch (error) {
+      console.error('Error saving appointment:', error);
     }
-
-    setIsModalOpen(false);
-    setEditingAppointment(null);
   };
 
-  const handleDuplicateAppointment = (appointment: Appointment) => {
-    const duplicatedAppointment: Appointment = {
-      ...appointment,
-      id: Date.now().toString(),
-      client: `${appointment.client} (Cópia)`,
-      status: 'pending'
-    };
-    setAppointments([...appointments, duplicatedAppointment]);
-    toast.success('Agendamento duplicado com sucesso!');
-  };
-
-  const handleDeleteAppointment = (appointmentId: string) => {
-    setAppointments(appointments.filter(apt => apt.id !== appointmentId));
-    toast.success('Agendamento removido com sucesso!');
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    try {
+      await deleteAppointment.mutateAsync(appointmentId);
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+    }
   };
 
   const formatDuration = (minutes: number) => {
@@ -306,21 +177,19 @@ const AgendaPage = () => {
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
       <div className="p-4">
-        {/* Botão para novo agendamento */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-white text-lg font-semibold">Agenda</h1>
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => handleOpenModal()}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Novo
-            </Button>
-          </div>
+          <Button
+            onClick={() => handleOpenModal()}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Novo
+          </Button>
         </div>
-        
+
         {/* Search */}
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
@@ -364,9 +233,7 @@ const AgendaPage = () => {
                 <DollarSign className="h-4 w-4 text-green-500" />
                 <div>
                   <p className="text-zinc-400 text-xs">Receita</p>
-                  <p className="text-white font-semibold">
-                    R$ {totalRevenue.toFixed(2)}
-                  </p>
+                  <p className="text-white font-semibold">R$ {totalRevenue.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -382,30 +249,22 @@ const AgendaPage = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <h3 className="text-white font-medium text-sm">
-                        {appointment.client}
+                        {appointment.client?.name}
                       </h3>
-                      <Badge 
-                        className={`${getStatusColor(appointment.status)} text-white text-xs px-2 py-0.5`}
-                      >
+                      <Badge className={`${getStatusColor(appointment.status)} text-white text-xs px-2 py-0.5`}>
                         {getStatusLabel(appointment.status)}
                       </Badge>
                     </div>
                     
                     <p className="text-zinc-400 text-xs mb-2">
-                      {appointment.service}
+                      {appointment.service?.name}
                     </p>
                     
                     <div className="flex items-center space-x-4 mb-1">
                       <div className="flex items-center space-x-1">
                         <CalendarDays className="h-3 w-3 text-zinc-400" />
                         <span className="text-zinc-400 text-xs">
-                          {format(appointment.date, "dd/MM/yyyy", { locale: ptBR })} às {appointment.time}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-3 w-3 text-zinc-400" />
-                        <span className="text-zinc-400 text-xs">
-                          {formatDuration(appointment.duration)}
+                          {format(new Date(appointment.appointment_date), "dd/MM/yyyy", { locale: ptBR })} às {appointment.appointment_time}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
@@ -416,45 +275,28 @@ const AgendaPage = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="h-3 w-3 text-zinc-400" />
-                      <span className="text-zinc-400 text-xs">
-                        {appointment.location}
-                      </span>
-                    </div>
+                    {appointment.location && (
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-3 w-3 text-zinc-400" />
+                        <span className="text-zinc-400 text-xs">{appointment.location}</span>
+                      </div>
+                    )}
                   </div>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-zinc-400 hover:text-white h-8 w-8 p-0"
-                      >
+                      <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white h-8 w-8 p-0">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-zinc-800 border-zinc-700 z-50">
-                      <DropdownMenuItem 
-                        onClick={() => handleOpenModal(appointment)}
-                        className="text-white focus:bg-zinc-700"
-                      >
+                    <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
+                      <DropdownMenuItem onClick={() => handleOpenModal(appointment)} className="text-white focus:bg-zinc-700">
                         <Edit className="h-4 w-4 mr-2" />
-                        Editar agendamento
+                        Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDuplicateAppointment(appointment)}
-                        className="text-white focus:bg-zinc-700"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Duplicar agendamento
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDeleteAppointment(appointment.id)}
-                        className="text-red-400 focus:bg-zinc-700 focus:text-red-400"
-                      >
+                      <DropdownMenuItem onClick={() => handleDeleteAppointment(appointment.id)} className="text-red-400 focus:bg-zinc-700">
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Remover agendamento
+                        Remover
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -475,27 +317,24 @@ const AgendaPage = () => {
         )}
       </div>
 
-      {/* Modal de Criar/Editar Agendamento */}
+      {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <CalendarDays className="h-4 w-4 text-white" />
-              </div>
-              <span>{editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}</span>
+            <DialogTitle>
+              {editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="client">Cliente *</Label>
-              <Select value={formData.client} onValueChange={(value) => setFormData(prev => ({ ...prev, client: value }))}>
+              <Label>Cliente *</Label>
+              <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.name} className="text-white focus:bg-zinc-700">
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  {clientOptions.map((client) => (
+                    <SelectItem key={client.id} value={client.id} className="text-white focus:bg-zinc-700">
                       {client.name}
                     </SelectItem>
                   ))}
@@ -504,18 +343,15 @@ const AgendaPage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="service">Serviço *</Label>
-              <Select 
-                value={services.find(s => s.name === formData.service)?.id || ''} 
-                onValueChange={handleServiceChange}
-              >
+              <Label>Serviço *</Label>
+              <Select value={formData.service_id} onValueChange={handleServiceChange}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                   <SelectValue placeholder="Selecione um serviço" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
-                  {services.map((service) => (
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  {serviceOptions.map((service) => (
                     <SelectItem key={service.id} value={service.id} className="text-white focus:bg-zinc-700">
-                      {service.name} - R$ {service.price.toFixed(2)} ({formatDuration(service.duration)})
+                      {service.name} - R$ {service.price.toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -524,23 +360,22 @@ const AgendaPage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="date">Data *</Label>
+                <Label>Data *</Label>
                 <Input
-                  id="date"
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  value={formData.appointment_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="time">Horário *</Label>
-                <Select value={formData.time} onValueChange={(value) => setFormData(prev => ({ ...prev, time: value }))}>
+                <Label>Horário *</Label>
+                <Select value={formData.appointment_time} onValueChange={(value) => setFormData(prev => ({ ...prev, appointment_time: value }))}>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectValue placeholder="Horário" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
                     {availableSlots.map((slot) => (
                       <SelectItem key={slot} value={slot} className="text-white focus:bg-zinc-700">
                         {slot}
@@ -551,91 +386,12 @@ const AgendaPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duração (min) *</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="15"
-                  step="15"
-                  value={formData.duration}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="price">Preço *</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
-                  <Input
-                    id="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                    placeholder="0,00"
-                    className="pl-10 bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Local</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  placeholder="Ex: Hotel, Domicílio, Restaurante..."
-                  className="pl-10 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: 'confirmed' | 'pending' | 'cancelled') => setFormData(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700 z-50">
-                  <SelectItem value="pending" className="text-white focus:bg-zinc-700">Pendente</SelectItem>
-                  <SelectItem value="confirmed" className="text-white focus:bg-zinc-700">Confirmado</SelectItem>
-                  <SelectItem value="cancelled" className="text-white focus:bg-zinc-700">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="observations">Observações</Label>
-              <Textarea
-                id="observations"
-                value={formData.observations}
-                onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
-                placeholder="Observações sobre o agendamento..."
-                className="bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
-              />
-            </div>
-
             <div className="flex gap-2 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-              >
+              <Button variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800">
                 Cancelar
               </Button>
-              <Button 
-                onClick={handleSaveAppointment}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                <CalendarDays className="h-4 w-4 mr-2" />
-                {editingAppointment ? 'Atualizar' : 'Criar'} Agendamento
+              <Button onClick={handleSaveAppointment} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                {editingAppointment ? 'Atualizar' : 'Criar'}
               </Button>
             </div>
           </div>

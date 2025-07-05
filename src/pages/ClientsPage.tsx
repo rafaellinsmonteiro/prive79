@@ -21,69 +21,17 @@ import {
   Heart,
   Star,
   Plus,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-
-interface Client {
-  id: string;
-  name: string;
-  avatar?: string;
-  status: 'active' | 'inactive' | 'vip';
-  lastContact: Date;
-  totalSessions: number;
-  rating: number;
-  phone: string;
-  notes?: string;
-  favorite: boolean;
-}
+import { useClients, Client } from '@/hooks/useClients';
 
 const ClientsPage = () => {
+  const { clients, isLoading, createClient, updateClient, deleteClient } = useClients();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'vip'>('all');
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: '1',
-      name: 'João Silva',
-      status: 'active',
-      lastContact: new Date('2024-01-15'),
-      totalSessions: 12,
-      rating: 5,
-      phone: '(11) 99999-9999',
-      favorite: true
-    },
-    {
-      id: '2',
-      name: 'Pedro Santos',
-      status: 'vip',
-      lastContact: new Date('2024-01-10'),
-      totalSessions: 25,
-      rating: 5,
-      phone: '(11) 88888-8888',
-      favorite: true
-    },
-    {
-      id: '3',
-      name: 'Carlos Oliveira',
-      status: 'active',
-      lastContact: new Date('2024-01-08'),
-      totalSessions: 8,
-      rating: 4,
-      phone: '(11) 77777-7777',
-      favorite: false
-    },
-    {
-      id: '4',
-      name: 'Roberto Lima',
-      status: 'inactive',
-      lastContact: new Date('2023-12-20'),
-      totalSessions: 3,
-      rating: 4,
-      phone: '(11) 66666-6666',
-      favorite: false
-    }
-  ]);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
 
   // Estados para modal de edição/criação
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,32 +39,25 @@ const ClientsPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    status: 'active' as Client['status'],
+    email: '',
+    address: '',
     notes: '',
-    favorite: false
+    is_active: true
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'vip': return 'bg-yellow-500';
-      case 'inactive': return 'bg-gray-500';
-      default: return 'bg-gray-500';
-    }
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? 'bg-green-500' : 'bg-gray-500';
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'active': return 'Ativo';
-      case 'vip': return 'VIP';
-      case 'inactive': return 'Inativo';
-      default: return 'Desconhecido';
-    }
+  const getStatusLabel = (isActive: boolean) => {
+    return isActive ? 'Ativo' : 'Inativo';
   };
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || client.status === filterStatus;
+    const matchesFilter = filterStatus === 'all' || 
+      (filterStatus === 'active' && client.is_active) ||
+      (filterStatus === 'inactive' && !client.is_active);
     return matchesSearch && matchesFilter;
   });
 
@@ -136,78 +77,67 @@ const ClientsPage = () => {
       setEditingClient(client);
       setFormData({
         name: client.name,
-        phone: client.phone,
-        status: client.status,
+        phone: client.phone || '',
+        email: client.email || '',
+        address: client.address || '',
         notes: client.notes || '',
-        favorite: client.favorite
+        is_active: client.is_active
       });
     } else {
       setEditingClient(null);
       setFormData({
         name: '',
         phone: '',
-        status: 'active',
+        email: '',
+        address: '',
         notes: '',
-        favorite: false
+        is_active: true
       });
     }
     setIsModalOpen(true);
   };
 
-  const handleSaveClient = () => {
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      toast.error('Nome e telefone são obrigatórios');
+  const handleSaveClient = async () => {
+    if (!formData.name.trim()) {
+      toast.error('Nome é obrigatório');
       return;
     }
 
-    if (editingClient) {
-      // Editar cliente existente
-      setClients(clients.map(client => 
-        client.id === editingClient.id 
-          ? {
-              ...client,
-              name: formData.name,
-              phone: formData.phone,
-              status: formData.status,
-              notes: formData.notes,
-              favorite: formData.favorite
-            }
-          : client
-      ));
-      toast.success('Cliente atualizado com sucesso!');
-    } else {
-      // Criar novo cliente
-      const newClient: Client = {
-        id: Date.now().toString(),
-        name: formData.name,
-        phone: formData.phone, 
-        status: formData.status,
-        lastContact: new Date(),
-        totalSessions: 0,
-        rating: 0,
-        notes: formData.notes,
-        favorite: formData.favorite
-      };
-      setClients([...clients, newClient]);
-      toast.success('Cliente criado com sucesso!');
-    }
+    try {
+      if (editingClient) {
+        await updateClient.mutateAsync({
+          id: editingClient.id,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          notes: formData.notes,
+          is_active: formData.is_active
+        });
+      } else {
+        await createClient.mutateAsync({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          notes: formData.notes,
+          is_active: formData.is_active
+        });
+      }
 
-    setIsModalOpen(false);
-    setEditingClient(null);
+      setIsModalOpen(false);
+      setEditingClient(null);
+    } catch (error) {
+      console.error('Error saving client:', error);
+    }
   };
 
-  const handleToggleFavorite = (clientId: string) => {
-    setClients(clients.map(client => 
-      client.id === clientId 
-        ? { ...client, favorite: !client.favorite }
-        : client
-    ));
-    const client = clients.find(c => c.id === clientId);
-    toast.success(
-      client?.favorite 
-        ? 'Cliente removido dos favoritos' 
-        : 'Cliente adicionado aos favoritos'
-    );
+  const handleDeleteClient = async (clientId: string) => {
+    try {
+      await deleteClient.mutateAsync(clientId);
+    } catch (error) {
+      console.error('Error deleting client:', error);
+    }
   };
 
   return (
@@ -246,10 +176,10 @@ const ClientsPage = () => {
               <div className="flex items-center space-x-2">
                 <UserCheck className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="text-zinc-400 text-xs">Ativos</p>
-                  <p className="text-white font-semibold">
-                    {clients.filter(c => c.status === 'active').length}
-                  </p>
+                   <p className="text-zinc-400 text-xs">Ativos</p>
+                   <p className="text-white font-semibold">
+                     {clients.filter(c => c.is_active).length}
+                   </p>
                 </div>
               </div>
             </CardContent>
@@ -258,12 +188,12 @@ const ClientsPage = () => {
           <Card className="bg-zinc-900 border-zinc-800">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <div>
-                  <p className="text-zinc-400 text-xs">VIP</p>
-                  <p className="text-white font-semibold">
-                    {clients.filter(c => c.status === 'vip').length}
-                  </p>
+                 <Star className="h-4 w-4 text-yellow-500" />
+                 <div>
+                   <p className="text-zinc-400 text-xs">Total</p>
+                   <p className="text-white font-semibold">
+                     {clients.length}
+                   </p>
                 </div>
               </div>
             </CardContent>
@@ -279,56 +209,42 @@ const ClientsPage = () => {
                   <div className="flex items-center space-x-3 flex-1">
                     <div className="relative">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={client.avatar} />
                         <AvatarFallback className="bg-zinc-700 text-white">
                           {client.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      {client.favorite && (
-                        <Heart className="absolute -top-1 -right-1 h-4 w-4 text-red-500 fill-current" />
-                      )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-white font-medium text-sm truncate">
-                          {client.name}
-                        </h3>
-                        <Badge 
-                          className={`${getStatusColor(client.status)} text-white text-xs px-2 py-0.5`}
-                        >
-                          {getStatusLabel(client.status)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 mt-1">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-3 w-3 text-zinc-400" />
-                          <span className="text-zinc-400 text-xs">
-                            {formatLastContact(client.lastContact)}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3 w-3 text-zinc-400" />
-                          <span className="text-zinc-400 text-xs">
-                            {client.totalSessions} sessões
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-1 mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-3 w-3 ${
-                              i < client.rating 
-                                ? 'text-yellow-500 fill-current' 
-                                : 'text-zinc-600'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center space-x-2">
+                         <h3 className="text-white font-medium text-sm truncate">
+                           {client.name}
+                         </h3>
+                         <Badge 
+                           className={`${getStatusColor(client.is_active)} text-white text-xs px-2 py-0.5`}
+                         >
+                           {getStatusLabel(client.is_active)}
+                         </Badge>
+                       </div>
+                       
+                       <div className="flex items-center space-x-4 mt-1">
+                         {client.phone && (
+                           <div className="flex items-center space-x-1">
+                             <Phone className="h-3 w-3 text-zinc-400" />
+                             <span className="text-zinc-400 text-xs">
+                               {client.phone}
+                             </span>
+                           </div>
+                         )}
+                         {client.email && (
+                           <div className="flex items-center space-x-1">
+                             <span className="text-zinc-400 text-xs">
+                               {client.email}
+                             </span>
+                           </div>
+                         )}
+                       </div>
+                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -357,27 +273,20 @@ const ClientsPage = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
-                        <DropdownMenuItem 
-                          onClick={() => handleOpenModal(client)}
-                          className="text-white focus:bg-zinc-700"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar cliente
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-white focus:bg-zinc-700">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Agendar compromisso
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleToggleFavorite(client.id)}
-                          className="text-white focus:bg-zinc-700"
-                        >
-                          <Heart className="h-4 w-4 mr-2" />
-                          {client.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-white focus:bg-zinc-700">
-                          Histórico de sessões
-                        </DropdownMenuItem>
+                         <DropdownMenuItem 
+                           onClick={() => handleOpenModal(client)}
+                           className="text-white focus:bg-zinc-700"
+                         >
+                           <Edit className="h-4 w-4 mr-2" />
+                           Editar cliente
+                         </DropdownMenuItem>
+                         <DropdownMenuItem 
+                           onClick={() => handleDeleteClient(client.id)}
+                           className="text-red-400 focus:bg-zinc-700 focus:text-red-400"
+                         >
+                           <Trash2 className="h-4 w-4 mr-2" />
+                           Remover cliente
+                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -419,7 +328,7 @@ const ClientsPage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone *</Label>
+              <Label htmlFor="phone">Telefone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -430,26 +339,26 @@ const ClientsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: Client['status']) => setFormData(prev => ({ ...prev, status: value }))}
-              >
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="active" className="text-white focus:bg-zinc-700">
-                    Ativo
-                  </SelectItem>
-                  <SelectItem value="vip" className="text-white focus:bg-zinc-700">
-                    VIP
-                  </SelectItem>
-                  <SelectItem value="inactive" className="text-white focus:bg-zinc-700">
-                    Inativo
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="cliente@email.com"
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Endereço</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Endereço completo"
+                className="bg-zinc-800 border-zinc-700 text-white"
+              />
             </div>
 
             <div className="space-y-2">
@@ -466,13 +375,13 @@ const ClientsPage = () => {
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                id="favorite"
-                checked={formData.favorite}
-                onChange={(e) => setFormData(prev => ({ ...prev, favorite: e.target.checked }))}
+                id="active"
+                checked={formData.is_active}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
                 className="rounded border-zinc-700 bg-zinc-800 text-blue-600 focus:ring-blue-500"
               />
-              <Label htmlFor="favorite" className="text-sm">
-                Marcar como favorito
+              <Label htmlFor="active" className="text-sm">
+                Cliente ativo
               </Label>
             </div>
 
