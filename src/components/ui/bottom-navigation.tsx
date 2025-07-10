@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, MessageSquare, Settings, Users, Star } from 'lucide-react';
+import { Home, CalendarDays, MessageSquare, Settings, Users, Star, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface BottomNavigationItem {
   id: string;
@@ -12,7 +13,7 @@ interface BottomNavigationItem {
   badge?: number;
 }
 
-const navigationItems: BottomNavigationItem[] = [
+const modelNavigationItems: BottomNavigationItem[] = [
   {
     id: 'home',
     label: 'Início',
@@ -51,9 +52,37 @@ const navigationItems: BottomNavigationItem[] = [
   },
 ];
 
+const clientNavigationItems: BottomNavigationItem[] = [
+  {
+    id: 'home',
+    label: 'Início',
+    icon: Home,
+    path: '/',
+  },
+  {
+    id: 'reels',
+    label: 'Reels',
+    icon: Play,
+    path: '/reels',
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    icon: MessageSquare,
+    path: '/chat',
+  },
+  {
+    id: 'account',
+    label: 'Minha Conta',
+    icon: Settings,
+    path: '/profile',
+  },
+];
+
 const BottomNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: currentUser } = useCurrentUser();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -65,6 +94,11 @@ const BottomNavigation: React.FC = () => {
     }
     return location.pathname.startsWith(path);
   };
+
+  // Determine which navigation items to show based on user role
+  const navigationItems = currentUser?.user_role === 'modelo' 
+    ? modelNavigationItems 
+    : clientNavigationItems;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-800 md:hidden">
