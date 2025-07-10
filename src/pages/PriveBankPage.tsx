@@ -101,7 +101,16 @@ const PriveBankPage = () => {
   };
 
   const handleTransfer = async () => {
+    console.log('🚀 Iniciando processo de transferência...');
+    console.log('📋 Dados da transferência:', {
+      transferAmount,
+      transferToEmail,
+      accountId: account?.id,
+      accountBalance: account?.balance
+    });
+
     if (!transferAmount || parseFloat(transferAmount) <= 0) {
+      console.log('❌ Valor inválido para transferência');
       toast({
         title: "Erro",
         description: "Digite um valor válido para transferência",
@@ -111,6 +120,7 @@ const PriveBankPage = () => {
     }
 
     if (!transferToEmail.trim()) {
+      console.log('❌ Email destinatário vazio');
       toast({
         title: "Erro",
         description: "Digite o email do destinatário",
@@ -119,7 +129,18 @@ const PriveBankPage = () => {
       return;
     }
 
+    if (!account?.id) {
+      console.log('❌ Conta PriveBank não encontrada');
+      toast({
+        title: "Erro",
+        description: "Conta PriveBank não encontrada",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (parseFloat(transferAmount) > (account?.balance || 0)) {
+      console.log('❌ Saldo insuficiente. Saldo:', account?.balance, 'Valor:', transferAmount);
       toast({
         title: "Erro",
         description: "Saldo insuficiente",
@@ -130,6 +151,7 @@ const PriveBankPage = () => {
 
     setIsProcessing(true);
     try {
+      console.log('🔄 Executando transferência...');
       await transferMutation.mutateAsync({
         fromAccountId: account!.id,
         toUserEmail: transferToEmail.trim(),
@@ -137,6 +159,7 @@ const PriveBankPage = () => {
         description: `Transferência via PriveBank`
       });
       
+      console.log('✅ Transferência realizada com sucesso!');
       setTransferAmount('');
       setTransferToEmail('');
       toast({
@@ -144,6 +167,7 @@ const PriveBankPage = () => {
         description: "Transferência realizada com sucesso"
       });
     } catch (error: any) {
+      console.error('❌ Erro na transferência:', error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao realizar transferência",

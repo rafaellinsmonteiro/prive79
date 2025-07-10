@@ -80,23 +80,34 @@ export const useUserPrivaBankAccount = () => {
   return useQuery({
     queryKey: ['user-privabank-account'],
     queryFn: async (): Promise<PrivaBankAccount | null> => {
-      console.log('Fetching user PrivaBank account...');
+      console.log('🔍 Buscando conta PriveBank do usuário atual...');
+      
+      // First get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('❌ Usuário não autenticado');
+        return null;
+      }
+
+      console.log('👤 Usuário atual:', user.id);
       
       const { data, error } = await supabase
         .from('privabank_accounts')
         .select('*')
+        .eq('user_id', user.id)
         .single();
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No account found
+          console.log('❌ Nenhuma conta PriveBank encontrada para o usuário:', user.id);
           return null;
         }
-        console.error('Error fetching user PrivaBank account:', error);
+        console.error('❌ Erro ao buscar conta PriveBank:', error);
         throw error;
       }
 
-      console.log('Fetched user PrivaBank account:', data);
+      console.log('✅ Conta PriveBank encontrada:', data);
       return data;
     },
   });
@@ -207,45 +218,74 @@ export const useTransferBetweenAccounts = () => {
       amount: number; 
       description?: string;
     }) => {
-      console.log('Processing transfer:', { fromAccountId, toUserEmail, amount });
+      console.log('🔄 Iniciando transferência:', { fromAccountId, toUserEmail, amount });
 
       // Primeiro, encontrar a conta do destinatário pelo email
+      console.log('🔍 Buscando usuário destinatário:', toUserEmail);
       const { data: toUser, error: userError } = await supabase
         .from('system_users')
         .select('user_id')
         .eq('email', toUserEmail)
         .single();
 
-      if (userError || !toUser) {
+      if (userError) {
+        console.error('❌ Erro ao buscar usuário destinatário:', userError);
+        throw new Error('Usuário destinatário não encontrado');
+      }
+      
+      if (!toUser) {
+        console.error('❌ Usuário destinatário não existe:', toUserEmail);
         throw new Error('Usuário destinatário não encontrado');
       }
 
+      console.log('✅ Usuário destinatário encontrado:', toUser);
+
+      console.log('🔍 Buscando conta PriveBank do destinatário...');
       const { data: toAccount, error: accountError } = await supabase
         .from('privabank_accounts')
         .select('id, is_active')
         .eq('user_id', toUser.user_id)
         .single();
 
-      if (accountError || !toAccount) {
+      if (accountError) {
+        console.error('❌ Erro ao buscar conta do destinatário:', accountError);
+        throw new Error('Conta PriveBank do destinatário não encontrada');
+      }
+      
+      if (!toAccount) {
+        console.error('❌ Conta do destinatário não existe para user_id:', toUser.user_id);
         throw new Error('Conta PriveBank do destinatário não encontrada');
       }
 
+      console.log('✅ Conta destinatário encontrada:', toAccount);
+
       if (!toAccount.is_active) {
+        console.error('❌ Conta destinatário inativa');
         throw new Error('Conta do destinatário não está ativa');
       }
 
       // Verificar saldo da conta origem
+      console.log('🔍 Verificando saldo da conta origem:', fromAccountId);
       const { data: fromAccount, error: fromAccountError } = await supabase
         .from('privabank_accounts')
         .select('balance')
         .eq('id', fromAccountId)
         .single();
 
-      if (fromAccountError || !fromAccount) {
+      if (fromAccountError) {
+        console.error('❌ Erro ao buscar conta origem:', fromAccountError);
+        throw new Error('Conta de origem não encontrada');
+      }
+      
+      if (!fromAccount) {
+        console.error('❌ Conta origem não existe:', fromAccountId);
         throw new Error('Conta de origem não encontrada');
       }
 
+      console.log('✅ Conta origem encontrada. Saldo:', fromAccount.balance);
+
       if (Number(fromAccount.balance) < amount) {
+        console.error('❌ Saldo insuficiente. Saldo atual:', fromAccount.balance, 'Valor transferência:', amount);
         throw new Error('Saldo insuficiente para transferência');
       }
 
