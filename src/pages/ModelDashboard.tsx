@@ -124,7 +124,7 @@ const ModelDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
+    <div className="min-h-screen bg-zinc-950">
       {/* Main Content */}
       <div className="p-4">
         {renderContent()}

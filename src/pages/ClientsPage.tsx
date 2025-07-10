@@ -141,7 +141,7 @@ const ClientsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
+    <div className="min-h-screen bg-zinc-950">
       <div className="p-4">
         {/* Botão para novo cliente */}
         <div className="flex justify-between items-center mb-4">
