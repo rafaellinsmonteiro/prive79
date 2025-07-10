@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Menu, 
   LogIn, 
@@ -105,28 +106,41 @@ const Header = () => {
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-40">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
+          {/* Hamburger Menu + Logo */}
+          <div className="flex items-center gap-3">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72">
+                <div className="flex flex-col space-y-4 mt-8">
+                  <div className="px-3 py-2">
+                    <h2 className="text-lg font-semibold">Menu</h2>
+                  </div>
+                  <nav className="space-y-1">
+                    {menuItems.map((item) => (
+                      <Button
+                        key={item.path}
+                        variant="ghost"
+                        className="w-full justify-start gap-3 text-sm font-medium h-10"
+                        onClick={() => navigate(item.path)}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    ))}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+            
             <img src={logo} alt="Logo" className="h-8 w-auto cursor-pointer" onClick={() => navigate('/')} />
           </div>
-          
-          {/* Navigation Menu */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {menuItems.map((item) => (
-              <Button
-                key={item.path}
-                variant="ghost"
-                className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            ))}
-          </nav>
 
           {/* User Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-auto px-3 rounded-full">
@@ -174,25 +188,6 @@ const Header = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Mobile Menu */}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                  {menuItems.map((item) => (
-                    <DropdownMenuItem key={item.path} onClick={() => navigate(item.path)}>
-                      <item.icon className="mr-2 h-4 w-4" />
-                      <span>{item.label}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
         </div>
       </div>
