@@ -115,14 +115,33 @@ const ChatInteligentePage = () => {
                       
                       {/* Show suggested models if available */}
                       {message.suggestedModels && message.suggestedModels.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-border/30">
-                          <p className="text-xs font-medium mb-2 opacity-70">Modelos sugeridas:</p>
-                          <div className="space-y-1">
+                        <div className="mt-4 pt-4 border-t border-border/30">
+                          <p className="text-xs font-medium mb-3 opacity-70">Modelos sugeridas:</p>
+                          <div className="space-y-3">
                             {message.suggestedModels.slice(0, 3).map((model) => (
-                              <div key={model.id} className="text-xs p-2 bg-background/50 rounded-lg">
-                                <span className="font-medium">{model.name}</span>
-                                {model.age && <span className="opacity-70"> • {model.age} anos</span>}
-                                {model.city && <span className="opacity-70"> • {model.city}</span>}
+                              <div key={model.id} className="flex gap-3 p-3 bg-background/50 rounded-lg border border-border/20">
+                                {/* Model Photo */}
+                                {model.model_photos && model.model_photos.length > 0 && (
+                                  <img 
+                                    src={model.model_photos[0].photo_url} 
+                                    alt={model.name}
+                                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                )}
+                                
+                                {/* Model Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium">{model.name}</div>
+                                  <div className="text-xs opacity-70 space-y-1">
+                                    {model.age && <div>• {model.age} anos</div>}
+                                    {model.city && <div>• {model.city}</div>}
+                                    {model.height && <div>• {model.height}</div>}
+                                    {model["1hora"] && <div>• 1h: R$ {model["1hora"]}</div>}
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>

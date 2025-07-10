@@ -39,8 +39,9 @@ serve(async (req) => {
       supabase.from('models').select(`
         id, name, age, city, city_id, height, weight, bust, waist, hip, 
         cabelo, olhos, etnia, description, whatsapp_number, is_active,
-        "1hora", "2horas", "3horas", pernoite, diaria
-      `).eq('is_active', true),
+        "1hora", "2horas", "3horas", pernoite, diaria,
+        model_photos:model_photos!inner(photo_url, is_primary)
+      `).eq('is_active', true).eq('model_photos.is_primary', true),
       supabase.from('categories').select('id, name').order('display_order'),
       supabase.from('cities').select('id, name, state').eq('is_active', true).order('name')
     ]);
