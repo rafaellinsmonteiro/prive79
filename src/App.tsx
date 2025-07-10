@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { CityProvider } from "@/contexts/CityContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import BottomNavigation from "@/components/ui/bottom-navigation";
+
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -52,7 +52,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen">
       {/* Main content without sidebar */}
-      <div className="pb-20 md:pb-0">
+      <div>
         {/* Conditionally show header */}
         {!shouldHideHeader && <Header />}
         
@@ -129,8 +129,6 @@ const AppContent = () => {
         </Routes>
       </div>
       
-      {/* Show bottom navigation only for logged in users on mobile */}
-      {user && <BottomNavigation />}
     </div>
   );
 };

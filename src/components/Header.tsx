@@ -45,6 +45,7 @@ const Header = () => {
     if (currentUser.user_role === 'modelo') {
       return [
         { label: 'Dashboard', icon: LayoutDashboard, path: '/model-dashboard' },
+        { label: 'Mensagens', icon: MessageCircle, path: '/chat' },
         { label: 'Agenda', icon: CalendarDays, path: '/agenda' },
         { label: 'Serviços', icon: Star, path: '/servicos' },
         { label: 'Clientes', icon: Users, path: '/clientes' },
