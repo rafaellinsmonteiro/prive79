@@ -286,7 +286,7 @@ export const useTransferBetweenAccounts = () => {
         .from('system_users')
         .select('user_id')
         .eq('email', toUserEmail)
-        .single();
+        .maybeSingle();
 
       if (userError) {
         console.error('❌ Erro ao buscar usuário destinatário:', userError);
