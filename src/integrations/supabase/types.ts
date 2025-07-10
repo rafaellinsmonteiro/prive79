@@ -1137,6 +1137,81 @@ export type Database = {
         }
         Relationships: []
       }
+      privabank_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      privabank_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          from_account_id: string | null
+          id: string
+          status: string
+          to_account_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          from_account_id?: string | null
+          id?: string
+          status?: string
+          to_account_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          from_account_id?: string | null
+          id?: string
+          status?: string
+          to_account_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privabank_transactions_from_account_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "privabank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privabank_transactions_to_account_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "privabank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reels_categories: {
         Row: {
           created_at: string

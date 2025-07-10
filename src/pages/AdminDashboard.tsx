@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation, Wallet } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -17,6 +17,7 @@ import UsersManager from '@/components/admin/UsersManager';
 import PlansManager from '@/components/admin/PlansManager';
 import CustomFieldsManager from '@/components/admin/CustomFieldsManager';
 import ChatManager from '@/components/admin/ChatManager';
+import PrivaBankManager from '@/components/admin/PrivaBankManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -111,6 +112,7 @@ const AdminDashboard = () => {
     { key: 'models', label: 'Modelos', icon: Users },
     { key: 'users', label: 'Usuários', icon: UserCheck },
     { key: 'plans', label: 'Planos', icon: CreditCard },
+    { key: 'privabank', label: 'PriveBank', icon: Wallet },
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
     { key: 'custom-fields', label: 'Campos', icon: Settings },
@@ -130,6 +132,8 @@ const AdminDashboard = () => {
         return <UsersManager />;
       case 'plans':
         return <PlansManager />;
+      case 'privabank':
+        return <PrivaBankManager />;
       case 'cities':
         return <CitiesManager />;
       case 'categories':
