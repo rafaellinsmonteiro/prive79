@@ -871,7 +871,6 @@ export type Database = {
           tatuagem: boolean | null
           telegram: boolean | null
           testedecampo: string | null
-          tipodecorpo: string | null
           updated_at: string
           vaginal2: boolean | null
           videochamada: boolean | null
@@ -934,7 +933,6 @@ export type Database = {
           tatuagem?: boolean | null
           telegram?: boolean | null
           testedecampo?: string | null
-          tipodecorpo?: string | null
           updated_at?: string
           vaginal2?: boolean | null
           videochamada?: boolean | null
@@ -997,7 +995,6 @@ export type Database = {
           tatuagem?: boolean | null
           telegram?: boolean | null
           testedecampo?: string | null
-          tipodecorpo?: string | null
           updated_at?: string
           vaginal2?: boolean | null
           videochamada?: boolean | null
