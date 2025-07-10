@@ -23,6 +23,7 @@ import { useServices } from '@/hooks/useServices';
 import { usePrivaBank } from '@/hooks/usePrivaBank';
 import { format, addDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import dashboardHeroBg from '@/assets/dashboard-hero-bg.jpg';
 
 interface ModelDashboardHomeProps {
   profile: any;
@@ -88,21 +89,26 @@ const ModelDashboardHome = ({ profile, modelId, onSectionChange }: ModelDashboar
   return (
     <div className="space-y-6">
       {/* Boas-vindas */}
-      <Card className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-800/30">
-        <CardContent className="p-6">
+      <Card className="relative overflow-hidden border-amber-600/30">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${dashboardHeroBg})` }}
+        />
+        <div className="absolute inset-0 bg-black/60" />
+        <CardContent className="relative p-6 z-10">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2">
                 Olá, {profile?.models?.name || 'Modelo'}! 👋
               </h1>
-              <p className="text-zinc-300">
+              <p className="text-zinc-200">
                 Bem-vinda ao seu dashboard. Aqui está um resumo das suas atividades.
               </p>
             </div>
             <div className="flex items-center space-x-2">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <span className="text-xl font-bold text-white">{overallRating}</span>
-              <span className="text-zinc-400 text-sm">avaliação</span>
+              <span className="text-zinc-300 text-sm">avaliação</span>
             </div>
           </div>
         </CardContent>
