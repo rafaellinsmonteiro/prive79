@@ -216,3 +216,18 @@ export const useDeletePrivaBankAccount = () => {
     },
   });
 };
+
+// Hook principal para usuários
+export const usePrivaBank = () => {
+  const account = useUserPrivaBankAccount();
+  const transactions = usePrivaBankTransactions(account.data?.id);
+  const createTransaction = useCreatePrivaBankTransaction();
+
+  return {
+    account: account.data,
+    transactions: transactions.data,
+    isLoading: account.isLoading || transactions.isLoading,
+    createTransaction: createTransaction.mutateAsync,
+    isCreatingTransaction: createTransaction.isPending
+  };
+};

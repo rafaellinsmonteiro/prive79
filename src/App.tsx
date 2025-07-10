@@ -28,6 +28,7 @@ import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
 import ChatInteligentePage from "./pages/ChatInteligentePage";
+import PriveBankPage from "./pages/PriveBankPage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -114,6 +115,12 @@ const AppContent = () => {
             path="/chat-inteligente" 
             element={
               user ? <ChatInteligentePage /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/privebank" 
+            element={
+              user ? <PriveBankPage /> : <Navigate to="/login" replace />
             } 
           />
           

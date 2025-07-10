@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, MessageSquare, Settings, Users, Star, Play } from 'lucide-react';
+import { Home, CalendarDays, MessageSquare, Settings, Users, Star, Play, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
@@ -45,6 +45,12 @@ const modelNavigationItems: BottomNavigationItem[] = [
     path: '/clientes',
   },
   {
+    id: 'privebank',
+    label: 'PriveBank',
+    icon: Wallet,
+    path: '/privebank',
+  },
+  {
     id: 'settings',
     label: 'Perfil',
     icon: Settings,
@@ -70,6 +76,12 @@ const clientNavigationItems: BottomNavigationItem[] = [
     label: 'Chat',
     icon: MessageSquare,
     path: '/chat',
+  },
+  {
+    id: 'privebank',
+    label: 'PriveBank',
+    icon: Wallet,
+    path: '/privebank',
   },
   {
     id: 'account',
