@@ -103,7 +103,7 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-40">
+    <header className="bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/90 border-b border-border sticky top-0 z-40">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Hamburger Menu + Logo */}
