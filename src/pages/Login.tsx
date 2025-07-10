@@ -29,7 +29,7 @@ const Login = () => {
   // Only redirect on successful login, not on every auth state change
   useEffect(() => {
     if (authComplete && user && !authLoading && !profileLoading) {
-      console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin, 'modelProfile:', !!modelProfile);
+      console.log('🔄 Login: Auth complete, user:', user.email, 'isAdmin:', isAdmin, 'modelProfile:', !!modelProfile);
       // Small delay to ensure state is stable
       const timeoutId = setTimeout(() => {
         if (isAdmin) {

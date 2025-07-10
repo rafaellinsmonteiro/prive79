@@ -63,7 +63,7 @@ const AppContent = () => {
           <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
           
           {/* Home route - show login if not authenticated, otherwise show main app */}
-          <Route path="/" element={user ? <Index /> : <Login />} />
+          <Route path="/" element={<Index />} />
           
           {/* Protected routes - redirect to login if not authenticated */}
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
