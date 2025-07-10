@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePrivaBank, useTransferBetweenAccounts } from '@/hooks/usePrivaBank';
+import { usePrivaBank, useTransferBetweenAccounts, useTransferByAccountId } from '@/hooks/usePrivaBank';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,18 +7,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign, Mail, Hash } from 'lucide-react';
 
 const PriveBankPage = () => {
   const { user } = useAuth();
   const { account, transactions, isLoading, createTransaction } = usePrivaBank();
   const transferMutation = useTransferBetweenAccounts();
+  const transferByIdMutation = useTransferByAccountId();
   const { toast } = useToast();
   
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [transferToEmail, setTransferToEmail] = useState('');
+  const [transferToAccountId, setTransferToAccountId] = useState('');
+  
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleDeposit = async () => {
@@ -93,6 +96,84 @@ const PriveBankPage = () => {
       toast({
         title: "Erro",
         description: "Erro ao realizar saque",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTransferById = async () => {
+    console.log('🚀 Iniciando processo de transferência por ID...');
+    console.log('📋 Dados da transferência:', {
+      transferAmount,
+      transferToAccountId,
+      accountId: account?.id,
+      accountBalance: account?.balance
+    });
+
+    if (!transferAmount || parseFloat(transferAmount) <= 0) {
+      console.log('❌ Valor inválido para transferência');
+      toast({
+        title: "Erro",
+        description: "Digite um valor válido para transferência",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!transferToAccountId.trim()) {
+      console.log('❌ ID da carteira destinatário vazio');
+      toast({
+        title: "Erro",
+        description: "Digite o ID da carteira do destinatário",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!account?.id) {
+      console.log('❌ Conta PriveBank não encontrada');
+      toast({
+        title: "Erro",
+        description: "Conta PriveBank não encontrada",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (parseFloat(transferAmount) > (account?.balance || 0)) {
+      console.log('❌ Saldo insuficiente. Saldo:', account?.balance, 'Valor:', transferAmount);
+      toast({
+        title: "Erro",
+        description: "Saldo insuficiente",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      console.log('🔄 Executando transferência por ID...');
+      await transferByIdMutation.mutateAsync({
+        fromAccountId: account!.id,
+        toAccountId: transferToAccountId.trim(),
+        amount: parseFloat(transferAmount),
+        description: `Transferência sigilosa via ID da carteira`
+      });
+      
+      console.log('✅ Transferência por ID realizada com sucesso!');
+      setTransferAmount('');
+      setTransferToAccountId('');
+      toast({
+        title: "Sucesso",
+        description: "Transferência sigilosa realizada com sucesso"
+      });
+    } catch (error: any) {
+      console.error('❌ Erro na transferência por ID:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao realizar transferência",
         variant: "destructive"
       });
     } finally {
@@ -213,20 +294,36 @@ const PriveBankPage = () => {
           <p className="text-zinc-400">Sua carteira digital P$ (P-Coin)</p>
         </div>
 
-        {/* Saldo */}
-        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0 mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">Saldo Disponível</p>
-                <p className="text-3xl font-bold text-white">
-                  P$ {Number(account.balance).toFixed(2)}
-                </p>
+        {/* Saldo e ID da Carteira */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Saldo Disponível</p>
+                  <p className="text-3xl font-bold text-white">
+                    P$ {Number(account.balance).toFixed(2)}
+                  </p>
+                </div>
+                <DollarSign className="h-12 w-12 text-blue-200" />
               </div>
-              <DollarSign className="h-12 w-12 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-gray-600 to-gray-700 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-100 text-sm">ID da Carteira (Sigiloso)</p>
+                  <p className="text-lg font-mono text-white break-all">
+                    {account.id}
+                  </p>
+                </div>
+                <Hash className="h-12 w-12 text-gray-200 flex-shrink-0" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <Tabs defaultValue="operations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
@@ -313,39 +410,93 @@ const PriveBankPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="transfer-email" className="text-zinc-300">
-                      Email do Destinatário
-                    </Label>
-                    <Input
-                      id="transfer-email"
-                      type="email"
-                      placeholder="destinatario@email.com"
-                      value={transferToEmail}
-                      onChange={(e) => setTransferToEmail(e.target.value)}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="transfer-amount" className="text-zinc-300">
-                      Valor da Transferência
-                    </Label>
-                    <Input
-                      id="transfer-amount"
-                      type="number"
-                      placeholder="0.00"
-                      value={transferAmount}
-                      onChange={(e) => setTransferAmount(e.target.value)}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleTransfer}
-                    disabled={isProcessing || transferMutation.isPending}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                  >
-                    {(isProcessing || transferMutation.isPending) ? "Processando..." : "Transferir"}
-                  </Button>
+                  <Tabs defaultValue="email" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
+                      <TabsTrigger value="email" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Por Email
+                      </TabsTrigger>
+                      <TabsTrigger value="id" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white flex items-center gap-2">
+                        <Hash className="h-4 w-4" />
+                        Sigiloso
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="email" className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="transfer-email" className="text-zinc-300">
+                          Email do Destinatário
+                        </Label>
+                        <Input
+                          id="transfer-email"
+                          type="email"
+                          placeholder="destinatario@email.com"
+                          value={transferToEmail}
+                          onChange={(e) => setTransferToEmail(e.target.value)}
+                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="transfer-amount-email" className="text-zinc-300">
+                          Valor da Transferência
+                        </Label>
+                        <Input
+                          id="transfer-amount-email"
+                          type="number"
+                          placeholder="0.00"
+                          value={transferAmount}
+                          onChange={(e) => setTransferAmount(e.target.value)}
+                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleTransfer}
+                        disabled={isProcessing || transferMutation.isPending}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        {(isProcessing || transferMutation.isPending) ? "Processando..." : "Transferir por Email"}
+                      </Button>
+                    </TabsContent>
+                    
+                    <TabsContent value="id" className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="transfer-account-id" className="text-zinc-300">
+                          ID da Carteira Destinatário
+                        </Label>
+                        <Input
+                          id="transfer-account-id"
+                          type="text"
+                          placeholder="ID da carteira (ex: b88235ee-62ad-43ef-973a-c88dcf847af3)"
+                          value={transferToAccountId}
+                          onChange={(e) => setTransferToAccountId(e.target.value)}
+                          className="bg-zinc-800 border-zinc-700 text-zinc-100 font-mono text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="transfer-amount-id" className="text-zinc-300">
+                          Valor da Transferência
+                        </Label>
+                        <Input
+                          id="transfer-amount-id"
+                          type="number"
+                          placeholder="0.00"
+                          value={transferAmount}
+                          onChange={(e) => setTransferAmount(e.target.value)}
+                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleTransferById}
+                        disabled={isProcessing || transferByIdMutation.isPending}
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                      >
+                        {(isProcessing || transferByIdMutation.isPending) ? "Processando..." : "Transferir Sigilosamente"}
+                      </Button>
+                      <p className="text-zinc-500 text-xs">
+                        🔒 Transferência totalmente anônima - apenas IDs das carteiras são usados
+                      </p>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             </div>

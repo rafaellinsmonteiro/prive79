@@ -317,7 +317,7 @@ export const useTransferBetweenAccounts = () => {
         .from('privabank_accounts')
         .select('id, is_active')
         .eq('user_id', toUser.user_id)
-        .single();
+        .maybeSingle();
 
       if (accountError) {
         console.error('❌ Erro ao buscar conta do destinatário:', accountError);
@@ -507,6 +507,261 @@ export const useTransferBetweenAccounts = () => {
           action_details: { 
             fromAccountId, 
             toUserEmail, 
+            amount, 
+            error: 'general_error',
+            errorMessage: String(error)
+          },
+          success: false,
+          error_message: String(error)
+        });
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['privabank-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['privabank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-privabank-account'] });
+    },
+  });
+};
+
+export const useTransferByAccountId = () => {
+  const queryClient = useQueryClient();
+  const { logAction } = useLogPrivaBankAction();
+
+  return useMutation({
+    mutationFn: async ({ 
+      fromAccountId, 
+      toAccountId, 
+      amount, 
+      description 
+    }: { 
+      fromAccountId: string; 
+      toAccountId: string; 
+      amount: number; 
+      description?: string;
+    }) => {
+      console.log('🔄 Iniciando transferência por ID:', { fromAccountId, toAccountId, amount });
+      
+      // Log da tentativa de transferência
+      await logAction({
+        action_type: 'transfer_by_id_attempt',
+        action_details: {
+          fromAccountId,
+          toAccountId,
+          amount,
+          description
+        },
+        success: true
+      });
+
+      try {
+        // Verificar se a conta de destino existe e está ativa
+        console.log('🔍 Verificando conta destinatário:', toAccountId);
+        const { data: toAccount, error: accountError } = await supabase
+          .from('privabank_accounts')
+          .select('id, is_active, user_id')
+          .eq('id', toAccountId)
+          .maybeSingle();
+
+        if (accountError) {
+          console.error('❌ Erro ao buscar conta destinatário:', accountError);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'recipient_account_error' },
+            success: false,
+            error_message: 'Conta PriveBank destinatário não encontrada'
+          });
+          throw new Error('Conta PriveBank destinatário não encontrada');
+        }
+        
+        if (!toAccount) {
+          console.error('❌ Conta destinatário não existe:', toAccountId);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'recipient_account_not_found' },
+            success: false,
+            error_message: 'Conta PriveBank destinatário não encontrada'
+          });
+          throw new Error('Conta PriveBank destinatário não encontrada');
+        }
+
+        if (!toAccount.is_active) {
+          console.error('❌ Conta destinatário inativa');
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'recipient_account_inactive' },
+            success: false,
+            error_message: 'Conta do destinatário não está ativa'
+          });
+          throw new Error('Conta do destinatário não está ativa');
+        }
+
+        // Verificar se não está tentando transferir para a mesma conta
+        if (fromAccountId === toAccountId) {
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'same_account_transfer' },
+            success: false,
+            error_message: 'Não é possível transferir para a mesma conta'
+          });
+          throw new Error('Não é possível transferir para a mesma conta');
+        }
+
+        console.log('✅ Conta destinatário encontrada:', toAccount);
+
+        // Verificar saldo da conta origem
+        console.log('🔍 Verificando saldo da conta origem:', fromAccountId);
+        const { data: fromAccount, error: fromAccountError } = await supabase
+          .from('privabank_accounts')
+          .select('balance, user_id')
+          .eq('id', fromAccountId)
+          .single();
+
+        if (fromAccountError) {
+          console.error('❌ Erro ao buscar conta origem:', fromAccountError);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'source_account_error' },
+            success: false,
+            error_message: 'Conta de origem não encontrada'
+          });
+          throw new Error('Conta de origem não encontrada');
+        }
+        
+        if (!fromAccount) {
+          console.error('❌ Conta origem não existe:', fromAccountId);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'source_account_not_found' },
+            success: false,
+            error_message: 'Conta de origem não encontrada'
+          });
+          throw new Error('Conta de origem não encontrada');
+        }
+
+        console.log('✅ Conta origem encontrada. Saldo:', fromAccount.balance);
+
+        if (Number(fromAccount.balance) < amount) {
+          console.error('❌ Saldo insuficiente. Saldo atual:', fromAccount.balance, 'Valor transferência:', amount);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { 
+              fromAccountId, 
+              toAccountId, 
+              amount, 
+              currentBalance: fromAccount.balance,
+              error: 'insufficient_balance' 
+            },
+            success: false,
+            error_message: 'Saldo insuficiente para transferência'
+          });
+          throw new Error('Saldo insuficiente para transferência');
+        }
+
+        // Criar a transação de transferência
+        const { data: transaction, error: transactionError } = await supabase
+          .from('privabank_transactions')
+          .insert({
+            from_account_id: fromAccountId,
+            to_account_id: toAccountId,
+            transaction_type: 'transfer',
+            amount,
+            description: description || `Transferência via ID da carteira`,
+            status: 'completed'
+          })
+          .select()
+          .single();
+
+        if (transactionError) {
+          console.error('Error creating transfer transaction:', transactionError);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'transaction_creation_failed' },
+            success: false,
+            error_message: 'Erro ao criar transação de transferência'
+          });
+          throw new Error('Erro ao criar transação de transferência');
+        }
+
+        // Atualizar saldos das contas
+        // Debitar da conta origem
+        const newFromBalance = Number(fromAccount.balance) - amount;
+        const { error: updateFromError } = await supabase
+          .from('privabank_accounts')
+          .update({ balance: newFromBalance })
+          .eq('id', fromAccountId);
+
+        if (updateFromError) {
+          console.error('Error updating from account balance:', updateFromError);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'debit_failed' },
+            success: false,
+            error_message: 'Erro ao debitar da conta origem'
+          });
+          throw new Error('Erro ao debitar da conta origem');
+        }
+
+        // Creditar na conta destino
+        const { data: currentToAccount, error: currentToAccountError } = await supabase
+          .from('privabank_accounts')
+          .select('balance')
+          .eq('id', toAccountId)
+          .single();
+
+        if (currentToAccountError) {
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'get_recipient_balance_failed' },
+            success: false,
+            error_message: 'Erro ao obter saldo da conta destino'
+          });
+          throw new Error('Erro ao obter saldo da conta destino');
+        }
+
+        const newToBalance = Number(currentToAccount.balance) + amount;
+        const { error: updateToError } = await supabase
+          .from('privabank_accounts')
+          .update({ balance: newToBalance })
+          .eq('id', toAccountId);
+
+        if (updateToError) {
+          console.error('Error updating to account balance:', updateToError);
+          await logAction({
+            action_type: 'transfer_by_id_attempt',
+            action_details: { fromAccountId, toAccountId, amount, error: 'credit_failed' },
+            success: false,
+            error_message: 'Erro ao creditar na conta destino'
+          });
+          throw new Error('Erro ao creditar na conta destino');
+        }
+
+        console.log('Transfer by ID completed successfully:', transaction);
+        
+        // Log de sucesso da transferência
+        await logAction({
+          action_type: 'transfer_by_id_success',
+          action_details: {
+            fromAccountId,
+            toAccountId,
+            amount,
+            transactionId: transaction.id,
+            description
+          },
+          success: true
+        });
+        
+        return transaction;
+        
+      } catch (error) {
+        // Log de erro geral se não foi capturado antes
+        console.error('Erro geral na transferência por ID:', error);
+        await logAction({
+          action_type: 'transfer_by_id_attempt',
+          action_details: { 
+            fromAccountId, 
+            toAccountId, 
             amount, 
             error: 'general_error',
             errorMessage: String(error)
