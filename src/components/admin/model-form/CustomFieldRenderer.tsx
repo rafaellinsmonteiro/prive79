@@ -28,7 +28,7 @@ const CustomFieldRenderer = ({ field, form }: CustomFieldRendererProps) => {
   const fieldName = field.field_name;
   
   // Usar o nome do campo diretamente para campos integrados, custom_ prefix para outros
-  const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+  const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia', 'nossa_recomendacao'];
   const formFieldName = integratedFields.includes(fieldName) 
     ? fieldName 
     : `custom_${fieldName}`;

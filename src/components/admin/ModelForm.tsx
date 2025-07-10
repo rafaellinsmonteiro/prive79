@@ -122,16 +122,24 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       customFields.forEach(field => {
         const modelValue = (existingModel as any)[field.field_name];
         
+        console.log(`🔧 Loading field ${field.field_name} (${field.field_type}): value=${modelValue}, section=${field.section}`);
+        
         if (modelValue !== undefined && modelValue !== null) {
-          console.log(`🔧 Loading field ${field.field_name} (${field.field_type}):`, modelValue);
-          
           // Para campos integrados (olhos, tatuagem, etc) usar nome direto
-          const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+          const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia', 'nossa_recomendacao'];
           if (integratedFields.includes(field.field_name)) {
             (formData as any)[field.field_name] = modelValue;
           } else {
             // Para outros campos personalizados usar custom_ prefix
             (formData as any)[`custom_${field.field_name}`] = modelValue;
+          }
+        } else {
+          // Sempre inicializar campos para que sejam renderizados no formulário
+          const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia', 'nossa_recomendacao'];
+          if (integratedFields.includes(field.field_name)) {
+            (formData as any)[field.field_name] = '';
+          } else {
+            (formData as any)[`custom_${field.field_name}`] = '';
           }
         }
       });

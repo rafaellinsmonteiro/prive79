@@ -19,6 +19,8 @@ const IntegratedCustomFields = ({ form, sectionName }: IntegratedCustomFieldsPro
     'height', 'weight', 'body_type', 'shoe_size', 'bust', 'waist', 'hip',
     'description', 'languages', 'appearance', 'city', 'is_active',
     'display_order', 'visibility_type', 'allowed_plan_ids', 'silicone'
+    // IMPORTANTE: Campos como 'nossa_recomendacao', 'olhos', 'tatuagem' NÃO devem estar aqui
+    // pois são campos personalizados válidos que precisam ser renderizados
   ];
   
   // Filtrar campos personalizados que pertencem à seção específica

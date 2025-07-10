@@ -870,6 +870,7 @@ export type Database = {
           motel: boolean | null
           name: string
           neighborhood: string | null
+          nossa_recomendacao: string | null
           nuru: boolean | null
           olhos: string | null
           onlyfans: boolean | null
@@ -933,6 +934,7 @@ export type Database = {
           motel?: boolean | null
           name: string
           neighborhood?: string | null
+          nossa_recomendacao?: string | null
           nuru?: boolean | null
           olhos?: string | null
           onlyfans?: boolean | null
@@ -996,6 +998,7 @@ export type Database = {
           motel?: boolean | null
           name?: string
           neighborhood?: string | null
+          nossa_recomendacao?: string | null
           nuru?: boolean | null
           olhos?: string | null
           onlyfans?: boolean | null

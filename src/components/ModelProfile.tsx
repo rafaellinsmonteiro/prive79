@@ -64,7 +64,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
       const sectionName = section.name;
       
       // Skip sections that should not be displayed
-      const excludedSections = ['Configurações', 'Controle de Acesso', 'Outras Informações'];
+      const excludedSections = ['Configurações', 'Controle de Acesso'];
       if (excludedSections.includes(sectionName)) {
         return;
       }
@@ -109,7 +109,7 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
         let value;
         
         // Check if it's an integrated field or custom field
-        const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia'];
+        const integratedFields = ['olhos', 'tatuagem', 'cabelo', 'etnia', 'nossa_recomendacao'];
         if (integratedFields.includes(field.field_name)) {
           value = (model as any)[field.field_name];
         } else {
