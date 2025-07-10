@@ -13,7 +13,7 @@ import { Form } from "@/components/ui/form";
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 import { useCustomFields } from '@/hooks/useCustomFields';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import BasicInfoSection from './model-form/BasicInfoSection';
 import CategoriesSection from './model-form/CategoriesSection';
 import PhysicalCharacteristicsSection from './model-form/PhysicalCharacteristicsSection';

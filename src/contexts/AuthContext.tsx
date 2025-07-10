@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -11,7 +10,15 @@ export interface AuthState {
   authComplete: boolean;
 }
 
-export const useAuth = () => {
+interface AuthContextType extends AuthState {
+  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signOut: () => Promise<{ error: any }>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     session: null,
@@ -24,15 +31,17 @@ export const useAuth = () => {
     let isSubscribed = true;
     let adminCheckDebounce: NodeJS.Timeout;
     
-    // Set up auth state listener
+    console.log('AuthProvider: Initializing auth listener');
+    
+    // Set up auth state listener - only one instance
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isSubscribed) return;
         
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('AuthProvider: Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_OUT' || !session) {
-          console.log('User signed out or no session, clearing state');
+          console.log('AuthProvider: User signed out or no session');
           setState({
             user: null,
             session: null,
@@ -58,14 +67,13 @@ export const useAuth = () => {
             if (!isSubscribed) return;
             
             try {
-              console.log('Checking admin status for user:', session.user.id);
+              console.log('AuthProvider: Checking admin status for user:', session.user.id);
               const { data, error } = await supabase.rpc('is_admin');
-              console.log('Admin check result:', { data, error });
               
               if (!isSubscribed) return;
               
               if (error) {
-                console.error('Error checking admin status:', error);
+                console.error('AuthProvider: Error checking admin status:', error);
                 setState(prev => ({ 
                   ...prev, 
                   isAdmin: false, 
@@ -73,7 +81,7 @@ export const useAuth = () => {
                   authComplete: true 
                 }));
               } else {
-                console.log('User is admin:', !!data);
+                console.log('AuthProvider: User is admin:', !!data);
                 setState(prev => ({ 
                   ...prev, 
                   isAdmin: !!data, 
@@ -84,7 +92,7 @@ export const useAuth = () => {
             } catch (error) {
               if (!isSubscribed) return;
               
-              console.error('Error calling is_admin function:', error);
+              console.error('AuthProvider: Error calling is_admin function:', error);
               setState(prev => ({ 
                 ...prev, 
                 isAdmin: false, 
@@ -92,7 +100,7 @@ export const useAuth = () => {
                 authComplete: true 
               }));
             }
-          }, 100); // 100ms debounce
+          }, 200);
         }
       }
     );
@@ -101,11 +109,12 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!isSubscribed) return;
       
-      console.log('Initial session check:', !!session);
+      console.log('AuthProvider: Initial session check:', !!session);
       setState(prev => ({ ...prev, session, user: session?.user ?? null }));
     });
 
     return () => {
+      console.log('AuthProvider: Cleaning up auth listener');
       isSubscribed = false;
       clearTimeout(adminCheckDebounce);
       subscription.unsubscribe();
@@ -113,12 +122,12 @@ export const useAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting sign in for:', email);
+    console.log('AuthProvider: Attempting sign in for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    console.log('Sign in result:', { success: !!data.user, error: !!error });
+    console.log('AuthProvider: Sign in result:', { success: !!data.user, error: !!error });
     return { data, error };
   };
 
@@ -135,17 +144,15 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    console.log('Starting sign out process');
+    console.log('AuthProvider: Starting sign out process');
     
     try {
-      // Try to sign out from Supabase FIRST
-      console.log('Attempting to sign out from Supabase');
+      console.log('AuthProvider: Attempting to sign out from Supabase');
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Supabase sign out error:', error);
-        // Force clear local storage and state even if Supabase fails
-        localStorage.removeItem('sb-hhpcrtpevucuucoiodxh-auth-token');
+        console.error('AuthProvider: Supabase sign out error:', error);
+        // Force clear state even if Supabase fails
         setState({
           user: null,
           session: null,
@@ -153,16 +160,14 @@ export const useAuth = () => {
           isAdmin: false,
           authComplete: true,
         });
-        return { error: null }; // Return success to UI
+        return { error: null };
       }
       
-      console.log('Supabase sign out successful');
-      // State will be cleared by onAuthStateChange listener
+      console.log('AuthProvider: Supabase sign out successful');
       return { error: null };
     } catch (error) {
-      console.error('Sign out exception:', error);
+      console.error('AuthProvider: Sign out exception:', error);
       // Force clear everything on exception
-      localStorage.removeItem('sb-hhpcrtpevucuucoiodxh-auth-token');
       setState({
         user: null,
         session: null,
@@ -174,10 +179,20 @@ export const useAuth = () => {
     }
   };
 
-  return {
+  const value: AuthContextType = {
     ...state,
     signIn,
     signUp,
     signOut,
   };
-};
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

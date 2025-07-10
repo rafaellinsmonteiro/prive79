@@ -2,7 +2,7 @@
 import { useModels } from "@/hooks/useModels";
 import { useCity } from "@/contexts/CityContext";
 import { useModelProfile } from "@/hooks/useModelProfile";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import ModelCard from "@/components/ModelCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

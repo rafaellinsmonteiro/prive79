@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, MessageCircle, Sparkles, RotateCcw } from 'lucide-react';
 import { useOpenAIChat } from '@/hooks/useOpenAIChat';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 
 const ChatInteligentePage = () => {

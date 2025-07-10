@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Image, Settings, BarChart3, LogOut, Shield } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useModelProfile } from '@/hooks/useModelProfile';
 import { toast } from 'sonner';
 import EnhancedModelProfileManager from '@/components/model/EnhancedModelProfileManager';

@@ -6,7 +6,7 @@ import { useModelMedia } from "@/hooks/useModelMedia";
 import { useCustomFields, useCustomSections } from "@/hooks/useCustomFields";
 import { useNavigate } from "react-router-dom";
 import { useCreateConversation } from "@/hooks/useChat";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ModelProfileProps {
   model: Model;

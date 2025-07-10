@@ -6,7 +6,7 @@ import { MessageCircle } from "lucide-react";
 import { Model } from "@/hooks/useModels";
 import { Link, useNavigate } from "react-router-dom";
 import { useCreateConversation } from "@/hooks/useChat";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ModelCardProps {
   model: Model;

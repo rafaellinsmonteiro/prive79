@@ -6,7 +6,7 @@ import { Heart, MessageCircle, Share, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useConversations, useCreateConversation } from "@/hooks/useChat";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ReelItemProps {
   model: Model;

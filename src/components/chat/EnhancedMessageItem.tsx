@@ -4,7 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Check, CheckCheck, Play, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tables } from '@/integrations/supabase/types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EnhancedMessageItemProps {
   message: Tables<'messages'>;
