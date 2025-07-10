@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePrivaBank } from '@/hooks/usePrivaBank';
+import { usePrivaBank, useTransferBetweenAccounts } from '@/hooks/usePrivaBank';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,13 @@ import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign } from 
 const PriveBankPage = () => {
   const { user } = useAuth();
   const { account, transactions, isLoading, createTransaction } = usePrivaBank();
+  const transferMutation = useTransferBetweenAccounts();
   const { toast } = useToast();
   
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  const [transferToUserId, setTransferToUserId] = useState('');
+  const [transferToEmail, setTransferToEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleDeposit = async () => {
@@ -99,6 +100,60 @@ const PriveBankPage = () => {
     }
   };
 
+  const handleTransfer = async () => {
+    if (!transferAmount || parseFloat(transferAmount) <= 0) {
+      toast({
+        title: "Erro",
+        description: "Digite um valor válido para transferência",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!transferToEmail.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite o email do destinatário",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (parseFloat(transferAmount) > (account?.balance || 0)) {
+      toast({
+        title: "Erro",
+        description: "Saldo insuficiente",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await transferMutation.mutateAsync({
+        fromAccountId: account!.id,
+        toUserEmail: transferToEmail.trim(),
+        amount: parseFloat(transferAmount),
+        description: `Transferência via PriveBank`
+      });
+      
+      setTransferAmount('');
+      setTransferToEmail('');
+      toast({
+        title: "Sucesso",
+        description: "Transferência realizada com sucesso"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao realizar transferência",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -160,7 +215,7 @@ const PriveBankPage = () => {
           </TabsList>
 
           <TabsContent value="operations" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {/* Depósito */}
               <Card className="bg-zinc-900 border-zinc-800">
                 <CardHeader>
@@ -224,6 +279,51 @@ const PriveBankPage = () => {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Transferência */}
+              <Card className="bg-zinc-900 border-zinc-800 md:col-span-2 xl:col-span-1">
+                <CardHeader>
+                  <CardTitle className="text-blue-400 flex items-center gap-2">
+                    <ArrowRightLeft className="h-5 w-5" />
+                    Transferência
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="transfer-email" className="text-zinc-300">
+                      Email do Destinatário
+                    </Label>
+                    <Input
+                      id="transfer-email"
+                      type="email"
+                      placeholder="destinatario@email.com"
+                      value={transferToEmail}
+                      onChange={(e) => setTransferToEmail(e.target.value)}
+                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="transfer-amount" className="text-zinc-300">
+                      Valor da Transferência
+                    </Label>
+                    <Input
+                      id="transfer-amount"
+                      type="number"
+                      placeholder="0.00"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
+                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleTransfer}
+                    disabled={isProcessing || transferMutation.isPending}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {(isProcessing || transferMutation.isPending) ? "Processando..." : "Transferir"}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -257,11 +357,13 @@ const PriveBankPage = () => {
                         </div>
                         <div className="text-right">
                           <p className={`font-bold ${
-                            transaction.transaction_type === 'deposit' 
+                            transaction.transaction_type === 'deposit' || 
+                            (transaction.transaction_type === 'transfer' && transaction.to_account_id === account?.id)
                               ? 'text-green-400' 
                               : 'text-red-400'
                           }`}>
-                            {transaction.transaction_type === 'deposit' ? '+' : '-'}
+                            {(transaction.transaction_type === 'deposit' || 
+                              (transaction.transaction_type === 'transfer' && transaction.to_account_id === account?.id)) ? '+' : '-'}
                             P$ {Number(transaction.amount).toFixed(2)}
                           </p>
                           <p className="text-zinc-500 text-sm">{transaction.status}</p>

@@ -192,6 +192,128 @@ export const useCreatePrivaBankTransaction = () => {
   });
 };
 
+export const useTransferBetweenAccounts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      fromAccountId, 
+      toUserEmail, 
+      amount, 
+      description 
+    }: { 
+      fromAccountId: string; 
+      toUserEmail: string; 
+      amount: number; 
+      description?: string;
+    }) => {
+      console.log('Processing transfer:', { fromAccountId, toUserEmail, amount });
+
+      // Primeiro, encontrar a conta do destinatário pelo email
+      const { data: toUser, error: userError } = await supabase
+        .from('system_users')
+        .select('user_id')
+        .eq('email', toUserEmail)
+        .single();
+
+      if (userError || !toUser) {
+        throw new Error('Usuário destinatário não encontrado');
+      }
+
+      const { data: toAccount, error: accountError } = await supabase
+        .from('privabank_accounts')
+        .select('id, is_active')
+        .eq('user_id', toUser.user_id)
+        .single();
+
+      if (accountError || !toAccount) {
+        throw new Error('Conta PriveBank do destinatário não encontrada');
+      }
+
+      if (!toAccount.is_active) {
+        throw new Error('Conta do destinatário não está ativa');
+      }
+
+      // Verificar saldo da conta origem
+      const { data: fromAccount, error: fromAccountError } = await supabase
+        .from('privabank_accounts')
+        .select('balance')
+        .eq('id', fromAccountId)
+        .single();
+
+      if (fromAccountError || !fromAccount) {
+        throw new Error('Conta de origem não encontrada');
+      }
+
+      if (Number(fromAccount.balance) < amount) {
+        throw new Error('Saldo insuficiente para transferência');
+      }
+
+      // Criar a transação de transferência
+      const { data: transaction, error: transactionError } = await supabase
+        .from('privabank_transactions')
+        .insert({
+          from_account_id: fromAccountId,
+          to_account_id: toAccount.id,
+          transaction_type: 'transfer',
+          amount,
+          description: description || `Transferência para ${toUserEmail}`,
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (transactionError) {
+        console.error('Error creating transfer transaction:', transactionError);
+        throw new Error('Erro ao criar transação de transferência');
+      }
+
+      // Atualizar saldos das contas (isso deveria idealmente ser feito com uma stored procedure)
+      // Debitar da conta origem
+      const newFromBalance = Number(fromAccount.balance) - amount;
+      const { error: updateFromError } = await supabase
+        .from('privabank_accounts')
+        .update({ balance: newFromBalance })
+        .eq('id', fromAccountId);
+
+      if (updateFromError) {
+        console.error('Error updating from account balance:', updateFromError);
+        throw new Error('Erro ao debitar da conta origem');
+      }
+
+      // Creditar na conta destino
+      const { data: currentToAccount, error: currentToAccountError } = await supabase
+        .from('privabank_accounts')
+        .select('balance')
+        .eq('id', toAccount.id)
+        .single();
+
+      if (currentToAccountError) {
+        throw new Error('Erro ao obter saldo da conta destino');
+      }
+
+      const newToBalance = Number(currentToAccount.balance) + amount;
+      const { error: updateToError } = await supabase
+        .from('privabank_accounts')
+        .update({ balance: newToBalance })
+        .eq('id', toAccount.id);
+
+      if (updateToError) {
+        console.error('Error updating to account balance:', updateToError);
+        throw new Error('Erro ao creditar na conta destino');
+      }
+
+      console.log('Transfer completed successfully:', transaction);
+      return transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['privabank-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['privabank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-privabank-account'] });
+    },
+  });
+};
+
 export const useDeletePrivaBankAccount = () => {
   const queryClient = useQueryClient();
 
