@@ -98,3 +98,113 @@ export const useDeleteCustomSection = () => {
     },
   });
 };
+
+export const useCreateCustomField = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (fieldData: any) => {
+      console.log('➕ Creating custom field:', fieldData);
+      const { data, error } = await supabase
+        .from('custom_fields')
+        .insert(fieldData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error creating custom field:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom field created');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+    },
+  });
+};
+
+export const useUpdateCustomField = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...fieldData }: any) => {
+      console.log('✏️ Updating custom field:', id, fieldData);
+      const { data, error } = await supabase
+        .from('custom_fields')
+        .update(fieldData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error updating custom field:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom field updated');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-fields'] });
+      queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
+    },
+  });
+};
+
+export const useCreateCustomSection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sectionData: any) => {
+      console.log('➕ Creating custom section:', sectionData);
+      const { data, error } = await supabase
+        .from('custom_sections')
+        .insert(sectionData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error creating custom section:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom section created');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    },
+  });
+};
+
+export const useUpdateCustomSection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...sectionData }: any) => {
+      console.log('✏️ Updating custom section:', id, sectionData);
+      const { data, error } = await supabase
+        .from('custom_sections')
+        .update(sectionData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error updating custom section:', error);
+        throw error;
+      }
+
+      console.log('✅ Custom section updated');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-custom-sections'] });
+      queryClient.invalidateQueries({ queryKey: ['custom-sections'] });
+    },
+  });
+};

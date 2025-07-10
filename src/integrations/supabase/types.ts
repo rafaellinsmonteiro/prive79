@@ -338,11 +338,13 @@ export type Database = {
       }
       custom_fields: {
         Row: {
+          allowed_plan_ids: string[] | null
           created_at: string
           display_order: number
           field_name: string
           field_type: string
           help_text: string | null
+          icon_url: string | null
           id: string
           is_active: boolean
           is_required: boolean
@@ -353,11 +355,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number
           field_name: string
           field_type: string
           help_text?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           is_required?: boolean
@@ -368,11 +372,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number
           field_name?: string
           field_type?: string
           help_text?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           is_required?: boolean
@@ -386,6 +392,7 @@ export type Database = {
       }
       custom_sections: {
         Row: {
+          allowed_plan_ids: string[] | null
           created_at: string
           display_order: number
           id: string
@@ -393,6 +400,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number
           id?: string
@@ -400,6 +408,7 @@ export type Database = {
           name: string
         }
         Update: {
+          allowed_plan_ids?: string[] | null
           created_at?: string
           display_order?: number
           id?: string

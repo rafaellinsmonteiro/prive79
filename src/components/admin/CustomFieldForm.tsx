@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Upload, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAdminPlans } from '@/hooks/useAdminPlans';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
 interface CustomFieldFormProps {
   field?: any;
@@ -23,6 +27,9 @@ interface CustomFieldFormProps {
 }
 
 const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections = [] }: CustomFieldFormProps) => {
+  const { data: plans = [] } = useAdminPlans();
+  const { uploadPhoto, uploading } = useFileUpload();
+  
   const [formData, setFormData] = useState({
     field_name: '',
     label: '',
@@ -34,6 +41,8 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
     help_text: '',
     options: '',
     section: 'Campos Personalizados',
+    allowed_plan_ids: [] as string[],
+    icon_url: '',
   });
 
   useEffect(() => {
@@ -49,6 +58,8 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
         help_text: field.help_text || '',
         options: field.options ? field.options.join('\n') : '',
         section: field.section || 'Campos Personalizados',
+        allowed_plan_ids: field.allowed_plan_ids || [],
+        icon_url: field.icon_url || '',
       });
     }
   }, [field]);
@@ -222,6 +233,105 @@ const CustomFieldForm = ({ field, onSubmit, onCancel, loading, availableSections
               />
             </div>
           )}
+
+          {/* Upload de Ícone */}
+          <div className="space-y-2">
+            <Label className="text-white">Ícone do Campo</Label>
+            <div className="flex items-center space-x-4">
+              {formData.icon_url && (
+                <div className="flex items-center space-x-2">
+                  <img
+                    src={formData.icon_url}
+                    alt="Ícone do campo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, icon_url: '' })}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept=".png,.svg,image/png,image/svg+xml"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const iconUrl = await uploadPhoto(file, 'temp-model-id');
+                        setFormData({ ...formData, icon_url: iconUrl });
+                      } catch (error) {
+                        console.error('Erro ao fazer upload do ícone:', error);
+                      }
+                    }
+                  }}
+                  className="hidden"
+                  id="icon-upload"
+                />
+                <Label
+                  htmlFor="icon-upload"
+                  className="flex items-center space-x-2 cursor-pointer bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white hover:bg-zinc-700"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>{uploading ? 'Enviando...' : 'Escolher Ícone (PNG/SVG)'}</span>
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          {/* Restrições de Planos */}
+          <div className="space-y-2">
+            <Label className="text-white">Restringir a Planos Específicos</Label>
+            <p className="text-xs text-zinc-400">
+              Se nenhum plano for selecionado, o campo será visível para todos os usuários
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {plans.map((plan) => (
+                <div key={plan.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`plan-${plan.id}`}
+                    checked={formData.allowed_plan_ids.includes(plan.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          allowed_plan_ids: [...formData.allowed_plan_ids, plan.id]
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          allowed_plan_ids: formData.allowed_plan_ids.filter(id => id !== plan.id)
+                        });
+                      }
+                    }}
+                    className="rounded border-zinc-600 bg-zinc-700"
+                  />
+                  <Label htmlFor={`plan-${plan.id}`} className="text-white text-sm">
+                    {plan.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {formData.allowed_plan_ids.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {formData.allowed_plan_ids.map((planId) => {
+                  const plan = plans.find(p => p.id === planId);
+                  return plan ? (
+                    <Badge key={planId} variant="secondary" className="text-xs">
+                      {plan.name}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
