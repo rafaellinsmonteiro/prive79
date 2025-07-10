@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Image, Settings, BarChart3, LogOut, Shield } from 'lucide-react';
+import { User, Image, Settings, BarChart3, LogOut, Shield, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModelProfile } from '@/hooks/useModelProfile';
 import { toast } from 'sonner';
@@ -10,9 +10,10 @@ import EnhancedModelProfileManager from '@/components/model/EnhancedModelProfile
 import EnhancedModelMediaManager from '@/components/model/EnhancedModelMediaManager';
 import ModelPrivacySettings from '@/components/model/ModelPrivacySettings';
 import ModelStats from '@/components/model/ModelStats';
+import ModelDashboardHome from '@/components/model/ModelDashboardHome';
 
 const ModelDashboard = () => {
-  const [activeSection, setActiveSection] = useState('profile');
+  const [activeSection, setActiveSection] = useState('home');
   const { user, signOut, loading, authComplete } = useAuth();
   const { profile, isLoading: profileLoading } = useModelProfile();
   const navigate = useNavigate();
@@ -98,6 +99,7 @@ const ModelDashboard = () => {
   }
 
   const menuItems = [
+    { key: 'home', label: 'Início', icon: Home },
     { key: 'profile', label: 'Perfil', icon: User },
     { key: 'media', label: 'Mídias', icon: Image },
     { key: 'privacy', label: 'Privacidade', icon: Shield },
@@ -106,6 +108,8 @@ const ModelDashboard = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'home':
+        return <ModelDashboardHome profile={profile} modelId={profile.model_id} onSectionChange={setActiveSection} />;
       case 'profile':
         return <EnhancedModelProfileManager profile={profile} />;
       case 'media':
@@ -115,7 +119,7 @@ const ModelDashboard = () => {
       case 'stats':
         return <ModelStats modelId={profile.model_id} />;
       default:
-        return <EnhancedModelProfileManager profile={profile} />;
+        return <ModelDashboardHome profile={profile} modelId={profile.model_id} onSectionChange={setActiveSection} />;
     }
   };
 
