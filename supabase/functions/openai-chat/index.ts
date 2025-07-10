@@ -17,6 +17,12 @@ serve(async (req) => {
   }
 
   try {
+    // Check if OpenAI API key exists
+    if (!openAIApiKey) {
+      console.error('OpenAI API key not found in environment variables');
+      throw new Error('OpenAI API key não está configurada. Configure a variável OPENAI_API_KEY no Supabase.');
+    }
+
     const { message, conversationHistory = [] } = await req.json();
     
     if (!message) {
