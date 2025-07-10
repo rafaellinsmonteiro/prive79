@@ -10,7 +10,7 @@ export const useModelProfile = () => {
     queryKey: ['model-profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      if (!user) return null;
 
       console.log('=== Model Profile Debug ===');
       console.log('Authenticated user:', { id: user.id, email: user.email });
@@ -28,7 +28,7 @@ export const useModelProfile = () => {
 
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('Error fetching model profile:', profileError);
-        throw profileError;
+        return null;
       }
 
       if (!profileData) {
@@ -41,6 +41,9 @@ export const useModelProfile = () => {
       
       return profileData;
     },
+    enabled: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const createProfile = useMutation({

@@ -22,6 +22,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     let isSubscribed = true;
+    let adminCheckDebounce: NodeJS.Timeout;
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -51,8 +52,9 @@ export const useAuth = () => {
         }));
         
         if (session?.user) {
-          // Check if user is admin using the security definer function
-          setTimeout(async () => {
+          // Debounce admin check to prevent multiple calls
+          clearTimeout(adminCheckDebounce);
+          adminCheckDebounce = setTimeout(async () => {
             if (!isSubscribed) return;
             
             try {
@@ -90,7 +92,7 @@ export const useAuth = () => {
                 authComplete: true 
               }));
             }
-          }, 0);
+          }, 100); // 100ms debounce
         }
       }
     );
@@ -105,6 +107,7 @@ export const useAuth = () => {
 
     return () => {
       isSubscribed = false;
+      clearTimeout(adminCheckDebounce);
       subscription.unsubscribe();
     };
   }, []);

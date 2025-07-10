@@ -24,19 +24,24 @@ const Login = () => {
     toast
   } = useToast();
 
-  // Redirect users based on their role when authentication is complete
+  // Only redirect on successful login, not on every auth state change
   useEffect(() => {
-    if (authComplete && user) {
+    if (authComplete && user && !authLoading) {
       console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin);
-      if (isAdmin) {
-        console.log('Redirecting admin to /admin');
-        navigate('/admin');
-      } else {
-        console.log('Redirecting user to home page');
-        navigate('/');
-      }
+      // Small delay to ensure state is stable
+      const timeoutId = setTimeout(() => {
+        if (isAdmin) {
+          console.log('Redirecting admin to /admin');
+          navigate('/admin', { replace: true });
+        } else {
+          console.log('Redirecting user to home page');
+          navigate('/', { replace: true });
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [authComplete, user, isAdmin, navigate]);
+  }, [authComplete, user, isAdmin, authLoading, navigate]);
 
   // Show loading while auth is being checked
   if (authLoading || user && !authComplete) {

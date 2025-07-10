@@ -23,12 +23,7 @@ export interface CurrentUserData {
 export const useCurrentUser = () => {
   const { user, session } = useAuth();
   
-  console.log('useCurrentUser - Hook called with:', {
-    hasUser: !!user,
-    hasSession: !!session,
-    userId: user?.id,
-    userEmail: user?.email
-  });
+  // Reduced logging to prevent console spam
   
   return useQuery({
     queryKey: ['current-user', user?.id],
@@ -162,6 +157,8 @@ export const useCurrentUser = () => {
       return result;
     },
     enabled: !!user && !!session,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
