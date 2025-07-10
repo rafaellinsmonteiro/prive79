@@ -18,7 +18,8 @@ import {
   UserCircle,
   Search,
   Heart,
-  LayoutDashboard
+  LayoutDashboard,
+  ChevronDown
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -110,7 +111,7 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2">
+                <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-white/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -139,11 +140,10 @@ const Header = () => {
             <img src={logo} alt="Logo" className="h-8 w-auto cursor-pointer" onClick={() => navigate('/')} />
           </div>
 
-          {/* User Menu */}
           <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-auto px-3 rounded-full">
+                <Button variant="ghost" className="relative h-10 w-auto px-3 rounded-full text-white hover:bg-white/10">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src="" alt={currentUser?.name || 'User'} />
@@ -154,6 +154,7 @@ const Header = () => {
                     <span className="hidden sm:inline-block font-medium text-sm">
                       {currentUser?.name || 'Usuário'}
                     </span>
+                    <ChevronDown className="h-4 w-4 opacity-70" />
                   </div>
                 </Button>
               </DropdownMenuTrigger>
