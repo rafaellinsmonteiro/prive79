@@ -125,30 +125,6 @@ const ModelDashboard = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-
-      {/* Mobile Navigation Tabs */}
-      <div className="bg-zinc-900 border-b border-zinc-800 overflow-x-auto">
-        <div className="flex space-x-1 px-4 py-2 min-w-max">
-          {menuItems.map((item) => {
-            const IconComponent = item.icon;
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActiveSection(item.key)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeSection === item.key
-                    ? 'bg-blue-600 text-white'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-                }`}
-              >
-                <IconComponent className="h-4 w-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="p-4">
         {renderContent()}
