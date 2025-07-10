@@ -21,9 +21,13 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
+    let isSubscribed = true;
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!isSubscribed) return;
+        
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_OUT' || !session) {
@@ -42,20 +46,24 @@ export const useAuth = () => {
           ...prev, 
           session, 
           user: session?.user ?? null,
-          authComplete: false // Reset authComplete when auth state changes
+          loading: true,
+          authComplete: false
         }));
         
         if (session?.user) {
           // Check if user is admin using the security definer function
           setTimeout(async () => {
+            if (!isSubscribed) return;
+            
             try {
               console.log('Checking admin status for user:', session.user.id);
               const { data, error } = await supabase.rpc('is_admin');
               console.log('Admin check result:', { data, error });
               
+              if (!isSubscribed) return;
+              
               if (error) {
                 console.error('Error checking admin status:', error);
-                // User is authenticated but not admin - treat as regular user
                 setState(prev => ({ 
                   ...prev, 
                   isAdmin: false, 
@@ -72,8 +80,9 @@ export const useAuth = () => {
                 }));
               }
             } catch (error) {
+              if (!isSubscribed) return;
+              
               console.error('Error calling is_admin function:', error);
-              // User is authenticated but admin check failed - treat as regular user
               setState(prev => ({ 
                 ...prev, 
                 isAdmin: false, 
@@ -82,25 +91,22 @@ export const useAuth = () => {
               }));
             }
           }, 0);
-        } else {
-          console.log('No user session, setting as non-admin');
-          setState(prev => ({ 
-            ...prev, 
-            isAdmin: false, 
-            loading: false, 
-            authComplete: true 
-          }));
         }
       }
     );
 
-    // Check for existing session
+    // Check for existing session only once
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isSubscribed) return;
+      
       console.log('Initial session check:', !!session);
       setState(prev => ({ ...prev, session, user: session?.user ?? null }));
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
