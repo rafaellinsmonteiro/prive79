@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModelProfile } from '@/hooks/useModelProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ const Login = () => {
     authComplete,
     loading: authLoading
   } = useAuth();
+  const { profile: modelProfile, isLoading: profileLoading } = useModelProfile();
   const navigate = useNavigate();
   const {
     toast
@@ -26,13 +28,16 @@ const Login = () => {
 
   // Only redirect on successful login, not on every auth state change
   useEffect(() => {
-    if (authComplete && user && !authLoading) {
-      console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin);
+    if (authComplete && user && !authLoading && !profileLoading) {
+      console.log('Auth complete, user:', user.email, 'isAdmin:', isAdmin, 'modelProfile:', !!modelProfile);
       // Small delay to ensure state is stable
       const timeoutId = setTimeout(() => {
         if (isAdmin) {
           console.log('Redirecting admin to /admin');
           navigate('/admin', { replace: true });
+        } else if (modelProfile) {
+          console.log('Redirecting model to /model-dashboard');
+          navigate('/model-dashboard', { replace: true });
         } else {
           console.log('Redirecting user to home page');
           navigate('/', { replace: true });
@@ -41,13 +46,13 @@ const Login = () => {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [authComplete, user, isAdmin, authLoading, navigate]);
+  }, [authComplete, user, isAdmin, authLoading, profileLoading, modelProfile, navigate]);
 
   // Show loading while auth is being checked
-  if (authLoading || user && !authComplete) {
+  if (authLoading || profileLoading || (user && !authComplete)) {
     return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-white">
-          {user ? 'Verificando permissões...' : 'Verificando autenticação...'}
+          {user ? 'Verificando perfil e permissões...' : 'Verificando autenticação...'}
         </div>
       </div>;
   }
