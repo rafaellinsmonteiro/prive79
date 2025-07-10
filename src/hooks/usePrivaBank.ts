@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { useLogPrivaBankAction } from './usePrivaBankLogs';
 
 type PrivaBankAccount = Tables<'privabank_accounts'>;
 type PrivaBankTransaction = Tables<'privabank_transactions'>;
@@ -77,38 +78,82 @@ export const usePrivaBankTransactions = (accountId?: string) => {
 };
 
 export const useUserPrivaBankAccount = () => {
+  const { logAction } = useLogPrivaBankAction();
+  
   return useQuery({
     queryKey: ['user-privabank-account'],
     queryFn: async (): Promise<PrivaBankAccount | null> => {
       console.log('🔍 Buscando conta PriveBank do usuário atual...');
       
-      // First get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log('❌ Usuário não autenticado');
-        return null;
-      }
-
-      console.log('👤 Usuário atual:', user.id);
-      
-      const { data, error } = await supabase
-        .from('privabank_accounts')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('❌ Nenhuma conta PriveBank encontrada para o usuário:', user.id);
+      try {
+        // First get current user ID
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.log('❌ Usuário não autenticado');
+          await logAction({
+            action_type: 'account_access',
+            action_details: { reason: 'user_not_authenticated' },
+            success: false,
+            error_message: 'Usuário não autenticado'
+          });
           return null;
         }
-        console.error('❌ Erro ao buscar conta PriveBank:', error);
+
+        console.log('👤 Usuário atual:', user.id);
+        
+        const { data, error } = await supabase
+          .from('privabank_accounts')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            console.log('❌ Nenhuma conta PriveBank encontrada para o usuário:', user.id);
+            await logAction({
+              action_type: 'account_access',
+              action_details: { user_id: user.id, reason: 'account_not_found' },
+              success: false,
+              error_message: 'Conta PriveBank não encontrada',
+              user_id: user.id
+            });
+            return null;
+          }
+          console.error('❌ Erro ao buscar conta PriveBank:', error);
+          await logAction({
+            action_type: 'account_access',
+            action_details: { user_id: user.id, error_code: error.code },
+            success: false,
+            error_message: error.message,
+            user_id: user.id
+          });
+          throw error;
+        }
+
+        console.log('✅ Conta PriveBank encontrada:', data);
+        await logAction({
+          action_type: 'account_access',
+          action_details: { 
+            user_id: user.id, 
+            account_id: data.id,
+            balance: data.balance 
+          },
+          success: true,
+          user_id: user.id
+        });
+        
+        return data;
+      } catch (error) {
+        console.error('Erro geral ao acessar conta:', error);
+        await logAction({
+          action_type: 'account_access',
+          action_details: { error: String(error) },
+          success: false,
+          error_message: String(error)
+        });
         throw error;
       }
-
-      console.log('✅ Conta PriveBank encontrada:', data);
-      return data;
     },
   });
 };
@@ -205,6 +250,7 @@ export const useCreatePrivaBankTransaction = () => {
 
 export const useTransferBetweenAccounts = () => {
   const queryClient = useQueryClient();
+  const { logAction } = useLogPrivaBankAction();
 
   return useMutation({
     mutationFn: async ({ 
@@ -219,6 +265,20 @@ export const useTransferBetweenAccounts = () => {
       description?: string;
     }) => {
       console.log('🔄 Iniciando transferência:', { fromAccountId, toUserEmail, amount });
+      
+      // Log da tentativa de transferência
+      await logAction({
+        action_type: 'transfer_attempt',
+        action_details: {
+          fromAccountId,
+          toUserEmail,
+          amount,
+          description
+        },
+        success: true
+      });
+
+      try {
 
       // Primeiro, encontrar a conta do destinatário pelo email
       console.log('🔍 Buscando usuário destinatário:', toUserEmail);
@@ -230,11 +290,23 @@ export const useTransferBetweenAccounts = () => {
 
       if (userError) {
         console.error('❌ Erro ao buscar usuário destinatário:', userError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'user_not_found' },
+          success: false,
+          error_message: 'Usuário destinatário não encontrado'
+        });
         throw new Error('Usuário destinatário não encontrado');
       }
       
       if (!toUser) {
         console.error('❌ Usuário destinatário não existe:', toUserEmail);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'user_does_not_exist' },
+          success: false,
+          error_message: 'Usuário destinatário não encontrado'
+        });
         throw new Error('Usuário destinatário não encontrado');
       }
 
@@ -249,11 +321,23 @@ export const useTransferBetweenAccounts = () => {
 
       if (accountError) {
         console.error('❌ Erro ao buscar conta do destinatário:', accountError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'recipient_account_error' },
+          success: false,
+          error_message: 'Conta PriveBank do destinatário não encontrada'
+        });
         throw new Error('Conta PriveBank do destinatário não encontrada');
       }
       
       if (!toAccount) {
         console.error('❌ Conta do destinatário não existe para user_id:', toUser.user_id);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'recipient_account_not_found' },
+          success: false,
+          error_message: 'Conta PriveBank do destinatário não encontrada'
+        });
         throw new Error('Conta PriveBank do destinatário não encontrada');
       }
 
@@ -261,6 +345,12 @@ export const useTransferBetweenAccounts = () => {
 
       if (!toAccount.is_active) {
         console.error('❌ Conta destinatário inativa');
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'recipient_account_inactive' },
+          success: false,
+          error_message: 'Conta do destinatário não está ativa'
+        });
         throw new Error('Conta do destinatário não está ativa');
       }
 
@@ -274,11 +364,23 @@ export const useTransferBetweenAccounts = () => {
 
       if (fromAccountError) {
         console.error('❌ Erro ao buscar conta origem:', fromAccountError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'source_account_error' },
+          success: false,
+          error_message: 'Conta de origem não encontrada'
+        });
         throw new Error('Conta de origem não encontrada');
       }
       
       if (!fromAccount) {
         console.error('❌ Conta origem não existe:', fromAccountId);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'source_account_not_found' },
+          success: false,
+          error_message: 'Conta de origem não encontrada'
+        });
         throw new Error('Conta de origem não encontrada');
       }
 
@@ -286,6 +388,18 @@ export const useTransferBetweenAccounts = () => {
 
       if (Number(fromAccount.balance) < amount) {
         console.error('❌ Saldo insuficiente. Saldo atual:', fromAccount.balance, 'Valor transferência:', amount);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { 
+            fromAccountId, 
+            toUserEmail, 
+            amount, 
+            currentBalance: fromAccount.balance,
+            error: 'insufficient_balance' 
+          },
+          success: false,
+          error_message: 'Saldo insuficiente para transferência'
+        });
         throw new Error('Saldo insuficiente para transferência');
       }
 
@@ -305,6 +419,12 @@ export const useTransferBetweenAccounts = () => {
 
       if (transactionError) {
         console.error('Error creating transfer transaction:', transactionError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'transaction_creation_failed' },
+          success: false,
+          error_message: 'Erro ao criar transação de transferência'
+        });
         throw new Error('Erro ao criar transação de transferência');
       }
 
@@ -318,6 +438,12 @@ export const useTransferBetweenAccounts = () => {
 
       if (updateFromError) {
         console.error('Error updating from account balance:', updateFromError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'debit_failed' },
+          success: false,
+          error_message: 'Erro ao debitar da conta origem'
+        });
         throw new Error('Erro ao debitar da conta origem');
       }
 
@@ -329,6 +455,12 @@ export const useTransferBetweenAccounts = () => {
         .single();
 
       if (currentToAccountError) {
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'get_recipient_balance_failed' },
+          success: false,
+          error_message: 'Erro ao obter saldo da conta destino'
+        });
         throw new Error('Erro ao obter saldo da conta destino');
       }
 
@@ -340,11 +472,50 @@ export const useTransferBetweenAccounts = () => {
 
       if (updateToError) {
         console.error('Error updating to account balance:', updateToError);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { fromAccountId, toUserEmail, amount, error: 'credit_failed' },
+          success: false,
+          error_message: 'Erro ao creditar na conta destino'
+        });
         throw new Error('Erro ao creditar na conta destino');
       }
 
       console.log('Transfer completed successfully:', transaction);
+      
+      // Log de sucesso da transferência
+      await logAction({
+        action_type: 'transfer_success',
+        action_details: {
+          fromAccountId,
+          toAccountId: toAccount.id,
+          toUserEmail,
+          amount,
+          transactionId: transaction.id,
+          description
+        },
+        success: true
+      });
+      
       return transaction;
+      
+      } catch (error) {
+        // Log de erro geral se não foi capturado antes
+        console.error('Erro geral na transferência:', error);
+        await logAction({
+          action_type: 'transfer_attempt',
+          action_details: { 
+            fromAccountId, 
+            toUserEmail, 
+            amount, 
+            error: 'general_error',
+            errorMessage: String(error)
+          },
+          success: false,
+          error_message: String(error)
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['privabank-transactions'] });
