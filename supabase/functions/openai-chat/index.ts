@@ -68,12 +68,21 @@ INSTRUÇÕES:
 5. Sempre seja respeitoso e profissional
 6. Forneça informações úteis como preços, localização e como entrar em contato
 
-FORMATO DE RESPOSTA:
-- Seja conversacional e natural
-- Se encontrar modelos, apresente 2-3 opções principais
-- Inclua informações relevantes de cada modelo
+FORMATO DE RESPOSTA IMPORTANTE:
+- Seja conversacional e natural, SEM usar asteriscos (**) para destacar texto
+- NUNCA inclua URLs de imagens ou links na resposta
+- Use texto simples e limpo, sem formatação especial
+- Se encontrar modelos, apresente 2-3 opções principais de forma clara
+- Para cada modelo, liste as informações de forma organizada:
+  • Nome da modelo
+  • Idade
+  • Características físicas (cabelo, olhos, etc.)
+  • Cidade/localização
+  • Preços disponíveis
 - Ofereça opções para refinar a busca
 - Se necessário, faça perguntas para esclarecer preferências
+
+IMPORTANTE: NÃO use asteriscos, não inclua URLs, mantenha o texto limpo e profissional.
 
 Responda sempre em português brasileiro.`;
 
