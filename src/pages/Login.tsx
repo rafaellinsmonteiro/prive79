@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModelProfile } from '@/hooks/useModelProfile';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ const Login = () => {
     loading: authLoading
   } = useAuth();
   const { profile: modelProfile, isLoading: profileLoading } = useModelProfile();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const {
     toast
@@ -33,13 +35,13 @@ const Login = () => {
       // Small delay to ensure state is stable
       const timeoutId = setTimeout(() => {
         if (isAdmin) {
-          console.log('Redirecting admin to /admin');
+          console.log('🔄 Login: Redirecting admin to /admin');
           navigate('/admin', { replace: true });
         } else if (modelProfile) {
-          console.log('Redirecting model to /model-dashboard');
+          console.log('🔄 Login: Redirecting model to /model-dashboard');
           navigate('/model-dashboard', { replace: true });
         } else {
-          console.log('Redirecting user to home page');
+          console.log('🔄 Login: Redirecting user to home page');
           navigate('/', { replace: true });
         }
       }, 100);
@@ -47,6 +49,14 @@ const Login = () => {
       return () => clearTimeout(timeoutId);
     }
   }, [authComplete, user, isAdmin, authLoading, profileLoading, modelProfile, navigate]);
+
+  // Additional effect to handle model profile detection after login
+  useEffect(() => {
+    if (authComplete && user && !authLoading && !isAdmin && modelProfile && !profileLoading) {
+      console.log('🔄 Login: Model profile detected after auth, redirecting to dashboard');
+      navigate('/model-dashboard', { replace: true });
+    }
+  }, [authComplete, user, authLoading, isAdmin, modelProfile, profileLoading, navigate]);
 
   // Show loading while auth is being checked
   if (authLoading || profileLoading || (user && !authComplete)) {
@@ -80,6 +90,10 @@ const Login = () => {
         title: "Login realizado com sucesso",
         description: "Verificando permissões..."
       });
+      
+      // Invalidar a query do perfil da modelo para garantir dados atualizados
+      queryClient.invalidateQueries({ queryKey: ['model-profile'] });
+      
       // Don't set loading to false here - let useEffect handle the redirect
     }
   };

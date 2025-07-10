@@ -10,10 +10,12 @@ export const useModelProfile = () => {
     queryKey: ['model-profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      if (!user) {
+        console.log('🔍 ModelProfile: No authenticated user found');
+        return null;
+      }
 
-      console.log('=== Model Profile Debug ===');
-      console.log('Authenticated user:', { id: user.id, email: user.email });
+      console.log('🔍 ModelProfile: Checking profile for user:', { id: user.id, email: user.email });
 
       // Buscar o model_profile usando o user_id do usuário autenticado
       const { data: profileData, error: profileError } = await supabase
@@ -27,23 +29,25 @@ export const useModelProfile = () => {
         .maybeSingle();
 
       if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching model profile:', profileError);
+        console.error('🔍 ModelProfile: Error fetching model profile:', profileError);
         return null;
       }
 
       if (!profileData) {
-        console.log('No model profile found for user:', user.id);
+        console.log('🔍 ModelProfile: No model profile found for user:', user.id);
         return null;
       }
 
-      console.log('Found model profile:', profileData);
-      console.log('Model ID (Chat ID):', profileData.model_id);
+      console.log('🔍 ModelProfile: Found model profile:', profileData);
+      console.log('🔍 ModelProfile: Model ID (Chat ID):', profileData.model_id);
       
       return profileData;
     },
     enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 1 * 60 * 1000, // Reduzido para 1 minuto
+    refetchOnWindowFocus: true, // Refetch quando a janela voltar ao foco
+    refetchOnMount: true, // Refetch sempre que o componente montar
+    retry: 2, // Tentar novamente se falhar
   });
 
   const createProfile = useMutation({
