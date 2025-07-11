@@ -11,10 +11,11 @@ export interface Appointment {
   appointment_time: string;
   duration: number;
   price: number;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   payment_status: 'pending' | 'partial' | 'paid';
   location?: string;
   observations?: string;
+  created_by_admin?: boolean;
   created_at: string;
   updated_at: string;
   // Dados relacionados

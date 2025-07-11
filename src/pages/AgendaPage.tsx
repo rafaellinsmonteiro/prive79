@@ -34,7 +34,7 @@ const AgendaPage = () => {
   const { data: clientOptions = [] } = useClientOptions();
   const { data: serviceOptions = [] } = useServiceOptions();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled' | 'completed'>('all');
 
   // Estados para modal de edição/criação
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +53,7 @@ const AgendaPage = () => {
     appointment_time: '',
     duration: 60,
     price: 0,
-    status: 'pending' as 'confirmed' | 'pending' | 'cancelled',
+    status: 'pending' as 'confirmed' | 'pending' | 'cancelled' | 'completed',
     payment_status: 'pending' as 'pending' | 'partial' | 'paid',
     location: '',
     observations: ''
@@ -68,6 +68,7 @@ const AgendaPage = () => {
       case 'confirmed': return 'bg-green-500';
       case 'pending': return 'bg-yellow-500';
       case 'cancelled': return 'bg-red-500';
+      case 'completed': return 'bg-blue-500';
       default: return 'bg-gray-500';
     }
   };
@@ -77,6 +78,7 @@ const AgendaPage = () => {
       case 'confirmed': return 'Confirmado';
       case 'pending': return 'Pendente';
       case 'cancelled': return 'Cancelado';
+      case 'completed': return 'Concluído';
       default: return 'Desconhecido';
     }
   };
@@ -127,8 +129,22 @@ const AgendaPage = () => {
     }
   };
 
+  const getCreatorTag = (appointment: Appointment) => {
+    if (appointment.created_by_admin) {
+      return { text: 'Criado pelo admin', color: 'bg-purple-500' };
+    }
+    // Se não tem created_by_admin = true, foi criado pela própria modelo
+    return { text: 'Criado por mim', color: 'bg-green-600' };
+  };
+
   const handleOpenModal = (appointment?: Appointment) => {
     if (appointment) {
+      // Verificar se pode editar agendamento criado pelo admin
+      if (appointment.created_by_admin) {
+        toast.error('Agendamentos criados pelo admin não podem ser editados');
+        return;
+      }
+      
       setEditingAppointment(appointment);
       setFormData({
         client_id: appointment.client_id,
@@ -187,9 +203,14 @@ const AgendaPage = () => {
     }
   };
 
-  const handleDeleteAppointment = async (appointmentId: string) => {
+  const handleDeleteAppointment = async (appointment: Appointment) => {
+    if (appointment.created_by_admin) {
+      toast.error('Agendamentos criados pelo admin não podem ser removidos');
+      return;
+    }
+    
     try {
-      await deleteAppointment.mutateAsync(appointmentId);
+      await deleteAppointment.mutateAsync(appointment.id);
     } catch (error) {
       console.error('Error deleting appointment:', error);
     }
@@ -318,6 +339,9 @@ const AgendaPage = () => {
                       <Badge className={`${getPaymentStatusColor(appointment.payment_status)} text-white text-xs px-2 py-0.5`}>
                         {getPaymentStatusLabel(appointment.payment_status)}
                       </Badge>
+                      <Badge className={`${getCreatorTag(appointment).color} text-white text-xs px-2 py-0.5`}>
+                        {getCreatorTag(appointment).text}
+                      </Badge>
                     </div>
                     
                     <p className="text-zinc-400 text-xs mb-2">
@@ -367,7 +391,7 @@ const AgendaPage = () => {
                         <CreditCard className="h-4 w-4 mr-2" />
                         Pagamentos
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDeleteAppointment(appointment.id)} className="text-red-400 focus:bg-zinc-700">
+                      <DropdownMenuItem onClick={() => handleDeleteAppointment(appointment)} className="text-red-400 focus:bg-zinc-700">
                         <Trash2 className="h-4 w-4 mr-2" />
                         Remover
                       </DropdownMenuItem>
@@ -480,6 +504,34 @@ const AgendaPage = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
                   className="bg-zinc-800 border-zinc-700 text-white"
                   placeholder="60"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Status *</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as 'confirmed' | 'pending' | 'cancelled' | 'completed' }))}>
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="pending" className="text-white focus:bg-zinc-700">Pendente</SelectItem>
+                    <SelectItem value="confirmed" className="text-white focus:bg-zinc-700">Confirmado</SelectItem>
+                    <SelectItem value="completed" className="text-white focus:bg-zinc-700">Concluído</SelectItem>
+                    <SelectItem value="cancelled" className="text-white focus:bg-zinc-700">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Local</Label>
+                <Input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Local do atendimento"
                 />
               </div>
             </div>
