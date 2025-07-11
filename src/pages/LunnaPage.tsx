@@ -62,21 +62,33 @@ const LunnaPage = () => {
 
         {/* Componente Principal da Lunna */}
         <div className="max-w-2xl mx-auto">
-          <LunnaAssistant agentId="your-agent-id" />
+          <LunnaAssistant agentId={undefined} />
         </div>
 
-        {/* Aviso sobre Configuração */}
-        <Card className="mt-8 max-w-2xl mx-auto bg-yellow-500/10 border-yellow-500/20">
+        {/* Instruções de Configuração */}
+        <Card className="mt-8 max-w-2xl mx-auto bg-blue-500/10 border-blue-500/20">
           <CardHeader>
-            <CardTitle className="text-yellow-400 flex items-center gap-2">
-              ⚙️ Configuração Necessária
+            <CardTitle className="text-blue-400 flex items-center gap-2">
+              📋 Como Configurar a Lunna
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• Configure um Agent ID no ElevenLabs Conversational AI</p>
-              <p>• Substitua "your-agent-id" pelo ID real do seu agente</p>
-              <p>• Certifique-se de que sua API Key do ElevenLabs está configurada</p>
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="font-medium text-blue-300">1. Crie um Agent no ElevenLabs:</p>
+                <p className="text-muted-foreground">• Acesse o portal ElevenLabs Conversational AI</p>
+                <p className="text-muted-foreground">• Crie um novo agente com personalidade da Lunna</p>
+              </div>
+              <div>
+                <p className="font-medium text-blue-300">2. Configure o Agent ID:</p>
+                <p className="text-muted-foreground">• Copie o Agent ID gerado</p>
+                <p className="text-muted-foreground">• Substitua 'undefined' por seu Agent ID em LunnaPage.tsx</p>
+              </div>
+              <div>
+                <p className="font-medium text-blue-300">3. Teste a Conexão:</p>
+                <p className="text-muted-foreground">• Recarregue a página após configurar</p>
+                <p className="text-muted-foreground">• Clique em "Falar com Lunna" para testar</p>
+              </div>
             </div>
           </CardContent>
         </Card>

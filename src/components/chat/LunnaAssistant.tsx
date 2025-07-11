@@ -11,12 +11,13 @@ interface LunnaAssistantProps {
 }
 
 const LunnaAssistant: React.FC<LunnaAssistantProps> = ({ 
-  agentId = 'default-agent-id', 
+  agentId, 
   className = '' 
 }) => {
   const [isStarted, setIsStarted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [lastMessage, setLastMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const conversation = useConversation({
     onConnect: () => {
@@ -34,7 +35,14 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     },
     onError: (error) => {
       console.error('🌙 Erro da Lunna:', error);
-      toast.error('Erro na conexão com Lunna');
+      const errorStr = String(error);
+      if (errorStr.includes('does not exist')) {
+        setErrorMessage('Agent ID não configurado. Configure um agent ID válido do ElevenLabs.');
+        toast.error('Agent ID inválido. Verifique a configuração.');
+      } else {
+        setErrorMessage('Erro na conexão com Lunna');
+        toast.error('Erro na conexão com Lunna');
+      }
     },
     overrides: {
       agent: {
@@ -55,7 +63,14 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   });
 
   const startConversation = async () => {
+    if (!agentId) {
+      toast.error('Agent ID não configurado. Consulte as instruções abaixo.');
+      setErrorMessage('Agent ID é obrigatório para iniciar a conversa com Lunna.');
+      return;
+    }
+
     try {
+      setErrorMessage('');
       // Solicitar acesso ao microfone antes de iniciar
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
@@ -65,9 +80,16 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       
       console.log('🌙 Conversa iniciada:', conversationId);
       setIsStarted(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('🌙 Erro ao iniciar conversa:', error);
-      toast.error('Erro ao conectar com Lunna. Verifique as permissões do microfone.');
+      const errorStr = String(error);
+      if (errorStr.includes('does not exist')) {
+        setErrorMessage('O Agent ID fornecido não existe no ElevenLabs.');
+        toast.error('Agent ID inválido. Verifique a configuração.');
+      } else {
+        setErrorMessage('Erro ao conectar. Verifique as permissões do microfone e sua conexão.');
+        toast.error('Erro ao conectar com Lunna. Verifique as permissões do microfone.');
+      }
     }
   };
 
@@ -75,6 +97,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     try {
       await conversation.endSession();
       setIsStarted(false);
+      setErrorMessage('');
     } catch (error) {
       console.error('🌙 Erro ao encerrar conversa:', error);
     }
@@ -119,13 +142,23 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
           </span>
         </div>
 
+        {/* Mensagem de Erro */}
+        {errorMessage && (
+          <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
+            <p className="text-sm text-destructive font-medium">
+              ⚠️ {errorMessage}
+            </p>
+          </div>
+        )}
+
         {/* Controles Principais */}
         <div className="flex items-center justify-center gap-4">
           {!isStarted ? (
             <Button 
               onClick={startConversation}
               size="lg"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              disabled={!agentId}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
             >
               <Mic className="w-5 h-5 mr-2" />
               Falar com Lunna
@@ -195,9 +228,20 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
 
         {/* Instruções */}
         <div className="text-xs text-muted-foreground text-center space-y-1">
-          <p>• Clique em "Falar com Lunna" para iniciar</p>
-          <p>• Permita acesso ao microfone quando solicitado</p>
-          <p>• Fale naturalmente, Lunna entende português</p>
+          {!agentId ? (
+            <>
+              <p className="text-destructive font-medium">⚠️ Agent ID não configurado</p>
+              <p>• Acesse o ElevenLabs e crie um Conversational AI Agent</p>
+              <p>• Copie o Agent ID e configure no código</p>
+              <p>• Substitua o valor em LunnaPage.tsx</p>
+            </>
+          ) : (
+            <>
+              <p>• Clique em "Falar com Lunna" para iniciar</p>
+              <p>• Permita acesso ao microfone quando solicitado</p>
+              <p>• Fale naturalmente, Lunna entende português</p>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
