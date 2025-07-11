@@ -80,7 +80,7 @@ const GoalForm = ({ goal, onClose }: GoalFormProps) => {
         ...data,
         appointment_types: selectedAppointmentTypes.length > 0 ? selectedAppointmentTypes : null,
         content_formats: selectedContentFormats.length > 0 ? selectedContentFormats : null,
-        model_id: data.model_id || null,
+        model_id: data.model_id && data.model_id !== 'all' ? data.model_id : null,
         created_by_user_id: null, // Will be set by the server
       };
 
@@ -178,7 +178,7 @@ const GoalForm = ({ goal, onClose }: GoalFormProps) => {
               <SelectValue placeholder="Selecione um modelo específico" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-zinc-700">
-              <SelectItem value="">Todos os modelos</SelectItem>
+              <SelectItem value="all">Todos os modelos</SelectItem>
               {models.map((model) => (
                 <SelectItem key={model.id} value={model.id} className="text-white">
                   {model.name}

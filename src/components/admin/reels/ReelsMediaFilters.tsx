@@ -85,7 +85,7 @@ const ReelsMediaFilters = ({
           <SelectValue placeholder="Filtrar por cidade" />
         </SelectTrigger>
         <SelectContent className="bg-zinc-800 border-zinc-700">
-          <SelectItem value="">Todas as cidades</SelectItem>
+          <SelectItem value="all">Todas as cidades</SelectItem>
           {validCities.length > 0 ? (
             validCities.map((city) => (
               <SelectItem key={city.id} value={city.id}>
@@ -106,7 +106,7 @@ const ReelsMediaFilters = ({
           <SelectValue placeholder="Filtrar por modelo" />
         </SelectTrigger>
         <SelectContent className="bg-zinc-800 border-zinc-700">
-          <SelectItem value="">Todas as modelos</SelectItem>
+          <SelectItem value="all">Todas as modelos</SelectItem>
           {filteredModels.length > 0 ? (
             filteredModels.map((model) => (
               <SelectItem key={model.id} value={model.id}>
