@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation, Wallet, Calendar } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation, Wallet, Calendar, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -19,6 +19,7 @@ import CustomFieldsManager from '@/components/admin/CustomFieldsManager';
 import ChatManager from '@/components/admin/ChatManager';
 import PrivaBankManager from '@/components/admin/PrivaBankManager';
 import AppointmentsManager from '@/components/admin/AppointmentsManager';
+import ReviewsManager from '@/components/admin/ReviewsManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -114,6 +115,7 @@ const AdminDashboard = () => {
     { key: 'users', label: 'Usuários', icon: UserCheck },
     { key: 'plans', label: 'Planos', icon: CreditCard },
     { key: 'appointments', label: 'Agendamentos', icon: Calendar },
+    { key: 'reviews', label: 'Avaliações', icon: Star },
     { key: 'privabank', label: 'PriveBank', icon: Wallet },
     { key: 'cities', label: 'Cidades', icon: MapPin },
     { key: 'categories', label: 'Categorias', icon: Tags },
@@ -136,6 +138,8 @@ const AdminDashboard = () => {
         return <PlansManager />;
       case 'appointments':
         return <AppointmentsManager />;
+      case 'reviews':
+        return <ReviewsManager />;
       case 'privabank':
         return <PrivaBankManager />;
       case 'cities':
