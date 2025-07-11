@@ -75,49 +75,37 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
             throw new Error(result.error || `Erro HTTP ${response.status}`);
           }
 
-          // Format result same as audio mode
+          // Format compact results (50% shorter)
           switch (tool.function_name) {
             case 'buscar_cidades':
-              return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+              const cidades = result.data.cidades.slice(0, 5).map(c => c.nome);
+              return `${cidades.join(', ')}${result.data.cidades.length > 5 ? ` (+${result.data.cidades.length - 5} mais)` : ''}`;
             case 'buscar_modelos_por_cidade':
               if (result.data.modelos.length === 0) {
-                return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
+                return `Nenhuma acompanhante em ${parameters.cidade_nome}.`;
               }
-              const modelosCidade = result.data.modelos.map(m => `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`).join(', ');
-              return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelosCidade}`;
+              const modelosCidade = result.data.modelos.slice(0, 3).map(m => `${m.nome} (${m.idade}a, R$${m.preco_1h || '?'}/h)`);
+              return `${modelosCidade.join(', ')}${result.data.modelos.length > 3 ? ` (+${result.data.modelos.length - 3})` : ''}`;
             case 'buscar_modelos':
             case 'buscar_modelos_geral':
-              const modelos = result.data.modelos.map(m => `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`).join(', ');
-              return `Acompanhantes disponíveis no Prive: ${modelos}`;
+              const modelos = result.data.modelos.slice(0, 3).map(m => `${m.nome} (${m.idade}a, ${m.cidade}, R$${m.preco_1h || '?'}/h)`);
+              return `${modelos.join(', ')}${result.data.modelos.length > 3 ? ` (+${result.data.modelos.length - 3})` : ''}`;
             case 'estatisticas_prive':
             case 'estatisticas_sistema':
-              return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
+              return `${result.data.estatisticas.total_modelos} acompanhantes em ${result.data.estatisticas.total_cidades} cidades.`;
             case 'salvar_preferencias_usuario':
-              return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
+              return `Preferências salvas. ${result.data.usuario.interaction_count} interações.`;
             case 'buscar_preferencias_usuario':
-              if (!result.data.existe) {
-                return `Usuário novo no sistema. Não há preferências salvas ainda.`;
-              }
+              if (!result.data.existe) return `Novo usuário.`;
               const user = result.data.usuario;
-              let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
-              if (user.preferred_cities?.length > 0) {
-                resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
-              }
-              if (user.preferred_age_range) {
-                resumo += `Faixa etária: ${user.preferred_age_range}. `;
-              }
-              if (user.preferred_price_range) {
-                resumo += `Faixa de preço: ${user.preferred_price_range}. `;
-              }
-              if (user.preferred_services?.length > 0) {
-                resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
-              }
-              if (user.notes) {
-                resumo += `Observações: ${user.notes}`;
-              }
-              return resumo.trim();
+              const prefs = [
+                user.preferred_cities?.length > 0 ? `Cidades: ${user.preferred_cities.slice(0, 2).join(', ')}` : null,
+                user.preferred_age_range ? `Idade: ${user.preferred_age_range}` : null,
+                user.preferred_price_range ? `Preço: ${user.preferred_price_range}` : null
+              ].filter(Boolean);
+              return `${user.user_name || 'Usuário'} (${user.interaction_count}x)${prefs.length ? ': ' + prefs.join(', ') : ''}`;
             default:
-              return JSON.stringify(result.data);
+              return JSON.stringify(result.data).substring(0, 100) + '...';
           }
         } catch (error) {
           console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
@@ -455,30 +443,73 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
           /* Text Chat Mode */
           <div className="space-y-4">
             {/* Messages */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 max-h-96 overflow-y-auto">
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 max-h-96 overflow-y-auto">
+              <div className="space-y-3">
+                {messages.map((message, index) => {
+                  const isUser = message.role === 'user';
+                  const content = message.content || '';
+                  
+                  // Detect if content contains URLs for images
+                  const imageUrlMatch = content.match(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i);
+                  const hasImage = !!imageUrlMatch;
+                  
+                  // Split content into lines for better formatting
+                  const lines = content.split('\n').filter(line => line.trim());
+                  
+                  return (
                     <div
-                      className={`max-w-[80%] p-3 rounded-2xl ${
-                        message.role === 'user'
-                          ? 'bg-primary text-white'
-                          : 'bg-white/10 text-white border border-white/20'
-                      }`}
+                      key={index}
+                      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
                     >
-                      <p className="text-sm">{message.content}</p>
+                      <div
+                        className={`max-w-[85%] p-3 rounded-2xl transition-all ${
+                          isUser
+                            ? 'bg-primary text-white'
+                            : 'bg-white/10 text-white border border-white/20'
+                        }`}
+                      >
+                        {hasImage && (
+                          <div className="mb-2">
+                            <img 
+                              src={imageUrlMatch[0]} 
+                              alt="Imagem compartilhada"
+                              className="rounded-lg max-w-full h-auto"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        
+                        {lines.length > 1 ? (
+                          <div className="space-y-1">
+                            {lines.map((line, lineIndex) => (
+                              <p key={lineIndex} className="text-sm leading-relaxed">
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {content.replace(imageUrlMatch?.[0] || '', '').trim()}
+                          </p>
+                        )}
+                        
+                        <div className={`text-xs mt-1 opacity-60 ${isUser ? 'text-right' : 'text-left'}`}>
+                          {new Date(message.timestamp).toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+                
                 {textLoading && (
                   <div className="flex justify-start">
                     <div className="bg-white/10 text-white border border-white/20 p-3 rounded-2xl">
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">Lunna está pensando...</span>
+                        <span className="text-sm">Pensando...</span>
                       </div>
                     </div>
                   </div>
