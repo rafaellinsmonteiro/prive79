@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useConversation } from '@11labs/react';
+import { useLunnaTools } from '@/hooks/useLunnaTools';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX, Loader2 } from 'lucide-react';
@@ -18,6 +19,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const [volume, setVolume] = useState(0.7);
   const [lastMessage, setLastMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const { tools: availableTools, loading: toolsLoading } = useLunnaTools();
 
   const conversation = useConversation({
     onConnect: () => {
@@ -50,157 +52,98 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         toast.error('Erro na conexão com Lunna');
       }
     },
-    clientTools: {
-      buscar_cidades: async () => {
-        console.log('🌙 Lunna está buscando cidades disponíveis');
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'buscar_cidades' })
-          });
-          const result = await response.json();
-          return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
-        } catch (error) {
-          return `Erro ao buscar cidades: ${error.message}`;
-        }
-      },
-      
-      buscar_modelos_por_cidade: async (parameters: { cidade_nome: string; limite?: number }) => {
-        console.log('🌙 Lunna está buscando modelos por cidade:', parameters);
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'buscar_modelos_por_cidade',
-              filters: { cidade_nome: parameters.cidade_nome, limit: parameters.limite || 5 }
-            })
-          });
-          const result = await response.json();
-          
-          if (result.data.modelos.length === 0) {
-            return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
-          }
-          
-          const modelos = result.data.modelos.map(m => 
-            `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`
-          ).join(', ');
-          
-          return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelos}`;
-        } catch (error) {
-          return `Erro ao buscar acompanhantes: ${error.message}`;
-        }
-      },
-      
-      buscar_modelos_geral: async (parameters: { limite?: number }) => {
-        console.log('🌙 Lunna está buscando modelos gerais:', parameters);
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'buscar_modelos',
-              filters: { limit: parameters.limite || 5 }
-            })
-          });
-          const result = await response.json();
-          
-          const modelos = result.data.modelos.map(m => 
-            `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`
-          ).join(', ');
-          
-          return `Acompanhantes disponíveis no Prive: ${modelos}`;
-        } catch (error) {
-          return `Erro ao buscar acompanhantes: ${error.message}`;
-        }
-      },
-      
-      estatisticas_prive: async () => {
-        console.log('🌙 Lunna está buscando estatísticas do Prive');
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'estatisticas_sistema' })
-          });
-          const result = await response.json();
-          
-          return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
-        } catch (error) {
-          return `Erro ao buscar estatísticas: ${error.message}`;
-        }
-      },
+    // Gerar ferramentas dinamicamente do banco de dados
+    clientTools: (() => {
+      if (!availableTools || toolsLoading) return {};
 
-      salvar_preferencias_usuario: async (parameters: { 
-        user_session_id: string; 
-        user_name?: string; 
-        preferred_cities?: string[]; 
-        preferred_age_range?: string;
-        preferred_price_range?: string;
-        preferred_services?: string[];
-        notes?: string;
-      }) => {
-        console.log('🌙 Lunna está salvando preferências do usuário:', parameters);
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              action: 'salvar_preferencias_usuario',
-              filters: parameters
-            })
-          });
-          const result = await response.json();
-          
-          return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
-        } catch (error) {
-          return `Erro ao salvar preferências: ${error.message}`;
-        }
-      },
+      const tools: Record<string, (parameters: any) => Promise<string>> = {};
+      
+      availableTools
+        .filter(tool => tool.is_active)
+        .forEach(tool => {
+          tools[tool.function_name] = async (parameters: any) => {
+            console.log(`🌙 Lunna está executando: ${tool.label}`, parameters);
+            
+            try {
+              const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  action: tool.function_name,
+                  filters: parameters || {}
+                })
+              });
+              
+              const result = await response.json();
+              
+              if (!response.ok) {
+                throw new Error(result.error || `Erro HTTP ${response.status}`);
+              }
+              
+              // Formatação específica por tipo de ferramenta
+              switch (tool.function_name) {
+                case 'buscar_cidades':
+                  return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+                
+                case 'buscar_modelos_por_cidade':
+                  if (result.data.modelos.length === 0) {
+                    return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
+                  }
+                  const modelosCidade = result.data.modelos.map(m => 
+                    `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`
+                  ).join(', ');
+                  return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelosCidade}`;
+                
+                case 'buscar_modelos':
+                case 'buscar_modelos_geral':
+                  const modelos = result.data.modelos.map(m => 
+                    `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`
+                  ).join(', ');
+                  return `Acompanhantes disponíveis no Prive: ${modelos}`;
+                
+                case 'estatisticas_prive':
+                case 'estatisticas_sistema':
+                  return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
+                
+                case 'salvar_preferencias_usuario':
+                  return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
+                
+                case 'buscar_preferencias_usuario':
+                  if (!result.data.existe) {
+                    return `Usuário novo no sistema. Não há preferências salvas ainda.`;
+                  }
+                  const user = result.data.usuario;
+                  let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
+                  if (user.preferred_cities?.length > 0) {
+                    resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
+                  }
+                  if (user.preferred_age_range) {
+                    resumo += `Faixa etária: ${user.preferred_age_range}. `;
+                  }
+                  if (user.preferred_price_range) {
+                    resumo += `Faixa de preço: ${user.preferred_price_range}. `;
+                  }
+                  if (user.preferred_services?.length > 0) {
+                    resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
+                  }
+                  if (user.notes) {
+                    resumo += `Observações: ${user.notes}`;
+                  }
+                  return resumo.trim();
+                
+                default:
+                  return JSON.stringify(result.data);
+              }
+              
+            } catch (error) {
+              console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
+              return `Erro ao executar ${tool.label}: ${error.message}`;
+            }
+          };
+        });
 
-      buscar_preferencias_usuario: async (parameters: { user_session_id: string }) => {
-        console.log('🌙 Lunna está buscando preferências do usuário:', parameters);
-        try {
-          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              action: 'buscar_preferencias_usuario',
-              filters: parameters
-            })
-          });
-          const result = await response.json();
-          
-          if (!result.data.existe) {
-            return `Usuário novo no sistema. Não há preferências salvas ainda.`;
-          }
-          
-          const user = result.data.usuario;
-          let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
-          
-          if (user.preferred_cities?.length > 0) {
-            resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
-          }
-          if (user.preferred_age_range) {
-            resumo += `Faixa etária: ${user.preferred_age_range}. `;
-          }
-          if (user.preferred_price_range) {
-            resumo += `Faixa de preço: ${user.preferred_price_range}. `;
-          }
-          if (user.preferred_services?.length > 0) {
-            resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
-          }
-          if (user.notes) {
-            resumo += `Observações: ${user.notes}`;
-          }
-          
-          return resumo.trim();
-        } catch (error) {
-          return `Erro ao buscar preferências: ${error.message}`;
-        }
-      }
-    },
+      return tools;
+    })(),
   });
 
   const startConversation = async () => {

@@ -22,6 +22,7 @@ import AppointmentsManager from '@/components/admin/AppointmentsManager';
 import ReviewsManager from '@/components/admin/ReviewsManager';
 import GoalsManager from '@/components/admin/GoalsManager';
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager';
+import LunnaToolsManager from '@/components/admin/LunnaToolsManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -129,6 +130,7 @@ const AdminDashboard = () => {
     { key: 'menu', label: 'Menu (Legacy)', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
     { key: 'zaia-ai', label: 'IA', icon: Bot },
+    { key: 'lunna-tools', label: 'Ferramentas Lunna', icon: Bot },
     { key: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
   ];
 
@@ -166,6 +168,8 @@ const AdminDashboard = () => {
         return <ReelsManager />;
       case 'zaia-ai':
         return <ZaiaAIManager />;
+      case 'lunna-tools':
+        return <LunnaToolsManager />;
       case 'whatsapp':
         return <WhatsAppManager />;
       default:

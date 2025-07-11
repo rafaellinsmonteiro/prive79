@@ -630,6 +630,48 @@ export type Database = {
           },
         ]
       }
+      lunna_tools: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          function_name: string
+          id: string
+          is_active: boolean
+          label: string
+          name: string
+          parameters: Json | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          function_name: string
+          id?: string
+          is_active?: boolean
+          label: string
+          name: string
+          parameters?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          function_name?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          name?: string
+          parameters?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lunna_user_preferences: {
         Row: {
           created_at: string | null
