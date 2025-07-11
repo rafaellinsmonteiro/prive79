@@ -304,6 +304,408 @@ serve(async (req) => {
         }
         break
 
+      // === FUNCIONALIDADES ADMINISTRATIVAS ===
+
+      case 'listar_agendamentos':
+        const { data: appointments, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select(`
+            *,
+            models:model_id(name, age, city),
+            clients:client_id(name, phone, email),
+            services:service_id(name, price, duration)
+          `)
+          .order('appointment_date', { ascending: false })
+          .limit(filters.limit || 20);
+
+        if (appointmentsError) throw appointmentsError;
+
+        result = { 
+          agendamentos: appointments?.map(apt => ({
+            id: apt.id,
+            data: apt.appointment_date,
+            horario: apt.appointment_time,
+            status: apt.status,
+            modelo: apt.models?.name,
+            cliente: apt.clients?.name,
+            servico: apt.services?.name,
+            preco: apt.price,
+            duracao: apt.duration,
+            observacoes: apt.observations
+          })) || []
+        };
+        break;
+
+      case 'criar_agendamento':
+        const { data: newAppointment, error: createAppointmentError } = await supabase
+          .from('appointments')
+          .insert({
+            model_id: filters.model_id,
+            client_id: filters.client_id,
+            service_id: filters.service_id,
+            appointment_date: filters.appointment_date,
+            appointment_time: filters.appointment_time,
+            duration: filters.duration || 60,
+            price: filters.price,
+            status: filters.status || 'pending',
+            observations: filters.observations,
+            created_by_admin: true
+          })
+          .select()
+          .single();
+
+        if (createAppointmentError) throw createAppointmentError;
+
+        result = { agendamento: newAppointment, mensagem: 'Agendamento criado com sucesso' };
+        break;
+
+      case 'atualizar_agendamento':
+        const { data: updatedAppointment, error: updateAppointmentError } = await supabase
+          .from('appointments')
+          .update({
+            appointment_date: filters.appointment_date,
+            appointment_time: filters.appointment_time,
+            status: filters.status,
+            observations: filters.observations,
+            price: filters.price
+          })
+          .eq('id', filters.appointment_id)
+          .select()
+          .single();
+
+        if (updateAppointmentError) throw updateAppointmentError;
+
+        result = { agendamento: updatedAppointment, mensagem: 'Agendamento atualizado com sucesso' };
+        break;
+
+      case 'deletar_agendamento':
+        const { error: deleteAppointmentError } = await supabase
+          .from('appointments')
+          .delete()
+          .eq('id', filters.appointment_id);
+
+        if (deleteAppointmentError) throw deleteAppointmentError;
+
+        result = { mensagem: 'Agendamento deletado com sucesso' };
+        break;
+
+      case 'listar_modelos_admin':
+        const { data: adminModels, error: adminModelsError } = await supabase
+          .from('models')
+          .select(`
+            *,
+            model_photos(photo_url, is_primary),
+            cities:city_id(name)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(filters.limit || 20);
+
+        if (adminModelsError) throw adminModelsError;
+
+        result = { 
+          modelos: adminModels?.map(model => ({
+            id: model.id,
+            nome: model.name,
+            idade: model.age,
+            cidade: model.cities?.name || model.city,
+            ativo: model.is_active,
+            whatsapp: model.whatsapp_number,
+            preco_1h: model['1hora'],
+            descricao: model.description,
+            foto_principal: model.model_photos?.find(p => p.is_primary)?.photo_url
+          })) || []
+        };
+        break;
+
+      case 'criar_modelo':
+        const { data: newModel, error: createModelError } = await supabase
+          .from('models')
+          .insert({
+            name: filters.name,
+            age: filters.age,
+            city: filters.city,
+            city_id: filters.city_id,
+            whatsapp_number: filters.whatsapp_number,
+            description: filters.description,
+            '1hora': filters.preco_1h,
+            is_active: filters.is_active !== false
+          })
+          .select()
+          .single();
+
+        if (createModelError) throw createModelError;
+
+        result = { modelo: newModel, mensagem: 'Modelo criada com sucesso' };
+        break;
+
+      case 'atualizar_modelo':
+        const { data: updatedModel, error: updateModelError } = await supabase
+          .from('models')
+          .update({
+            name: filters.name,
+            age: filters.age,
+            city: filters.city,
+            whatsapp_number: filters.whatsapp_number,
+            description: filters.description,
+            '1hora': filters.preco_1h,
+            is_active: filters.is_active
+          })
+          .eq('id', filters.model_id)
+          .select()
+          .single();
+
+        if (updateModelError) throw updateModelError;
+
+        result = { modelo: updatedModel, mensagem: 'Modelo atualizada com sucesso' };
+        break;
+
+      case 'deletar_modelo':
+        const { error: deleteModelError } = await supabase
+          .from('models')
+          .delete()
+          .eq('id', filters.model_id);
+
+        if (deleteModelError) throw deleteModelError;
+
+        result = { mensagem: 'Modelo deletada com sucesso' };
+        break;
+
+      case 'listar_usuarios':
+        const { data: systemUsers, error: usersError } = await supabase
+          .from('system_users')
+          .select(`
+            *,
+            plans:plan_id(name, description)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(filters.limit || 20);
+
+        if (usersError) throw usersError;
+
+        result = { 
+          usuarios: systemUsers?.map(user => ({
+            id: user.id,
+            nome: user.name,
+            email: user.email,
+            telefone: user.phone,
+            role: user.user_role,
+            plano: user.plans?.name,
+            ativo: user.is_active,
+            criado_em: user.created_at
+          })) || []
+        };
+        break;
+
+      case 'criar_usuario':
+        const { data: newUser, error: createUserError } = await supabase
+          .from('system_users')
+          .insert({
+            name: filters.name,
+            email: filters.email,
+            phone: filters.phone,
+            user_role: filters.user_role || 'cliente',
+            plan_id: filters.plan_id,
+            is_active: filters.is_active !== false
+          })
+          .select()
+          .single();
+
+        if (createUserError) throw createUserError;
+
+        result = { usuario: newUser, mensagem: 'Usuário criado com sucesso' };
+        break;
+
+      case 'atualizar_usuario':
+        const { data: updatedSystemUser, error: updateUserError } = await supabase
+          .from('system_users')
+          .update({
+            name: filters.name,
+            phone: filters.phone,
+            user_role: filters.user_role,
+            plan_id: filters.plan_id,
+            is_active: filters.is_active
+          })
+          .eq('id', filters.user_id)
+          .select()
+          .single();
+
+        if (updateUserError) throw updateUserError;
+
+        result = { usuario: updatedSystemUser, mensagem: 'Usuário atualizado com sucesso' };
+        break;
+
+      case 'deletar_usuario':
+        const { error: deleteUserError } = await supabase
+          .from('system_users')
+          .delete()
+          .eq('id', filters.user_id);
+
+        if (deleteUserError) throw deleteUserError;
+
+        result = { mensagem: 'Usuário deletado com sucesso' };
+        break;
+
+      case 'listar_metas':
+        const { data: goals, error: goalsError } = await supabase
+          .from('goals')
+          .select(`
+            *,
+            models:model_id(name)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(filters.limit || 20);
+
+        if (goalsError) throw goalsError;
+
+        result = { 
+          metas: goals?.map(goal => ({
+            id: goal.id,
+            titulo: goal.title,
+            descricao: goal.description,
+            tipo: goal.goal_type,
+            valor_alvo: goal.target_value,
+            valor_atual: goal.current_value,
+            periodo: goal.period_type,
+            inicio: goal.period_start,
+            fim: goal.period_end,
+            modelo: goal.models?.name,
+            ativo: goal.is_active,
+            admin_defined: goal.admin_defined
+          })) || []
+        };
+        break;
+
+      case 'criar_meta':
+        const { data: newGoal, error: createGoalError } = await supabase
+          .from('goals')
+          .insert({
+            title: filters.title,
+            description: filters.description,
+            goal_type: filters.goal_type,
+            target_value: filters.target_value,
+            period_type: filters.period_type || 'monthly',
+            period_start: filters.period_start,
+            period_end: filters.period_end,
+            model_id: filters.model_id,
+            admin_defined: true,
+            is_active: filters.is_active !== false
+          })
+          .select()
+          .single();
+
+        if (createGoalError) throw createGoalError;
+
+        result = { meta: newGoal, mensagem: 'Meta criada com sucesso' };
+        break;
+
+      case 'atualizar_meta':
+        const { data: updatedGoal, error: updateGoalError } = await supabase
+          .from('goals')
+          .update({
+            title: filters.title,
+            description: filters.description,
+            target_value: filters.target_value,
+            period_start: filters.period_start,
+            period_end: filters.period_end,
+            is_active: filters.is_active
+          })
+          .eq('id', filters.goal_id)
+          .select()
+          .single();
+
+        if (updateGoalError) throw updateGoalError;
+
+        result = { meta: updatedGoal, mensagem: 'Meta atualizada com sucesso' };
+        break;
+
+      case 'deletar_meta':
+        const { error: deleteGoalError } = await supabase
+          .from('goals')
+          .delete()
+          .eq('id', filters.goal_id);
+
+        if (deleteGoalError) throw deleteGoalError;
+
+        result = { mensagem: 'Meta deletada com sucesso' };
+        break;
+
+      case 'listar_campos_customizados':
+        const { data: customFields, error: fieldsError } = await supabase
+          .from('custom_fields')
+          .select('*')
+          .order('display_order', { ascending: true });
+
+        if (fieldsError) throw fieldsError;
+
+        result = { 
+          campos: customFields?.map(field => ({
+            id: field.id,
+            nome: field.field_name,
+            label: field.label,
+            tipo: field.field_type,
+            secao: field.section,
+            obrigatorio: field.is_required,
+            ativo: field.is_active,
+            opcoes: field.options,
+            placeholder: field.placeholder,
+            ordem: field.display_order
+          })) || []
+        };
+        break;
+
+      case 'criar_campo_customizado':
+        const { data: newField, error: createFieldError } = await supabase
+          .from('custom_fields')
+          .insert({
+            field_name: filters.field_name,
+            label: filters.label,
+            field_type: filters.field_type,
+            section: filters.section,
+            is_required: filters.is_required || false,
+            is_active: filters.is_active !== false,
+            options: filters.options,
+            placeholder: filters.placeholder,
+            display_order: filters.display_order || 0
+          })
+          .select()
+          .single();
+
+        if (createFieldError) throw createFieldError;
+
+        result = { campo: newField, mensagem: 'Campo customizado criado com sucesso' };
+        break;
+
+      case 'atualizar_campo_customizado':
+        const { data: updatedField, error: updateFieldError } = await supabase
+          .from('custom_fields')
+          .update({
+            label: filters.label,
+            section: filters.section,
+            is_required: filters.is_required,
+            is_active: filters.is_active,
+            options: filters.options,
+            placeholder: filters.placeholder
+          })
+          .eq('id', filters.field_id)
+          .select()
+          .single();
+
+        if (updateFieldError) throw updateFieldError;
+
+        result = { campo: updatedField, mensagem: 'Campo customizado atualizado com sucesso' };
+        break;
+
+      case 'deletar_campo_customizado':
+        const { error: deleteFieldError } = await supabase
+          .from('custom_fields')
+          .delete()
+          .eq('id', filters.field_id);
+
+        if (deleteFieldError) throw deleteFieldError;
+
+        result = { mensagem: 'Campo customizado deletado com sucesso' };
+        break;
+
       default:
         throw new Error(`Ação '${action}' não reconhecida`)
     }
