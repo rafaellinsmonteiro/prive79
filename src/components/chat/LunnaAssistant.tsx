@@ -50,6 +50,22 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         toast.error('Erro na conexão com Lunna');
       }
     },
+    clientTools: {
+      buscar_cidades: async () => {
+        console.log('🌙 Lunna está buscando cidades disponíveis');
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'buscar_cidades' })
+          });
+          const result = await response.json();
+          return `Temos acompanhantes nas seguintes cidades: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+        } catch (error) {
+          return `Erro ao buscar cidades: ${error.message}`;
+        }
+      }
+    },
   });
 
   const startConversation = async () => {
