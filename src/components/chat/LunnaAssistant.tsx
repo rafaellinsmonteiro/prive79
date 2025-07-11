@@ -8,12 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
+
 interface LunnaAssistantProps {
   agentId?: string;
   className?: string;
   onSpeakingChange?: (isSpeaking: boolean) => void;
   mode?: 'audio' | 'text';
 }
+
 const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   agentId,
   className = '',
@@ -28,18 +30,23 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [textInput, setTextInput] = useState('');
   const [sharedMessages, setSharedMessages] = useState<any[]>([]);
+  const [userType, setUserType] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const {
-    tools: availableTools,
-    loading: toolsLoading
-  } = useLunnaTools();
-  const {
-    getUserType
-  } = useUserType();
-  const [userType, setUserType] = useState<string | null>(null);
+  // Get tools and user type
+  const { tools: availableTools, loading: toolsLoading } = useLunnaTools();
+  const { getUserType } = useUserType();
 
-  // Text chat hook with tools and shared memory
+  // Load user type on mount
+  useEffect(() => {
+    const loadUserType = async () => {
+      const type = await getUserType();
+      setUserType(type);
+    };
+    loadUserType();
+  }, [getUserType]);
+
+  // Text chat tools with handlers
   const clientToolsWithHandlers = useMemo(() => {
     if (!availableTools || toolsLoading || !userType) {
       return [];
@@ -120,13 +127,14 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     }));
   }, [availableTools, toolsLoading, userType]);
 
+  // Text chat hook with tools and shared memory
   const { messages, isLoading: textLoading, sendMessage, clearMessages } = useOpenAIChat({
     tools: clientToolsWithHandlers,
     sharedMessages,
     onMessagesUpdate: setSharedMessages
   });
 
-  // Gerar ferramentas dinamicamente baseadas no tipo de usuário (para modo áudio)
+  // Audio mode tools
   const clientTools = useMemo(() => {
     if (!availableTools || toolsLoading || !userType) {
       console.log('🌙 Ferramentas não disponíveis ainda:', {
@@ -139,6 +147,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     console.log('🌙 Gerando ferramentas para tipo de usuário:', userType);
     console.log('🌙 Ferramentas disponíveis:', availableTools.length);
     const tools: Record<string, (parameters: any) => Promise<string>> = {};
+    
     availableTools.filter(tool => {
       // Filtrar por ativação
       if (!tool.is_active) return false;
@@ -298,6 +307,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     },
     clientTools
   });
+
   const startConversation = async () => {
     if (!agentId) {
       toast.error('Agent ID não configurado. Consulte as instruções abaixo.');
@@ -344,6 +354,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       }
     }
   };
+
   const endConversation = async () => {
     try {
       await conversation.endSession();
@@ -353,6 +364,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       console.error('🌙 Erro ao encerrar conversa:', error);
     }
   };
+
   const handleVolumeChange = async (newVolume: number) => {
     setVolume(newVolume);
     try {
@@ -363,13 +375,6 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       console.error('🌙 Erro ao ajustar volume:', error);
     }
   };
-  useEffect(() => {
-    const loadUserType = async () => {
-      const type = await getUserType();
-      setUserType(type);
-    };
-    loadUserType();
-  }, [getUserType]);
 
   // Monitor speaking state and notify parent
   useEffect(() => {
@@ -377,6 +382,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       onSpeakingChange(conversation.isSpeaking || false);
     }
   }, [conversation.isSpeaking, onSpeakingChange]);
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -405,161 +411,189 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       setTextInput('');
     }
   };
-  return <div className={`relative ${className}`}>
+
+  return (
+    <div className={`relative ${className}`}>
       {/* Modern minimalist interface */}
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-3 mb-6">
-            <div className={`w-4 h-4 rounded-full transition-all duration-300 ${conversation.status === 'connected' ? 'bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]' : 'bg-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.6)]'}`} />
+            <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
+              conversation.status === 'connected' 
+                ? 'bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]' 
+                : 'bg-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.6)]'
+            }`} />
             <span className="text-lg font-light text-white tracking-wider">
               {conversation.status === 'connected' ? 'Conectada' : 'Offline'}
             </span>
           </div>
 
           {/* Error Display */}
-          {errorMessage && <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 mb-6">
+          {errorMessage && (
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 mb-6">
               <p className="text-rose-300 text-sm font-medium">
                 {errorMessage}
               </p>
-            </div>}
-        </div>
-
-        {/* Main Action */}
-        <div className="text-center">
-          {mode === 'audio' ? (
-            // Audio Mode
-            !isStarted ? <button onClick={startConversation} disabled={!agentId} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105">
-                <Mic className="w-6 h-6 mr-3 group-hover:animate-pulse" />
-                Conversar com Lunna
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 bg-[#000a00]/0" />
-              </button> : <button onClick={endConversation} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                <MicOff className="w-6 h-6 mr-3 group-hover:animate-pulse" />
-                Encerrar
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-              </button>
-          ) : (
-            // Text Mode
-            <div className="w-full max-w-2xl mx-auto space-y-6">
-              {/* Chat Messages */}
-              <div className="bg-black/20 backdrop-blur border border-white/10 rounded-2xl p-6 space-y-4 h-96 overflow-y-auto">
-                {messages.length === 0 ? (
-                  <div className="text-center text-gray-400 py-12">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Olá! Sou a Lunna, sua assistente do Prive.</p>
-                    <p className="text-sm mt-2">Digite uma mensagem para começar nossa conversa.</p>
-                  </div>
-                ) : (
-                  <>
-                    {messages.map((msg, index) => (
-                      <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] p-3 rounded-2xl ${
-                          msg.role === 'user' 
-                            ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white' 
-                            : 'bg-white/10 text-gray-200'
-                        }`}>
-                          <p className="text-sm leading-relaxed">{msg.content}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {new Date(msg.timestamp).toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </>
-                )}
-              </div>
-
-              {/* Text Input */}
-              <form onSubmit={handleTextSubmit} className="flex gap-3">
-                <Input
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Digite sua mensagem..."
-                  disabled={textLoading}
-                  className="flex-1 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-rose-400"
-                />
-                <Button 
-                  type="submit" 
-                  disabled={!textInput.trim() || textLoading}
-                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white px-6"
-                >
-                  {textLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
-              </form>
             </div>
           )}
         </div>
 
-        {/* Voice Activity */}
-        {isStarted && mode === 'audio' && <div className="text-center space-y-6">
-            {/* Status indicator */}
-            <div className="flex items-center justify-center gap-4">
-              {conversation.isSpeaking ? <>
-                  <div className="relative">
-                    <Volume2 className="w-8 h-8 text-purple-400" />
-                    <div className="absolute -inset-2 rounded-full bg-purple-400/20 animate-ping" />
+        {mode === 'text' ? (
+          /* Text Chat Mode */
+          <div className="space-y-4">
+            {/* Messages */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 max-h-96 overflow-y-auto">
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-3 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-primary text-white'
+                          : 'bg-white/10 text-white border border-white/20'
+                      }`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                    </div>
                   </div>
-                  <span className="text-purple-300 text-lg font-light">
-                    Lunna está falando
-                  </span>
-                </> : <>
-                  <div className="relative">
-                    <Mic className="w-8 h-8 text-emerald-400" />
-                    <div className="absolute -inset-2 rounded-full bg-emerald-400/20 animate-pulse" />
+                ))}
+                {textLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/10 text-white border border-white/20 p-3 rounded-2xl">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">Lunna está pensando...</span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-emerald-300 text-lg font-light">
-                    Pode falar
-                  </span>
-                </>}
-            </div>
-
-            {/* Audio visualization */}
-            <div className="flex items-center justify-center gap-1 h-8">
-              {[...Array(12)].map((_, i) => <div key={i} className={`w-1 bg-gradient-to-t from-rose-400 to-pink-500 rounded-full transition-all duration-200 ${conversation.isSpeaking ? `h-${[2, 4, 6, 8, 6, 4, 8, 6, 4, 2, 4, 6][i]} animate-pulse` : 'h-2'}`} style={{
-            animationDelay: `${i * 100}ms`
-          }} />)}
-            </div>
-
-            {/* Volume Control */}
-            <div className="max-w-xs mx-auto space-y-3">
-              <div className="flex items-center justify-between text-sm text-gray-400">
-                <span>Volume</span>
-                <span>{Math.round(volume * 100)}%</span>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-              <div className="flex items-center gap-3">
-                <VolumeX className="w-4 h-4 text-gray-400" />
-                <div className="flex-1 relative h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-200" style={{
-                width: `${volume * 100}%`
-              }} />
-                  <input type="range" min="0" max="1" step="0.1" value={volume} onChange={e => handleVolumeChange(parseFloat(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            </div>
+
+            {/* Text Input */}
+            <form onSubmit={handleTextSubmit} className="flex gap-3">
+              <Input
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                placeholder="Digite sua mensagem..."
+                className="flex-1 bg-white/5 border-white/20 text-white placeholder:text-white/60"
+                disabled={textLoading}
+              />
+              <Button
+                type="submit"
+                disabled={!textInput.trim() || textLoading}
+                className="bg-primary hover:bg-primary/80 text-white"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
+        ) : (
+          /* Audio Mode */
+          <div className="space-y-8">
+            {/* Status Display */}
+            <div className="text-center">
+              {conversation.isSpeaking && (
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-primary/20 backdrop-blur-xl border border-primary/30 rounded-2xl">
+                  <Volume2 className="w-5 h-5 text-primary animate-pulse" />
+                  <span className="text-primary font-medium">Lunna está falando...</span>
                 </div>
-                <Volume2 className="w-4 h-4 text-gray-400" />
+              )}
+              
+              {lastMessage && (
+                <div className="mt-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
+                  <p className="text-white/80 text-sm italic">
+                    "{lastMessage}"
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Controls */}
+            <div className="flex flex-col items-center gap-6">
+              {!isStarted ? (
+                <Button
+                  onClick={startConversation}
+                  disabled={toolsLoading}
+                  className="bg-primary hover:bg-primary/80 text-white px-8 py-6 rounded-2xl text-lg font-medium transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                >
+                  {toolsLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Carregando ferramentas...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-5 h-5" />
+                      Falar com Lunna
+                    </div>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={endConversation}
+                  variant="destructive"
+                  className="px-8 py-6 rounded-2xl text-lg font-medium transition-all duration-300 hover:scale-105"
+                >
+                  <MicOff className="w-5 h-5 mr-2" />
+                  Encerrar Conversa
+                </Button>
+              )}
+
+              {/* Volume Control */}
+              {isStarted && (
+                <div className="flex items-center gap-4 px-6 py-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
+                  <VolumeX className="w-4 h-4 text-white/60" />
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-24 accent-primary"
+                  />
+                  <Volume2 className="w-4 h-4 text-white/60" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Configuration Section */}
+        {!agentId && (
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Configuração do ElevenLabs
+              </CardTitle>
+              <CardDescription className="text-white/70">
+                Para usar a Lunna, você precisa configurar um Agent ID do ElevenLabs
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="text-white font-medium">Como configurar:</h4>
+                <ol className="text-white/70 text-sm space-y-1 list-decimal list-inside">
+                  <li>Acesse <a href="https://elevenlabs.io" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">ElevenLabs.io</a></li>
+                  <li>Crie ou faça login em sua conta</li>
+                  <li>Vá para a seção "Conversational AI" e crie um novo agente</li>
+                  <li>Copie o Agent ID gerado</li>
+                  <li>Cole o Agent ID nas configurações da página Lunna</li>
+                </ol>
               </div>
-            </div>
-          </div>}
-
-        {/* Last Message */}
-        {lastMessage && <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4">
-            <p className="text-gray-200 text-sm leading-relaxed">
-              <span className="text-rose-400 font-medium">Lunna:</span> {lastMessage}
-            </p>
-          </div>}
-
-        {/* Instructions */}
-        {!agentId && <div className="text-center space-y-2">
-            <p className="text-rose-400 text-sm font-medium">Agent ID não configurado</p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>Configure um Agent ID do ElevenLabs</p>
-              <p>para ativar a assistente de voz</p>
-            </div>
-          </div>}
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default LunnaAssistant;
