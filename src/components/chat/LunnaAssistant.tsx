@@ -60,7 +60,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
             body: JSON.stringify({ action: 'buscar_cidades' })
           });
           const result = await response.json();
-          return `Temos acompanhantes nas seguintes cidades: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+          return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
         } catch (error) {
           return `Erro ao buscar cidades: ${error.message}`;
         }
@@ -80,16 +80,55 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
           const result = await response.json();
           
           if (result.data.modelos.length === 0) {
-            return `Não encontrei acompanhantes em ${parameters.cidade_nome}. Posso mostrar as cidades disponíveis se quiser.`;
+            return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
           }
           
           const modelos = result.data.modelos.map(m => 
-            `${m.nome}, ${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/hora`
-          ).join('; ');
+            `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`
+          ).join(', ');
           
-          return `Encontrei ${result.data.modelos.length} acompanhantes em ${parameters.cidade_nome}: ${modelos}`;
+          return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelos}`;
         } catch (error) {
-          return `Erro ao buscar modelos por cidade: ${error.message}`;
+          return `Erro ao buscar acompanhantes: ${error.message}`;
+        }
+      },
+      
+      buscar_modelos_geral: async (parameters: { limite?: number }) => {
+        console.log('🌙 Lunna está buscando modelos gerais:', parameters);
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'buscar_modelos',
+              filters: { limit: parameters.limite || 5 }
+            })
+          });
+          const result = await response.json();
+          
+          const modelos = result.data.modelos.map(m => 
+            `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`
+          ).join(', ');
+          
+          return `Acompanhantes disponíveis no Prive: ${modelos}`;
+        } catch (error) {
+          return `Erro ao buscar acompanhantes: ${error.message}`;
+        }
+      },
+      
+      estatisticas_prive: async () => {
+        console.log('🌙 Lunna está buscando estatísticas do Prive');
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'estatisticas_sistema' })
+          });
+          const result = await response.json();
+          
+          return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
+        } catch (error) {
+          return `Erro ao buscar estatísticas: ${error.message}`;
         }
       }
     },
