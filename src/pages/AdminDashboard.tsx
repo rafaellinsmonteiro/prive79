@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation, Wallet, Calendar, Star, Target } from 'lucide-react';
+import { Users, MapPin, Tags, Image, Menu, Video, LogOut, Bot, UserCheck, CreditCard, Settings, MessageCircle, Navigation, Wallet, Calendar, Star, Target, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import ModelsListContainer from '@/components/admin/ModelsListContainer';
@@ -21,6 +21,7 @@ import PrivaBankManager from '@/components/admin/PrivaBankManager';
 import AppointmentsManager from '@/components/admin/AppointmentsManager';
 import ReviewsManager from '@/components/admin/ReviewsManager';
 import GoalsManager from '@/components/admin/GoalsManager';
+import { WhatsAppManager } from '@/components/admin/WhatsAppManager';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('models');
@@ -128,6 +129,7 @@ const AdminDashboard = () => {
     { key: 'menu', label: 'Menu (Legacy)', icon: Menu },
     { key: 'reels', label: 'Reels', icon: Video },
     { key: 'zaia-ai', label: 'IA', icon: Bot },
+    { key: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
   ];
 
   const renderContent = () => {
@@ -164,6 +166,8 @@ const AdminDashboard = () => {
         return <ReelsManager />;
       case 'zaia-ai':
         return <ZaiaAIManager />;
+      case 'whatsapp':
+        return <WhatsAppManager />;
       default:
         return <ModelsListContainer />;
     }

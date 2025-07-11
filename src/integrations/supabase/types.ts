@@ -744,7 +744,9 @@ export type Database = {
           read_at: string | null
           sender_id: string
           sender_type: string
+          source: string | null
           status: Database["public"]["Enums"]["message_status"]
+          whatsapp_message_id: string | null
         }
         Insert: {
           content?: string | null
@@ -760,7 +762,9 @@ export type Database = {
           read_at?: string | null
           sender_id: string
           sender_type: string
+          source?: string | null
           status?: Database["public"]["Enums"]["message_status"]
+          whatsapp_message_id?: string | null
         }
         Update: {
           content?: string | null
@@ -776,7 +780,9 @@ export type Database = {
           read_at?: string | null
           sender_id?: string
           sender_type?: string
+          source?: string | null
           status?: Database["public"]["Enums"]["message_status"]
+          whatsapp_message_id?: string | null
         }
         Relationships: [
           {
@@ -1826,6 +1832,81 @@ export type Database = {
           total_earned?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_connections: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string
+          is_connected: boolean
+          last_activity_at: string | null
+          phone_number: string
+          qr_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id: string
+          is_connected?: boolean
+          last_activity_at?: string | null
+          phone_number: string
+          qr_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string
+          is_connected?: boolean
+          last_activity_at?: string | null
+          phone_number?: string
+          qr_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_notifications: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          notification_type: string
+          sent_at: string | null
+          status: string
+          title: string
+          user_id: string
+          whatsapp_message_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          user_id: string
+          whatsapp_message_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+          whatsapp_message_id?: string | null
         }
         Relationships: []
       }
