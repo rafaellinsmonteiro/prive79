@@ -64,35 +64,11 @@ const LunnaPage = () => {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 pb-16 max-w-4xl mx-auto">
-          <div className="group text-center p-6 rounded-2xl bg-white/5 backdrop-blur border border-white/10 hover:bg-white/10 transition-all duration-300">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">Inteligente</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              IA conversacional avançada com compreensão natural
-            </p>
-          </div>
+          
 
-          <div className="group text-center p-6 rounded-2xl bg-white/5 backdrop-blur border border-white/10 hover:bg-white/10 transition-all duration-300">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">Expressiva</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Voz natural e expressiva powered by ElevenLabs
-            </p>
-          </div>
+          
 
-          <div className="group text-center p-6 rounded-2xl bg-white/5 backdrop-blur border border-white/10 hover:bg-white/10 transition-all duration-300">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">Instantânea</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Respostas em tempo real via WebSocket
-            </p>
-          </div>
+          
         </div>
       </div>
     </div>;
