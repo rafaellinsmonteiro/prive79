@@ -203,8 +203,33 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
               break;
             case 'buscar_modelos':
             case 'buscar_modelos_geral':
-              const modelos = result.data.modelos.map(m => `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`).join(', ');
-              formattedResult = `Acompanhantes disponíveis no Prive: ${modelos}`;
+              // Create model cards with photos for display
+              if (result.data.modelos && result.data.modelos.length > 0) {
+                const modelCards = result.data.modelos.slice(0, 3).map(m => ({
+                  nome: m.nome,
+                  idade: m.idade,
+                  cidade: m.cidade || 'N/A',
+                  preco: m.preco_1h || 'consultar',
+                  fotos: m.fotos || [],
+                  whatsapp: m.whatsapp_number,
+                  id: m.id
+                }));
+                
+                const modelText = modelCards.map(m => `${m.nome} (${m.idade}a, ${m.cidade}, R$${m.preco}/h)`).join(', ');
+                formattedResult = `${modelText}${result.data.modelos.length > 3 ? ` (+${result.data.modelos.length - 3} mais)` : ''}`;
+                
+                // Store model data for rich display
+                const enrichedMessage = {
+                  role: 'assistant' as const,
+                  content: formattedResult,
+                  timestamp: new Date().toISOString(),
+                  modelData: modelCards
+                };
+                setSharedMessages(prev => [...prev.slice(0, -1), enrichedMessage]);
+                return formattedResult;
+              } else {
+                formattedResult = `Nenhuma acompanhante encontrada.`;
+              }
               break;
             case 'estatisticas_prive':
             case 'estatisticas_sistema':
@@ -452,6 +477,9 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
                   const isUser = message.role === 'user';
                   const content = message.content || '';
                   
+                  // Check if message has model data for rich display
+                  const modelData = (message as any).modelData;
+                  
                   // Detect if content contains URLs for images
                   const imageUrlMatch = content.match(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i);
                   const hasImage = !!imageUrlMatch;
@@ -471,6 +499,52 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
                             : 'bg-white/10 text-white border border-white/20'
                         }`}
                       >
+                        {/* Model Cards Display */}
+                        {modelData && modelData.length > 0 && (
+                          <div className="mb-3 space-y-2">
+                            {modelData.map((model: any, modelIndex: number) => (
+                              <div key={modelIndex} className="flex gap-3 p-2 bg-white/5 rounded-lg border border-white/10">
+                                {/* Model Photo */}
+                                {model.fotos && model.fotos.length > 0 && (
+                                  <div className="flex-shrink-0">
+                                    <img 
+                                      src={model.fotos[0].photo_url || model.fotos[0]} 
+                                      alt={model.nome}
+                                      className="w-16 h-16 rounded-lg object-cover border border-white/20"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                )}
+                                
+                                {/* Model Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-medium text-white truncate">{model.nome}</h4>
+                                      <p className="text-xs text-white/70">
+                                        {model.idade} anos • {model.cidade}
+                                      </p>
+                                      <p className="text-xs text-primary font-medium">
+                                        R$ {model.preco}/h
+                                      </p>
+                                    </div>
+                                    {model.whatsapp && (
+                                      <a 
+                                        href={`https://wa.me/${model.whatsapp}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full border border-green-500/30 hover:bg-green-500/30 transition-colors"
+                                      >
+                                        WhatsApp
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
                         {hasImage && (
                           <div className="mb-2">
                             <img 
