@@ -5,12 +5,25 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  tool_calls?: any[];
 }
 
-export const useOpenAIChat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+interface OpenAIChatOptions {
+  tools?: any[];
+  sharedMessages?: ChatMessage[];
+  onMessagesUpdate?: (messages: ChatMessage[]) => void;
+}
+
+export const useOpenAIChat = (options: OpenAIChatOptions = {}) => {
+  const { tools = [], sharedMessages, onMessagesUpdate } = options;
+  const [messages, setMessages] = useState<ChatMessage[]>(sharedMessages || []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const updateMessages = useCallback((newMessages: ChatMessage[]) => {
+    setMessages(newMessages);
+    onMessagesUpdate?.(newMessages);
+  }, [onMessagesUpdate]);
 
   const sendMessage = useCallback(async (message: string) => {
     if (!message.trim()) return;
@@ -25,19 +38,37 @@ export const useOpenAIChat = () => {
       timestamp: new Date().toISOString()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const currentMessages = sharedMessages || messages;
+    const newMessages = [...currentMessages, userMessage];
+    updateMessages(newMessages);
 
     try {
       // Prepare conversation history (last 10 messages for context)
-      const conversationHistory = messages.slice(-10).map(msg => ({
+      const conversationHistory = newMessages.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
+      }));
+
+      
+      // Convert tools to OpenAI format if provided
+      const openAITools = tools.map(tool => ({
+        type: 'function',
+        function: {
+          name: tool.function_name,
+          description: tool.description || tool.label,
+          parameters: tool.parameters || {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
       }));
 
       const { data, error: functionError } = await supabase.functions.invoke('openai-chat', {
         body: {
           message,
-          conversationHistory
+          conversationHistory,
+          tools: openAITools
         }
       });
 
@@ -49,6 +80,46 @@ export const useOpenAIChat = () => {
         throw new Error('Resposta vazia da API');
       }
 
+      // Handle function calls
+      if (data.type === 'function_call' && data.tool_calls) {
+        console.log('🌙 Function calls received:', data.tool_calls);
+        
+        // Execute function calls
+        for (const toolCall of data.tool_calls) {
+          const functionName = toolCall.function.name;
+          const args = JSON.parse(toolCall.function.arguments || '{}');
+          
+          console.log(`🌙 Executing function: ${functionName}`, args);
+          
+          // Find the corresponding tool and execute it
+          const tool = tools.find(t => t.function_name === functionName);
+          if (tool && tool.handler) {
+            try {
+              const result = await tool.handler(args);
+              console.log(`🌙 Function result:`, result);
+              
+              // Add function result as a message
+              const functionMessage: ChatMessage = {
+                role: 'assistant',
+                content: result,
+                timestamp: new Date().toISOString()
+              };
+              
+              updateMessages([...newMessages, functionMessage]);
+            } catch (toolError) {
+              console.error(`🌙 Error executing function ${functionName}:`, toolError);
+              const errorMessage: ChatMessage = {
+                role: 'assistant',
+                content: `Erro ao executar ${functionName}: ${toolError.message}`,
+                timestamp: new Date().toISOString()
+              };
+              updateMessages([...newMessages, errorMessage]);
+            }
+          }
+        }
+        return;
+      }
+
       // Add AI response
       const aiMessage: ChatMessage = {
         role: 'assistant',
@@ -56,7 +127,7 @@ export const useOpenAIChat = () => {
         timestamp: data.timestamp || new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      updateMessages([...newMessages, aiMessage]);
 
     } catch (err) {
       console.error('Erro no chat:', err);
@@ -69,16 +140,16 @@ export const useOpenAIChat = () => {
         timestamp: new Date().toISOString()
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      updateMessages([...newMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, sharedMessages, tools, updateMessages]);
 
   const clearMessages = useCallback(() => {
-    setMessages([]);
+    updateMessages([]);
     setError(null);
-  }, []);
+  }, [updateMessages]);
 
   return {
     messages,

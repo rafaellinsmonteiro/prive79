@@ -27,10 +27,8 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const [lastMessage, setLastMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [textInput, setTextInput] = useState('');
+  const [sharedMessages, setSharedMessages] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Text chat hook
-  const { messages, isLoading: textLoading, sendMessage, clearMessages } = useOpenAIChat();
   
   const {
     tools: availableTools,
@@ -41,30 +39,19 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   } = useUserType();
   const [userType, setUserType] = useState<string | null>(null);
 
-  // Gerar ferramentas dinamicamente baseadas no tipo de usuário
-  const clientTools = useMemo(() => {
+  // Text chat hook with tools and shared memory
+  const clientToolsWithHandlers = useMemo(() => {
     if (!availableTools || toolsLoading || !userType) {
-      console.log('🌙 Ferramentas não disponíveis ainda:', {
-        availableTools: !!availableTools,
-        toolsLoading,
-        userType
-      });
-      return {};
+      return [];
     }
-    console.log('🌙 Gerando ferramentas para tipo de usuário:', userType);
-    console.log('🌙 Ferramentas disponíveis:', availableTools.length);
-    const tools: Record<string, (parameters: any) => Promise<string>> = {};
-    availableTools.filter(tool => {
-      // Filtrar por ativação
-      if (!tool.is_active) return false;
 
-      // Filtrar por tipo de usuário
-      const hasPermission = tool.allowed_user_types?.includes(userType);
-      console.log('🌙 Ferramenta:', tool.name, 'Permitida para', userType, ':', hasPermission);
-      return hasPermission;
-    }).forEach(tool => {
-      tools[tool.function_name] = async (parameters: any) => {
-        console.log(`🌙 Lunna está executando: ${tool.label}`, parameters);
+    return availableTools.filter(tool => {
+      if (!tool.is_active) return false;
+      return tool.allowed_user_types?.includes(userType);
+    }).map(tool => ({
+      ...tool,
+      handler: async (parameters: any) => {
+        console.log(`🌙 Text mode executing: ${tool.label}`, parameters);
         try {
           const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
             method: 'POST',
@@ -81,7 +68,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
             throw new Error(result.error || `Erro HTTP ${response.status}`);
           }
 
-          // Formatação específica por tipo de ferramenta
+          // Format result same as audio mode
           switch (tool.function_name) {
             case 'buscar_cidades':
               return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
@@ -129,10 +116,147 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
           console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
           return `Erro ao executar ${tool.label}: ${error.message}`;
         }
+      }
+    }));
+  }, [availableTools, toolsLoading, userType]);
+
+  const { messages, isLoading: textLoading, sendMessage, clearMessages } = useOpenAIChat({
+    tools: clientToolsWithHandlers,
+    sharedMessages,
+    onMessagesUpdate: setSharedMessages
+  });
+
+  // Gerar ferramentas dinamicamente baseadas no tipo de usuário (para modo áudio)
+  const clientTools = useMemo(() => {
+    if (!availableTools || toolsLoading || !userType) {
+      console.log('🌙 Ferramentas não disponíveis ainda:', {
+        availableTools: !!availableTools,
+        toolsLoading,
+        userType
+      });
+      return {};
+    }
+    console.log('🌙 Gerando ferramentas para tipo de usuário:', userType);
+    console.log('🌙 Ferramentas disponíveis:', availableTools.length);
+    const tools: Record<string, (parameters: any) => Promise<string>> = {};
+    availableTools.filter(tool => {
+      // Filtrar por ativação
+      if (!tool.is_active) return false;
+
+      // Filtrar por tipo de usuário
+      const hasPermission = tool.allowed_user_types?.includes(userType);
+      console.log('🌙 Ferramenta:', tool.name, 'Permitida para', userType, ':', hasPermission);
+      return hasPermission;
+    }).forEach(tool => {
+      tools[tool.function_name] = async (parameters: any) => {
+        console.log(`🌙 Audio mode executing: ${tool.label}`, parameters);
+        
+        // Add tool execution to shared memory
+        const toolMessage = {
+          role: 'assistant' as const,
+          content: `Executando: ${tool.label}...`,
+          timestamp: new Date().toISOString()
+        };
+        setSharedMessages(prev => [...prev, toolMessage]);
+        
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              action: tool.function_name,
+              filters: parameters || {}
+            })
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || `Erro HTTP ${response.status}`);
+          }
+
+          // Formatação específica por tipo de ferramenta
+          let formattedResult = '';
+          switch (tool.function_name) {
+            case 'buscar_cidades':
+              formattedResult = `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+              break;
+            case 'buscar_modelos_por_cidade':
+              if (result.data.modelos.length === 0) {
+                formattedResult = `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
+              } else {
+                const modelosCidade = result.data.modelos.map(m => `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`).join(', ');
+                formattedResult = `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelosCidade}`;
+              }
+              break;
+            case 'buscar_modelos':
+            case 'buscar_modelos_geral':
+              const modelos = result.data.modelos.map(m => `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`).join(', ');
+              formattedResult = `Acompanhantes disponíveis no Prive: ${modelos}`;
+              break;
+            case 'estatisticas_prive':
+            case 'estatisticas_sistema':
+              formattedResult = `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
+              break;
+            case 'salvar_preferencias_usuario':
+              formattedResult = `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
+              break;
+            case 'buscar_preferencias_usuario':
+              if (!result.data.existe) {
+                formattedResult = `Usuário novo no sistema. Não há preferências salvas ainda.`;
+              } else {
+                const user = result.data.usuario;
+                let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
+                if (user.preferred_cities?.length > 0) {
+                  resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
+                }
+                if (user.preferred_age_range) {
+                  resumo += `Faixa etária: ${user.preferred_age_range}. `;
+                }
+                if (user.preferred_price_range) {
+                  resumo += `Faixa de preço: ${user.preferred_price_range}. `;
+                }
+                if (user.preferred_services?.length > 0) {
+                  resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
+                }
+                if (user.notes) {
+                  resumo += `Observações: ${user.notes}`;
+                }
+                formattedResult = resumo.trim();
+              }
+              break;
+            default:
+              formattedResult = JSON.stringify(result.data);
+          }
+          
+          // Add result to shared memory
+          const resultMessage = {
+            role: 'assistant' as const,
+            content: formattedResult,
+            timestamp: new Date().toISOString()
+          };
+          setSharedMessages(prev => [...prev.slice(0, -1), resultMessage]); // Replace the "executing" message
+          
+          return formattedResult;
+        } catch (error) {
+          console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
+          const errorResult = `Erro ao executar ${tool.label}: ${error.message}`;
+          
+          // Add error to shared memory
+          const errorMessage = {
+            role: 'assistant' as const,
+            content: errorResult,
+            timestamp: new Date().toISOString()
+          };
+          setSharedMessages(prev => [...prev.slice(0, -1), errorMessage]); // Replace the "executing" message
+          
+          return errorResult;
+        }
       };
     });
     return tools;
   }, [availableTools, toolsLoading, userType]);
+  
   const conversation = useConversation({
     onConnect: () => {
       console.log('🌙 Lunna: Conectada!');
@@ -147,9 +271,17 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     },
     onMessage: message => {
       console.log('🌙 Lunna disse:', message);
-      console.log('🌙 Tipo da mensagem:', typeof message);
-      console.log('🌙 Estrutura da mensagem:', Object.keys(message || {}));
       setLastMessage(message.message || '');
+      
+      // Add audio message to shared memory
+      if (message.message) {
+        const audioMessage = {
+          role: 'assistant' as const,
+          content: message.message,
+          timestamp: new Date().toISOString()
+        };
+        setSharedMessages(prev => [...prev, audioMessage]);
+      }
     },
     onError: error => {
       console.error('🌙 Erro da Lunna:', error);
@@ -261,6 +393,14 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (textInput.trim() && !textLoading) {
+      // Add user message to shared memory for audio mode too
+      const userMessage = {
+        role: 'user' as const,
+        content: textInput,
+        timestamp: new Date().toISOString()
+      };
+      setSharedMessages(prev => [...prev, userMessage]);
+      
       sendMessage(textInput);
       setTextInput('');
     }

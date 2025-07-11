@@ -23,7 +23,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key não está configurada. Configure a variável OPENAI_API_KEY no Supabase.');
     }
 
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationHistory = [], tools = [] } = await req.json();
     
     if (!message) {
       throw new Error('Mensagem é obrigatória');
@@ -110,6 +110,10 @@ Responda sempre em português brasileiro.`;
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
+        ...(tools.length > 0 && {
+          tools: tools,
+          tool_choice: 'auto'
+        })
       }),
     });
 
@@ -120,7 +124,23 @@ Responda sempre em português brasileiro.`;
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const choice = data.choices[0];
+    
+    // Handle function calls
+    if (choice.message.tool_calls) {
+      console.log('Function calls detected:', choice.message.tool_calls.length);
+      
+      return new Response(JSON.stringify({
+        response: choice.message.content || 'Executando função...',
+        tool_calls: choice.message.tool_calls,
+        timestamp: new Date().toISOString(),
+        type: 'function_call'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const aiResponse = choice.message.content;
 
     console.log('OpenAI response received');
 
@@ -132,7 +152,8 @@ Responda sempre em português brasileiro.`;
     return new Response(JSON.stringify({
       response: aiResponse,
       suggestedModels: extractedModels,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      type: 'message'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
