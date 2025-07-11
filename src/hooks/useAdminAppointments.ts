@@ -6,11 +6,12 @@ export interface AdminAppointment {
   id: string;
   model_id: string;
   client_id: string;
-  service_id: string;
+  service_id?: string;
   appointment_date: string;
   appointment_time: string;
   duration: number;
   price: number;
+  currency?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   payment_status: 'pending' | 'partial' | 'paid';
   location?: string;
@@ -144,7 +145,19 @@ export const useAdminAppointments = () => {
       const { data, error } = await supabase
         .from('appointments')
         .insert({
-          ...appointmentData,
+          model_id: appointmentData.model_id,
+          client_id: appointmentData.client_id,
+          service_id: appointmentData.service_id || null,
+          appointment_date: appointmentData.appointment_date,
+          appointment_time: appointmentData.appointment_time,
+          duration: appointmentData.duration,
+          price: appointmentData.price,
+          currency: appointmentData.currency || 'BRL',
+          location: appointmentData.location,
+          observations: appointmentData.observations,
+          admin_notes: appointmentData.admin_notes,
+          recurrence_type: appointmentData.recurrence_type || 'none',
+          recurrence_end_date: appointmentData.recurrence_end_date,
           created_by_admin: true,
           status: 'confirmed',
           payment_status: 'pending',

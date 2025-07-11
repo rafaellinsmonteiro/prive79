@@ -125,6 +125,7 @@ export type Database = {
           client_id: string
           created_at: string
           created_by_admin: boolean | null
+          currency: string | null
           duration: number
           id: string
           is_recurring_series: boolean | null
@@ -147,6 +148,7 @@ export type Database = {
           client_id: string
           created_at?: string
           created_by_admin?: boolean | null
+          currency?: string | null
           duration?: number
           id?: string
           is_recurring_series?: boolean | null
@@ -169,6 +171,7 @@ export type Database = {
           client_id?: string
           created_at?: string
           created_by_admin?: boolean | null
+          currency?: string | null
           duration?: number
           id?: string
           is_recurring_series?: boolean | null
