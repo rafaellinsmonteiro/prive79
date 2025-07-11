@@ -50,22 +50,6 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         toast.error('Erro na conexão com Lunna');
       }
     },
-    overrides: {
-      agent: {
-        prompt: {
-          prompt: `Você é Lunna, uma assistente virtual brasileira especializada em conversas íntimas e sensuais. 
-          Você é carinhosa, atenciosa e sempre disposta a ajudar com conversas envolventes.
-          Mantenha sempre um tom amigável e sedutor, mas respeitoso.
-          Responda sempre em português brasileiro.
-          Seja natural e espontânea nas conversas.`
-        },
-        firstMessage: "Olá! Eu sou a Lunna, sua assistente virtual. Como posso te fazer feliz hoje? 😊",
-        language: "pt",
-      },
-      tts: {
-        voiceId: "EXAVITQu4vr4xnSDxMaL" // Sarah voice - voz feminina e suave
-      },
-    },
   });
 
   const startConversation = async () => {
