@@ -134,6 +134,18 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     onMessagesUpdate: setSharedMessages
   });
 
+  // Initialize welcome message for text mode
+  useEffect(() => {
+    if (mode === 'text' && messages.length === 0 && sharedMessages.length === 0) {
+      const welcomeMessage = {
+        role: 'assistant' as const,
+        content: 'Olá! Sou a Lunna, sua assistente inteligente do Prive. Como posso ajudá-lo hoje?',
+        timestamp: new Date().toISOString()
+      };
+      setSharedMessages([welcomeMessage]);
+    }
+  }, [mode, messages.length, sharedMessages.length]);
+
   // Audio mode tools
   const clientTools = useMemo(() => {
     if (!availableTools || toolsLoading || !userType) {
@@ -420,12 +432,12 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         <div className="text-center">
           <div className="inline-flex items-center gap-3 mb-6">
             <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
-              conversation.status === 'connected' 
+              mode === 'text' || conversation.status === 'connected' 
                 ? 'bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]' 
                 : 'bg-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.6)]'
             }`} />
             <span className="text-lg font-light text-white tracking-wider">
-              {conversation.status === 'connected' ? 'Conectada' : 'Offline'}
+              {mode === 'text' || conversation.status === 'connected' ? 'Online' : 'Offline'}
             </span>
           </div>
 
