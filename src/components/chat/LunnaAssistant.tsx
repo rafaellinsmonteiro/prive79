@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useConversation } from '@11labs/react';
 import { useLunnaTools } from '@/hooks/useLunnaTools';
 import { useUserType } from '@/hooks/useUserType';
+import { useOpenAIChat } from '@/hooks/useOpenAIChat';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, MicOff, Volume2, VolumeX, Loader2, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
 interface LunnaAssistantProps {
   agentId?: string;
@@ -18,10 +20,18 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   onSpeakingChange,
   mode = 'audio'
 }) => {
+  console.log('🌙 LunnaAssistant: mode =', mode);
+  
   const [isStarted, setIsStarted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [lastMessage, setLastMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [textInput, setTextInput] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Text chat hook
+  const { messages, isLoading: textLoading, sendMessage, clearMessages } = useOpenAIChat();
+  
   const {
     tools: availableTools,
     loading: toolsLoading
@@ -235,6 +245,11 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       onSpeakingChange(conversation.isSpeaking || false);
     }
   }, [conversation.isSpeaking, onSpeakingChange]);
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   useEffect(() => {
     return () => {
       if (isStarted) {
@@ -242,6 +257,14 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       }
     };
   }, []);
+
+  const handleTextSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (textInput.trim() && !textLoading) {
+      sendMessage(textInput);
+      setTextInput('');
+    }
+  };
   return <div className={`relative ${className}`}>
       {/* Modern minimalist interface */}
       <div className="space-y-8">
@@ -276,15 +299,58 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
               </button>
           ) : (
-            // Text Mode - coming soon
-            <div className="text-center p-8 space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-rose-500/20 to-pink-600/20 rounded-full border border-rose-500/30">
-                <MessageSquare className="w-8 h-8 text-rose-400" />
+            // Text Mode
+            <div className="w-full max-w-2xl mx-auto space-y-6">
+              {/* Chat Messages */}
+              <div className="bg-black/20 backdrop-blur border border-white/10 rounded-2xl p-6 space-y-4 h-96 overflow-y-auto">
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-400 py-12">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Olá! Sou a Lunna, sua assistente do Prive.</p>
+                    <p className="text-sm mt-2">Digite uma mensagem para começar nossa conversa.</p>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg, index) => (
+                      <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] p-3 rounded-2xl ${
+                          msg.role === 'user' 
+                            ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white' 
+                            : 'bg-white/10 text-gray-200'
+                        }`}>
+                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                          <p className="text-xs opacity-70 mt-1">
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </>
+                )}
               </div>
-              <div>
-                <h3 className="text-xl font-light text-white mb-2">Modo Texto</h3>
-                <p className="text-gray-400 text-sm">Em breve disponível</p>
-              </div>
+
+              {/* Text Input */}
+              <form onSubmit={handleTextSubmit} className="flex gap-3">
+                <Input
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Digite sua mensagem..."
+                  disabled={textLoading}
+                  className="flex-1 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-rose-400"
+                />
+                <Button 
+                  type="submit" 
+                  disabled={!textInput.trim() || textLoading}
+                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white px-6"
+                >
+                  {textLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </form>
             </div>
           )}
         </div>
