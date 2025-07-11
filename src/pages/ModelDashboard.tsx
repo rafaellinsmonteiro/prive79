@@ -129,27 +129,6 @@ const ModelDashboard = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Navigation Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900">
-        <div className="flex items-center gap-1 p-2 overflow-x-auto">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Button
-                key={item.key}
-                variant={activeSection === item.key ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setActiveSection(item.key)}
-                className="flex items-center gap-2 whitespace-nowrap"
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="p-4">
         {renderContent()}
