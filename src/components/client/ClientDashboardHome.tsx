@@ -240,6 +240,57 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
         </div>
       )}
 
+      {/* Cartões Financeiros e Perfil */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-green-900/20 rounded-lg">
+                  <span className="text-green-400 font-bold text-lg">R$</span>
+                </div>
+                <h3 className="font-medium text-white">Saldo BRL</h3>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-green-400">R$ 2.450,00</p>
+            <p className="text-xs text-zinc-500 mt-1">Saldo disponível</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-amber-900/20 rounded-lg">
+                  <span className="text-amber-400 font-bold text-lg">P$</span>
+                </div>
+                <h3 className="font-medium text-white">PriveCoins</h3>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-amber-400">P$ 850</p>
+            <p className="text-xs text-zinc-500 mt-1">Moeda da plataforma</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-purple-900/20 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="font-medium text-white">Pontos PXP</h3>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-purple-400">1,250</p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-zinc-500">Nível 3</p>
+              <Badge variant="secondary" className="text-xs">+25 hoje</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Ações rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
@@ -269,9 +320,9 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
 
         <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4 text-center">
-            <MapPin className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-            <h3 className="font-medium text-white mb-1">Localização</h3>
-            <p className="text-xs text-zinc-500">Eventos próximos</p>
+            <Star className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+            <h3 className="font-medium text-white mb-1">Avaliações</h3>
+            <p className="text-xs text-zinc-500">Suas avaliações</p>
           </CardContent>
         </Card>
       </div>
