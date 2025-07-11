@@ -261,120 +261,114 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   }, []);
 
   return (
-    <div className="relative">
-      {/* Central console interface */}
-      <div className="bg-black/90 border border-cyan-400/30 rounded-xl p-6 backdrop-blur">
-        {/* Header with holographic title */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-mono text-cyan-400 mb-2 tracking-wider">
-            LUNNA NEURAL INTERFACE
-          </h2>
-          <div className="h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent mb-4" />
-          
-          {/* Connection Status */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className={`w-3 h-3 rounded-full ${
-              conversation.status === 'connected' ? 'bg-green-400 shadow-[0_0_10px_#4ade80]' : 'bg-red-400 shadow-[0_0_10px_#f87171]'
-            } animate-pulse`} />
-            <span className="text-sm font-mono text-gray-300">
-              NEURAL_LINK: {conversation.status === 'connected' ? 'ESTABLISHED' : 'OFFLINE'}
+    <div className={`relative ${className}`}>
+      {/* Modern minimalist interface */}
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
+              conversation.status === 'connected' 
+                ? 'bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]' 
+                : 'bg-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.6)]'
+            }`} />
+            <span className="text-lg font-light text-white tracking-wider">
+              {conversation.status === 'connected' ? 'Conectada' : 'Offline'}
             </span>
           </div>
-        </div>
 
-        {/* Error Display */}
-        {errorMessage && (
-          <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-lg mb-6">
-            <p className="text-red-400 font-mono text-sm">
-              ERROR: {errorMessage}
-            </p>
-          </div>
-        )}
-
-        {/* Main Control Panel */}
-        <div className="flex flex-col items-center gap-6">
-          {/* Primary Action Button */}
-          {!isStarted ? (
-            <Button 
-              onClick={startConversation}
-              size="lg"
-              disabled={!agentId}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 border border-cyan-400/50 px-8 py-6 text-lg font-mono tracking-wide shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300"
-            >
-              <Mic className="w-6 h-6 mr-3" />
-              INICIAR INTERFACE NEURAL
-            </Button>
-          ) : (
-            <Button 
-              onClick={endConversation}
-              size="lg"
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 border border-red-400/50 px-8 py-6 text-lg font-mono tracking-wide shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all duration-300"
-            >
-              <MicOff className="w-6 h-6 mr-3" />
-              DESCONECTAR
-            </Button>
-          )}
-
-          {/* Voice Activity Indicator */}
-          {isStarted && (
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center gap-3">
-                {conversation.isSpeaking ? (
-                  <>
-                    <div className="relative">
-                      <Volume2 className="w-8 h-8 text-purple-400 animate-pulse" />
-                      <div className="absolute inset-0 w-8 h-8 text-purple-400 animate-ping opacity-20">
-                        <Volume2 className="w-8 h-8" />
-                      </div>
-                    </div>
-                    <span className="text-purple-400 font-mono text-lg tracking-wide">
-                      LUNNA_TRANSMITTING...
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <Mic className="w-8 h-8 text-green-400 animate-pulse" />
-                      <div className="absolute inset-0 w-8 h-8 text-green-400 animate-ping opacity-20">
-                        <Mic className="w-8 h-8" />
-                      </div>
-                    </div>
-                    <span className="text-green-400 font-mono text-lg tracking-wide">
-                      AUDIO_INPUT_ACTIVE
-                    </span>
-                  </>
-                )}
-              </div>
-              
-              {/* Visual waveform simulation */}
-              <div className="flex items-center justify-center gap-1">
-                {[...Array(20)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-1 bg-cyan-400 rounded-full transition-all duration-200 ${
-                      conversation.isSpeaking 
-                        ? `h-${Math.floor(Math.random() * 8) + 2} animate-pulse` 
-                        : 'h-1'
-                    }`}
-                    style={{
-                      animationDelay: `${i * 50}ms`
-                    }}
-                  />
-                ))}
-              </div>
+          {/* Error Display */}
+          {errorMessage && (
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 mb-6">
+              <p className="text-rose-300 text-sm font-medium">
+                {errorMessage}
+              </p>
             </div>
           )}
+        </div>
 
-          {/* Volume Control */}
-          {isStarted && (
-            <div className="w-full max-w-sm space-y-3">
-              <div className="flex items-center justify-between text-sm font-mono text-gray-400">
-                <span>AUDIO_LEVEL</span>
+        {/* Main Action */}
+        <div className="text-center">
+          {!isStarted ? (
+            <button 
+              onClick={startConversation}
+              disabled={!agentId}
+              className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105"
+            >
+              <Mic className="w-6 h-6 mr-3 group-hover:animate-pulse" />
+              Conversar com Lunna
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+            </button>
+          ) : (
+            <button 
+              onClick={endConversation}
+              className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
+              <MicOff className="w-6 h-6 mr-3 group-hover:animate-pulse" />
+              Encerrar
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+            </button>
+          )}
+        </div>
+
+        {/* Voice Activity */}
+        {isStarted && (
+          <div className="text-center space-y-6">
+            {/* Status indicator */}
+            <div className="flex items-center justify-center gap-4">
+              {conversation.isSpeaking ? (
+                <>
+                  <div className="relative">
+                    <Volume2 className="w-8 h-8 text-purple-400" />
+                    <div className="absolute -inset-2 rounded-full bg-purple-400/20 animate-ping" />
+                  </div>
+                  <span className="text-purple-300 text-lg font-light">
+                    Lunna está falando
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Mic className="w-8 h-8 text-emerald-400" />
+                    <div className="absolute -inset-2 rounded-full bg-emerald-400/20 animate-pulse" />
+                  </div>
+                  <span className="text-emerald-300 text-lg font-light">
+                    Pode falar
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Audio visualization */}
+            <div className="flex items-center justify-center gap-1 h-8">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1 bg-gradient-to-t from-rose-400 to-pink-500 rounded-full transition-all duration-200 ${
+                    conversation.isSpeaking 
+                      ? `h-${[2, 4, 6, 8, 6, 4, 8, 6, 4, 2, 4, 6][i]} animate-pulse` 
+                      : 'h-2'
+                  }`}
+                  style={{
+                    animationDelay: `${i * 100}ms`
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Volume Control */}
+            <div className="max-w-xs mx-auto space-y-3">
+              <div className="flex items-center justify-between text-sm text-gray-400">
+                <span>Volume</span>
                 <span>{Math.round(volume * 100)}%</span>
               </div>
               <div className="flex items-center gap-3">
                 <VolumeX className="w-4 h-4 text-gray-400" />
-                <div className="flex-1 relative">
+                <div className="flex-1 relative h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-200"
+                    style={{ width: `${volume * 100}%` }}
+                  />
                   <input
                     type="range"
                     min="0"
@@ -382,48 +376,34 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
                     step="0.1"
                     value={volume}
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div 
-                    className="absolute top-0 left-0 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg pointer-events-none"
-                    style={{ width: `${volume * 100}%` }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
                 <Volume2 className="w-4 h-4 text-gray-400" />
               </div>
             </div>
-          )}
-
-          {/* Last Message Display */}
-          {lastMessage && (
-            <div className="w-full bg-gray-900/50 border border-cyan-400/20 p-4 rounded-lg">
-              <div className="text-xs font-mono text-cyan-400 mb-2">LAST_TRANSMISSION:</div>
-              <p className="text-gray-200 font-mono text-sm leading-relaxed">
-                {lastMessage}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* System Instructions */}
-        <div className="mt-8 pt-6 border-t border-gray-700">
-          <div className="text-xs font-mono text-gray-500 text-center space-y-1">
-            {!agentId ? (
-              <>
-                <p className="text-red-400 font-bold">NEURAL_AGENT_ID: NOT_CONFIGURED</p>
-                <p>• CONFIGURE_ELEVENLABS_AGENT</p>
-                <p>• EXTRACT_AGENT_ID</p>
-                <p>• UPDATE_SYSTEM_PARAMETERS</p>
-              </>
-            ) : (
-              <>
-                <p>• ACTIVATE_NEURAL_INTERFACE</p>
-                <p>• GRANT_MICROPHONE_ACCESS</p>
-                <p>• INITIATE_VOICE_PROTOCOL</p>
-              </>
-            )}
           </div>
-        </div>
+        )}
+
+        {/* Last Message */}
+        {lastMessage && (
+          <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4">
+            <p className="text-gray-200 text-sm leading-relaxed">
+              <span className="text-rose-400 font-medium">Lunna:</span> {lastMessage}
+            </p>
+          </div>
+        )}
+
+        {/* Instructions */}
+        {!agentId && (
+          <div className="text-center space-y-2">
+            <p className="text-rose-400 text-sm font-medium">Agent ID não configurado</p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <p>Configure um Agent ID do ElevenLabs</p>
+              <p>para ativar a assistente de voz</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
