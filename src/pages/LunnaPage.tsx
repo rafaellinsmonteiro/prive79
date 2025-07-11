@@ -26,7 +26,7 @@ const LunnaPage = () => {
       {/* Video Background */}
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover opacity-20"
+        className="absolute inset-0 w-full h-full object-cover"
         loop
         muted
         playsInline
