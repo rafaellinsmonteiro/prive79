@@ -4,17 +4,19 @@ import { useLunnaTools } from '@/hooks/useLunnaTools';
 import { useUserType } from '@/hooks/useUserType';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, MicOff, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 interface LunnaAssistantProps {
   agentId?: string;
   className?: string;
   onSpeakingChange?: (isSpeaking: boolean) => void;
+  mode?: 'audio' | 'text';
 }
 const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   agentId,
   className = '',
-  onSpeakingChange
+  onSpeakingChange,
+  mode = 'audio'
 }) => {
   const [isStarted, setIsStarted] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -262,19 +264,33 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
 
         {/* Main Action */}
         <div className="text-center">
-          {!isStarted ? <button onClick={startConversation} disabled={!agentId} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105">
-              <Mic className="w-6 h-6 mr-3 group-hover:animate-pulse" />
-              Conversar com Lunna
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 bg-[#000a00]/0" />
-            </button> : <button onClick={endConversation} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <MicOff className="w-6 h-6 mr-3 group-hover:animate-pulse" />
-              Encerrar
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-            </button>}
+          {mode === 'audio' ? (
+            // Audio Mode
+            !isStarted ? <button onClick={startConversation} disabled={!agentId} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105">
+                <Mic className="w-6 h-6 mr-3 group-hover:animate-pulse" />
+                Conversar com Lunna
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 bg-[#000a00]/0" />
+              </button> : <button onClick={endConversation} className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <MicOff className="w-6 h-6 mr-3 group-hover:animate-pulse" />
+                Encerrar
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+              </button>
+          ) : (
+            // Text Mode - coming soon
+            <div className="text-center p-8 space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-rose-500/20 to-pink-600/20 rounded-full border border-rose-500/30">
+                <MessageSquare className="w-8 h-8 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-light text-white mb-2">Modo Texto</h3>
+                <p className="text-gray-400 text-sm">Em breve disponível</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Voice Activity */}
-        {isStarted && <div className="text-center space-y-6">
+        {isStarted && mode === 'audio' && <div className="text-center space-y-6">
             {/* Status indicator */}
             <div className="flex items-center justify-center gap-4">
               {conversation.isSpeaking ? <>
