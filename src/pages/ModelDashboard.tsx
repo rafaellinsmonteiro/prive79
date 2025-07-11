@@ -128,47 +128,30 @@ const ModelDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-zinc-900 border-r border-zinc-800">
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-white mb-6">Dashboard</h2>
-          <nav className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => setActiveSection(item.key)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
-                    activeSection === item.key
-                      ? 'bg-blue-600 text-white'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-        
-        {/* Logout button */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <Button
-            onClick={handleSignOut}
-            variant="ghost"
-            className="w-full flex items-center gap-3 text-zinc-400 hover:text-white hover:bg-zinc-800"
-          >
-            <LogOut className="h-5 w-5" />
-            Sair
-          </Button>
+    <div className="min-h-screen bg-zinc-950">
+      {/* Navigation Header */}
+      <div className="border-b border-zinc-800 bg-zinc-900">
+        <div className="flex items-center gap-1 p-2 overflow-x-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.key}
+                variant={activeSection === item.key ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveSection(item.key)}
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="p-4">
         {renderContent()}
       </div>
     </div>
