@@ -115,10 +115,16 @@ const LunnaToolsManager = () => {
   const getCategoryLabel = (category) => {
     return categories.find(c => c.value === category)?.label || category;
   };
-    const categories = [
+  const categories = [
+    { value: 'general', label: 'Geral' },
     { value: 'busca', label: 'Busca' },
     { value: 'dados', label: 'Dados' },
     { value: 'usuario', label: 'Usuário' },
+    { value: 'agendamentos', label: 'Agendamentos' },
+    { value: 'modelos', label: 'Modelos' },
+    { value: 'usuarios', label: 'Usuários' },
+    { value: 'metas', label: 'Metas' },
+    { value: 'campos', label: 'Campos Customizados' },
     { value: 'comunicacao', label: 'Comunicação' }
   ];
 
