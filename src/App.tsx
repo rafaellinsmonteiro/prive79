@@ -24,6 +24,7 @@ import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ModelDashboard from "./pages/ModelDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -71,6 +72,7 @@ const AppContent = () => {
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={user ? <AdminDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/model-dashboard" element={user ? <ModelDashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
           <Route path="/cidade/:cityId" element={<CityPage />} />
           <Route path="/categoria/:categoryId" element={<CategoryPage />} />
