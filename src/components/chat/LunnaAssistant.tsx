@@ -10,11 +10,13 @@ import { toast } from 'sonner';
 interface LunnaAssistantProps {
   agentId?: string;
   className?: string;
+  onSpeakingChange?: (isSpeaking: boolean) => void;
 }
 
 const LunnaAssistant: React.FC<LunnaAssistantProps> = ({ 
   agentId, 
-  className = '' 
+  className = '',
+  onSpeakingChange 
 }) => {
   const [isStarted, setIsStarted] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -243,6 +245,13 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     loadUserType();
   }, [getUserType]);
 
+  // Monitor speaking state and notify parent
+  useEffect(() => {
+    if (onSpeakingChange) {
+      onSpeakingChange(conversation.isSpeaking || false);
+    }
+  }, [conversation.isSpeaking, onSpeakingChange]);
+
   useEffect(() => {
     return () => {
       if (isStarted) {
@@ -252,130 +261,171 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   }, []);
 
   return (
-    <Card className={`bg-card border-border ${className}`}>
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          🌙 Lunna - Sua Assistente Virtual
-        </CardTitle>
-        <CardDescription>
-          Assistente conversacional com voz natural
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {/* Status da Conexão */}
-        <div className="flex items-center justify-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${
-            conversation.status === 'connected' ? 'bg-green-500' : 'bg-red-500'
-          }`} />
-          <span className="text-sm text-muted-foreground">
-            Status: {conversation.status === 'connected' ? 'Conectada' : 'Desconectada'}
-          </span>
+    <div className="relative">
+      {/* Central console interface */}
+      <div className="bg-black/90 border border-cyan-400/30 rounded-xl p-6 backdrop-blur">
+        {/* Header with holographic title */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-mono text-cyan-400 mb-2 tracking-wider">
+            LUNNA NEURAL INTERFACE
+          </h2>
+          <div className="h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent mb-4" />
+          
+          {/* Connection Status */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className={`w-3 h-3 rounded-full ${
+              conversation.status === 'connected' ? 'bg-green-400 shadow-[0_0_10px_#4ade80]' : 'bg-red-400 shadow-[0_0_10px_#f87171]'
+            } animate-pulse`} />
+            <span className="text-sm font-mono text-gray-300">
+              NEURAL_LINK: {conversation.status === 'connected' ? 'ESTABLISHED' : 'OFFLINE'}
+            </span>
+          </div>
         </div>
 
-        {/* Mensagem de Erro */}
+        {/* Error Display */}
         {errorMessage && (
-          <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
-            <p className="text-sm text-destructive font-medium">
-              ⚠️ {errorMessage}
+          <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-lg mb-6">
+            <p className="text-red-400 font-mono text-sm">
+              ERROR: {errorMessage}
             </p>
           </div>
         )}
 
-        {/* Controles Principais */}
-        <div className="flex items-center justify-center gap-4">
+        {/* Main Control Panel */}
+        <div className="flex flex-col items-center gap-6">
+          {/* Primary Action Button */}
           {!isStarted ? (
             <Button 
               onClick={startConversation}
               size="lg"
               disabled={!agentId}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 border border-cyan-400/50 px-8 py-6 text-lg font-mono tracking-wide shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300"
             >
-              <Mic className="w-5 h-5 mr-2" />
-              Falar com Lunna
+              <Mic className="w-6 h-6 mr-3" />
+              INICIAR INTERFACE NEURAL
             </Button>
           ) : (
             <Button 
               onClick={endConversation}
-              variant="destructive"
               size="lg"
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 border border-red-400/50 px-8 py-6 text-lg font-mono tracking-wide shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all duration-300"
             >
-              <MicOff className="w-5 h-5 mr-2" />
-              Encerrar Conversa
+              <MicOff className="w-6 h-6 mr-3" />
+              DESCONECTAR
             </Button>
           )}
-        </div>
 
-        {/* Indicador de Fala */}
-        {isStarted && (
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              {conversation.isSpeaking ? (
-                <>
-                  <Volume2 className="w-5 h-5 text-purple-500 animate-pulse" />
-                  <span className="text-purple-500">Lunna está falando...</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-5 h-5 text-green-500" />
-                  <span className="text-green-500">Pode falar, Lunna está ouvindo</span>
-                </>
-              )}
+          {/* Voice Activity Indicator */}
+          {isStarted && (
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                {conversation.isSpeaking ? (
+                  <>
+                    <div className="relative">
+                      <Volume2 className="w-8 h-8 text-purple-400 animate-pulse" />
+                      <div className="absolute inset-0 w-8 h-8 text-purple-400 animate-ping opacity-20">
+                        <Volume2 className="w-8 h-8" />
+                      </div>
+                    </div>
+                    <span className="text-purple-400 font-mono text-lg tracking-wide">
+                      LUNNA_TRANSMITTING...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <Mic className="w-8 h-8 text-green-400 animate-pulse" />
+                      <div className="absolute inset-0 w-8 h-8 text-green-400 animate-ping opacity-20">
+                        <Mic className="w-8 h-8" />
+                      </div>
+                    </div>
+                    <span className="text-green-400 font-mono text-lg tracking-wide">
+                      AUDIO_INPUT_ACTIVE
+                    </span>
+                  </>
+                )}
+              </div>
+              
+              {/* Visual waveform simulation */}
+              <div className="flex items-center justify-center gap-1">
+                {[...Array(20)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 bg-cyan-400 rounded-full transition-all duration-200 ${
+                      conversation.isSpeaking 
+                        ? `h-${Math.floor(Math.random() * 8) + 2} animate-pulse` 
+                        : 'h-1'
+                    }`}
+                    style={{
+                      animationDelay: `${i * 50}ms`
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Controle de Volume */}
-        {isStarted && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Volume</span>
-              <span className="text-sm text-muted-foreground">{Math.round(volume * 100)}%</span>
+          {/* Volume Control */}
+          {isStarted && (
+            <div className="w-full max-w-sm space-y-3">
+              <div className="flex items-center justify-between text-sm font-mono text-gray-400">
+                <span>AUDIO_LEVEL</span>
+                <span>{Math.round(volume * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <VolumeX className="w-4 h-4 text-gray-400" />
+                <div className="flex-1 relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div 
+                    className="absolute top-0 left-0 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg pointer-events-none"
+                    style={{ width: `${volume * 100}%` }}
+                  />
+                </div>
+                <Volume2 className="w-4 h-4 text-gray-400" />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <VolumeX className="w-4 h-4" />
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={volume}
-                onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                className="flex-1"
-              />
-              <Volume2 className="w-4 h-4" />
+          )}
+
+          {/* Last Message Display */}
+          {lastMessage && (
+            <div className="w-full bg-gray-900/50 border border-cyan-400/20 p-4 rounded-lg">
+              <div className="text-xs font-mono text-cyan-400 mb-2">LAST_TRANSMISSION:</div>
+              <p className="text-gray-200 font-mono text-sm leading-relaxed">
+                {lastMessage}
+              </p>
             </div>
-          </div>
-        )}
-
-        {/* Última Mensagem */}
-        {lastMessage && (
-          <div className="bg-muted p-3 rounded-lg">
-            <p className="text-sm">
-              <strong>Lunna:</strong> {lastMessage}
-            </p>
-          </div>
-        )}
-
-        {/* Instruções */}
-        <div className="text-xs text-muted-foreground text-center space-y-1">
-          {!agentId ? (
-            <>
-              <p className="text-destructive font-medium">⚠️ Agent ID não configurado</p>
-              <p>• Acesse o ElevenLabs e crie um Conversational AI Agent</p>
-              <p>• Copie o Agent ID e configure no código</p>
-              <p>• Substitua o valor em LunnaPage.tsx</p>
-            </>
-          ) : (
-            <>
-              <p>• Clique em "Falar com Lunna" para iniciar</p>
-              <p>• Permita acesso ao microfone quando solicitado</p>
-              <p>• Fale naturalmente, Lunna entende português</p>
-            </>
           )}
         </div>
-      </CardContent>
-    </Card>
+
+        {/* System Instructions */}
+        <div className="mt-8 pt-6 border-t border-gray-700">
+          <div className="text-xs font-mono text-gray-500 text-center space-y-1">
+            {!agentId ? (
+              <>
+                <p className="text-red-400 font-bold">NEURAL_AGENT_ID: NOT_CONFIGURED</p>
+                <p>• CONFIGURE_ELEVENLABS_AGENT</p>
+                <p>• EXTRACT_AGENT_ID</p>
+                <p>• UPDATE_SYSTEM_PARAMETERS</p>
+              </>
+            ) : (
+              <>
+                <p>• ACTIVATE_NEURAL_INTERFACE</p>
+                <p>• GRANT_MICROPHONE_ACCESS</p>
+                <p>• INITIATE_VOICE_PROTOCOL</p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
