@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useLogPrivaBankAction } from './usePrivaBankLogs';
+import { useAuth } from '@/contexts/AuthContext';
 
 type PrivaBankAccount = Tables<'privabank_accounts'>;
 type PrivaBankTransaction = Tables<'privabank_transactions'>;
@@ -805,16 +806,59 @@ export const useDeletePrivaBankAccount = () => {
   });
 };
 
-// Hook principal para usuários
-export const usePrivaBank = () => {
+interface TransactionFilters {
+  startDate?: string;
+  endDate?: string;
+  type?: string;
+  currency?: string;
+}
+
+// Hook principal para usuários com filtros
+export const usePrivaBank = (filters?: TransactionFilters) => {
+  const { user } = useAuth();
+  
   const account = useUserPrivaBankAccount();
-  const transactions = usePrivaBankTransactions(account.data?.id);
+  
+  const { data: transactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['privabank-transactions-filtered', account.data?.id, filters],
+    queryFn: async () => {
+      if (!account.data?.id) throw new Error('Account not found');
+
+      let query = supabase
+        .from('privabank_transactions')
+        .select('*')
+        .or(`from_account_id.eq.${account.data.id},to_account_id.eq.${account.data.id}`);
+
+      // Apply filters
+      if (filters?.startDate) {
+        query = query.gte('created_at', filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte('created_at', filters.endDate);
+      }
+      if (filters?.type && filters.type !== 'all') {
+        query = query.eq('transaction_type', filters.type);
+      }
+      if (filters?.currency && filters.currency !== 'all') {
+        query = query.eq('currency', filters.currency);
+      }
+
+      query = query.order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!account.data?.id,
+  });
+
   const createTransaction = useCreatePrivaBankTransaction();
 
   return {
     account: account.data,
-    transactions: transactions.data,
-    isLoading: account.isLoading || transactions.isLoading,
+    transactions: transactions,
+    isLoading: account.isLoading || transactionsLoading,
     createTransaction: createTransaction.mutateAsync,
     isCreatingTransaction: createTransaction.isPending
   };

@@ -1244,6 +1244,7 @@ export type Database = {
       privabank_accounts: {
         Row: {
           balance: number
+          balance_brl: number
           created_at: string
           id: string
           is_active: boolean
@@ -1252,6 +1253,7 @@ export type Database = {
         }
         Insert: {
           balance?: number
+          balance_brl?: number
           created_at?: string
           id?: string
           is_active?: boolean
@@ -1260,6 +1262,7 @@ export type Database = {
         }
         Update: {
           balance?: number
+          balance_brl?: number
           created_at?: string
           id?: string
           is_active?: boolean
@@ -1308,6 +1311,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency: string
           description: string | null
           from_account_id: string | null
           id: string
@@ -1318,6 +1322,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          currency?: string
           description?: string | null
           from_account_id?: string | null
           id?: string
@@ -1328,6 +1333,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          currency?: string
           description?: string | null
           from_account_id?: string | null
           id?: string

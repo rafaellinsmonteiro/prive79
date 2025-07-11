@@ -6,19 +6,32 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign, Mail, Hash } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign, Mail, Hash, Filter, Calendar } from 'lucide-react';
 
 const PriveBankPage = () => {
   const { user } = useAuth();
-  const { account, transactions, isLoading, createTransaction } = usePrivaBank();
   const transferMutation = useTransferBetweenAccounts();
   const transferByIdMutation = useTransferByAccountId();
   const { toast } = useToast();
   
+  // Filtros para transações
+  const [filters, setFilters] = useState({
+    startDate: '',
+    endDate: '',
+    type: 'all',
+    currency: 'all'
+  });
+
+  const { account, transactions, isLoading, createTransaction } = usePrivaBank(filters);
+  
   const [depositAmount, setDepositAmount] = useState('');
+  const [depositCurrency, setDepositCurrency] = useState('PCoins');
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawCurrency, setWithdrawCurrency] = useState('PCoins');
   const [transferAmount, setTransferAmount] = useState('');
+  const [transferCurrency, setTransferCurrency] = useState('PCoins');
   const [transferToEmail, setTransferToEmail] = useState('');
   const [transferToAccountId, setTransferToAccountId] = useState('');
   
@@ -40,7 +53,8 @@ const PriveBankPage = () => {
         transaction_type: 'deposit',
         amount: parseFloat(depositAmount),
         to_account_id: account?.id,
-        description: 'Depósito via PriveBank'
+        currency: depositCurrency,
+        description: `Depósito via PriveBank (${depositCurrency === 'PCoins' ? 'P$' : 'R$'})`
       });
       
       setDepositAmount('');
@@ -69,10 +83,12 @@ const PriveBankPage = () => {
       return;
     }
 
-    if (parseFloat(withdrawAmount) > (account?.balance || 0)) {
+    // Verificar saldo da moeda específica
+    const currentBalance = withdrawCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
+    if (parseFloat(withdrawAmount) > currentBalance) {
       toast({
         title: "Erro",
-        description: "Saldo insuficiente",
+        description: `Saldo insuficiente em ${withdrawCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`,
         variant: "destructive"
       });
       return;
@@ -84,7 +100,8 @@ const PriveBankPage = () => {
         transaction_type: 'withdraw',
         amount: parseFloat(withdrawAmount),
         from_account_id: account?.id,
-        description: 'Saque via PriveBank'
+        currency: withdrawCurrency,
+        description: `Saque via PriveBank (${withdrawCurrency === 'PCoins' ? 'P$' : 'R$'})`
       });
       
       setWithdrawAmount('');
@@ -142,11 +159,12 @@ const PriveBankPage = () => {
       return;
     }
 
-    if (parseFloat(transferAmount) > (account?.balance || 0)) {
-      console.log('❌ Saldo insuficiente. Saldo:', account?.balance, 'Valor:', transferAmount);
+    const currentBalance = transferCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
+    if (parseFloat(transferAmount) > currentBalance) {
+      console.log('❌ Saldo insuficiente. Saldo:', currentBalance, 'Valor:', transferAmount, 'Moeda:', transferCurrency);
       toast({
         title: "Erro",
-        description: "Saldo insuficiente",
+        description: `Saldo insuficiente em ${transferCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`,
         variant: "destructive"
       });
       return;
@@ -220,11 +238,12 @@ const PriveBankPage = () => {
       return;
     }
 
-    if (parseFloat(transferAmount) > (account?.balance || 0)) {
-      console.log('❌ Saldo insuficiente. Saldo:', account?.balance, 'Valor:', transferAmount);
+    const currentBalance = transferCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
+    if (parseFloat(transferAmount) > currentBalance) {
+      console.log('❌ Saldo insuficiente. Saldo:', currentBalance, 'Valor:', transferAmount, 'Moeda:', transferCurrency);
       toast({
         title: "Erro",
-        description: "Saldo insuficiente",
+        description: `Saldo insuficiente em ${transferCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`,
         variant: "destructive"
       });
       return;
@@ -291,21 +310,35 @@ const PriveBankPage = () => {
             <Wallet className="h-8 w-8" />
             PriveBank
           </h1>
-          <p className="text-zinc-400">Sua carteira digital P$ (P-Coin)</p>
+          <p className="text-zinc-400">Suas carteiras digitais - P$ (P-Coin) e R$ (Reais)</p>
         </div>
 
-        {/* Saldo e ID da Carteira */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Saldos e ID da Carteira */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Saldo Disponível</p>
+                  <p className="text-blue-100 text-sm">Saldo P-Coins</p>
                   <p className="text-3xl font-bold text-white">
-                    P$ {Number(account.balance).toFixed(2)}
+                    P$ {Number(account.balance || 0).toFixed(2)}
                   </p>
                 </div>
                 <DollarSign className="h-12 w-12 text-blue-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Saldo Reais</p>
+                  <p className="text-3xl font-bold text-white">
+                    R$ {Number(account.balance_brl || 0).toFixed(2)}
+                  </p>
+                </div>
+                <DollarSign className="h-12 w-12 text-green-200" />
               </div>
             </CardContent>
           </Card>
@@ -314,12 +347,12 @@ const PriveBankPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-gray-100 text-sm">ID da Carteira (Sigiloso)</p>
-                  <p className="text-lg font-mono text-white break-all">
+                  <p className="text-gray-100 text-sm">ID da Carteira</p>
+                  <p className="text-sm font-mono text-white break-all">
                     {account.id}
                   </p>
                 </div>
-                <Hash className="h-12 w-12 text-gray-200 flex-shrink-0" />
+                <Hash className="h-8 w-8 text-gray-200 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
@@ -359,6 +392,20 @@ const PriveBankPage = () => {
                       className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="deposit-currency" className="text-zinc-300">
+                      Moeda
+                    </Label>
+                    <Select value={depositCurrency} onValueChange={setDepositCurrency}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
+                        <SelectItem value="BRL">R$ (Reais)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button 
                     onClick={handleDeposit}
                     disabled={isProcessing}
@@ -390,6 +437,20 @@ const PriveBankPage = () => {
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="withdraw-currency" className="text-zinc-300">
+                      Moeda
+                    </Label>
+                    <Select value={withdrawCurrency} onValueChange={setWithdrawCurrency}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
+                        <SelectItem value="BRL">R$ (Reais)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button 
                     onClick={handleWithdraw}
@@ -449,6 +510,20 @@ const PriveBankPage = () => {
                           className="bg-zinc-800 border-zinc-700 text-zinc-100"
                         />
                       </div>
+                      <div>
+                        <Label htmlFor="transfer-currency" className="text-zinc-300">
+                          Moeda
+                        </Label>
+                        <Select value={transferCurrency} onValueChange={setTransferCurrency}>
+                          <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
+                            <SelectItem value="BRL">R$ (Reais)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Button 
                         onClick={handleTransfer}
                         disabled={isProcessing || transferMutation.isPending}
@@ -503,6 +578,68 @@ const PriveBankPage = () => {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
+            {/* Filtros do Extrato */}
+            <Card className="bg-zinc-900 border-zinc-800">
+              <CardHeader>
+                <CardTitle className="text-zinc-100 flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Filtros do Extrato
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="start-date" className="text-zinc-300">Data Início</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      value={filters.startDate}
+                      onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end-date" className="text-zinc-300">Data Fim</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={filters.endDate}
+                      onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="transaction-type" className="text-zinc-300">Tipo</Label>
+                    <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="deposit">Depósitos</SelectItem>
+                        <SelectItem value="withdraw">Saques</SelectItem>
+                        <SelectItem value="transfer">Transferências</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="currency-filter" className="text-zinc-300">Moeda</Label>
+                    <Select value={filters.currency} onValueChange={(value) => setFilters(prev => ({ ...prev, currency: value }))}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
+                        <SelectItem value="BRL">R$ (Reais)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lista de Transações */}
             {transactions && transactions.length > 0 ? (
               <div className="space-y-3">
                 {transactions.map((transaction) => (
@@ -520,13 +657,24 @@ const PriveBankPage = () => {
                             <ArrowRightLeft className="h-5 w-5 text-blue-400" />
                           )}
                           <div>
-                            <p className="text-white font-medium">
-                              {transaction.transaction_type === 'deposit' && 'Depósito'}
-                              {transaction.transaction_type === 'withdraw' && 'Saque'}
-                              {transaction.transaction_type === 'transfer' && 'Transferência'}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-white font-medium">
+                                {transaction.transaction_type === 'deposit' && 'Depósito'}
+                                {transaction.transaction_type === 'withdraw' && 'Saque'}
+                                {transaction.transaction_type === 'transfer' && 'Transferência'}
+                              </p>
+                              <span className="text-xs px-2 py-1 rounded bg-zinc-700 text-zinc-300">
+                                {transaction.currency === 'PCoins' ? 'P$' : 'R$'}
+                              </span>
+                            </div>
                             <p className="text-zinc-400 text-sm">
-                              {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
+                              {new Date(transaction.created_at).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </p>
                           </div>
                         </div>
@@ -539,7 +687,7 @@ const PriveBankPage = () => {
                           }`}>
                             {(transaction.transaction_type === 'deposit' || 
                               (transaction.transaction_type === 'transfer' && transaction.to_account_id === account?.id)) ? '+' : '-'}
-                            P$ {Number(transaction.amount).toFixed(2)}
+                            {transaction.currency === 'PCoins' ? 'P$' : 'R$'} {Number(transaction.amount).toFixed(2)}
                           </p>
                           <p className="text-zinc-500 text-sm">{transaction.status}</p>
                         </div>
