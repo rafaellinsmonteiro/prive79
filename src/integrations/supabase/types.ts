@@ -632,6 +632,7 @@ export type Database = {
       }
       lunna_tools: {
         Row: {
+          allowed_user_types: string[] | null
           category: string | null
           created_at: string
           description: string | null
@@ -645,6 +646,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_user_types?: string[] | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -658,6 +660,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_user_types?: string[] | null
           category?: string | null
           created_at?: string
           description?: string | null

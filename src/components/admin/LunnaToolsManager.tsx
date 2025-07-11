@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Bot, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Bot, ArrowUp, ArrowDown, Users, Shield, User, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLunnaTools } from '@/hooks/useLunnaTools';
 
@@ -25,7 +25,8 @@ const LunnaToolsManager = () => {
     category: 'general',
     is_active: true,
     parameters: '{}',
-    display_order: 0
+    display_order: 0,
+    allowed_user_types: ['admin', 'modelo', 'cliente']
   });
 
   const resetForm = () => {
@@ -37,7 +38,8 @@ const LunnaToolsManager = () => {
       category: 'general',
       is_active: true,
       parameters: '{}',
-      display_order: 0
+      display_order: 0,
+      allowed_user_types: ['admin', 'modelo', 'cliente']
     });
     setEditingTool(null);
   };
@@ -56,7 +58,8 @@ const LunnaToolsManager = () => {
       category: tool.category || 'general',
       is_active: tool.is_active,
       parameters: JSON.stringify(tool.parameters || {}, null, 2),
-      display_order: tool.display_order
+      display_order: tool.display_order,
+      allowed_user_types: tool.allowed_user_types || ['admin', 'modelo', 'cliente']
     });
     setEditingTool(tool);
     setIsDialogOpen(true);
@@ -109,16 +112,29 @@ const LunnaToolsManager = () => {
     }
   };
 
-  const categories = [
-    { value: 'general', label: 'Geral' },
+  const getCategoryLabel = (category) => {
+    return categories.find(c => c.value === category)?.label || category;
+  };
+    const categories = [
     { value: 'busca', label: 'Busca' },
     { value: 'dados', label: 'Dados' },
     { value: 'usuario', label: 'Usuário' },
     { value: 'comunicacao', label: 'Comunicação' }
   ];
 
-  const getCategoryLabel = (category) => {
-    return categories.find(c => c.value === category)?.label || category;
+  const userTypes = [
+    { value: 'admin', label: 'Administrador', icon: Shield },
+    { value: 'modelo', label: 'Modelo', icon: User },
+    { value: 'cliente', label: 'Cliente', icon: Briefcase }
+  ];
+
+  const getUserTypeLabel = (type: string) => {
+    return userTypes.find(t => t.value === type)?.label || type;
+  };
+
+  const getUserTypeIcon = (type: string) => {
+    const userType = userTypes.find(t => t.value === type);
+    return userType?.icon || Users;
   };
 
   if (loading) {
@@ -190,16 +206,6 @@ const LunnaToolsManager = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="function_name" className="text-white">Nome da Função</Label>
-                      <Input
-                        id="function_name"
-                        value={formData.function_name}
-                        onChange={(e) => setFormData({ ...formData, function_name: e.target.value })}
-                        required
-                        className="bg-zinc-800 border-zinc-700 text-white"
-                      />
-                    </div>
-                    <div>
                       <Label htmlFor="category" className="text-white">Categoria</Label>
                       <Select
                         value={formData.category}
@@ -217,9 +223,6 @@ const LunnaToolsManager = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="display_order" className="text-white">Ordem de Exibição</Label>
                       <Input
@@ -227,6 +230,51 @@ const LunnaToolsManager = () => {
                         type="number"
                         value={formData.display_order}
                         onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                        className="bg-zinc-800 border-zinc-700 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-white mb-3 block">Tipos de Usuário Permitidos</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      {userTypes.map((userType) => {
+                        const IconComponent = userType.icon;
+                        const isSelected = formData.allowed_user_types?.includes(userType.value);
+                        return (
+                          <div 
+                            key={userType.value}
+                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                              isSelected 
+                                ? 'border-blue-500 bg-blue-500/10' 
+                                : 'border-zinc-700 hover:border-zinc-600'
+                            }`}
+                            onClick={() => {
+                              const currentTypes = formData.allowed_user_types || [];
+                              const newTypes = isSelected
+                                ? currentTypes.filter(t => t !== userType.value)
+                                : [...currentTypes, userType.value];
+                              setFormData({ ...formData, allowed_user_types: newTypes });
+                            }}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <IconComponent className="h-4 w-4 text-white" />
+                              <span className="text-white text-sm">{userType.label}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="function_name" className="text-white">Nome da Função</Label>
+                      <Input
+                        id="function_name"
+                        value={formData.function_name}
+                        onChange={(e) => setFormData({ ...formData, function_name: e.target.value })}
+                        required
                         className="bg-zinc-800 border-zinc-700 text-white"
                       />
                     </div>
@@ -275,6 +323,7 @@ const LunnaToolsManager = () => {
                 <TableHead className="text-zinc-400">Ordem</TableHead>
                 <TableHead className="text-zinc-400">Nome</TableHead>
                 <TableHead className="text-zinc-400">Rótulo</TableHead>
+                <TableHead className="text-zinc-400">Tipos de Usuário</TableHead>
                 <TableHead className="text-zinc-400">Categoria</TableHead>
                 <TableHead className="text-zinc-400">Status</TableHead>
                 <TableHead className="text-zinc-400">Ações</TableHead>
@@ -310,6 +359,19 @@ const LunnaToolsManager = () => {
                   </TableCell>
                   <TableCell className="text-white font-mono text-sm">{tool.name}</TableCell>
                   <TableCell className="text-white">{tool.label}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {tool.allowed_user_types?.map((type) => {
+                        const IconComponent = getUserTypeIcon(type);
+                        return (
+                          <Badge key={type} variant="outline" className="text-xs">
+                            <IconComponent className="h-3 w-3 mr-1" />
+                            {getUserTypeLabel(type)}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
                       {getCategoryLabel(tool.category)}

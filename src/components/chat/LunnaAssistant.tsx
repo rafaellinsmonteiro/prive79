@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useConversation } from '@11labs/react';
 import { useLunnaTools } from '@/hooks/useLunnaTools';
+import { useUserType } from '@/hooks/useUserType';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX, Loader2 } from 'lucide-react';
@@ -20,6 +21,8 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const [lastMessage, setLastMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const { tools: availableTools, loading: toolsLoading } = useLunnaTools();
+  const { getUserType } = useUserType();
+  const [userType, setUserType] = useState<string | null>(null);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -59,7 +62,15 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       const tools: Record<string, (parameters: any) => Promise<string>> = {};
       
       availableTools
-        .filter(tool => tool.is_active)
+        .filter(tool => {
+          // Filtrar por ativação
+          if (!tool.is_active) return false;
+          
+          // Filtrar por tipo de usuário
+          if (!userType || !tool.allowed_user_types?.includes(userType)) return false;
+          
+          return true;
+        })
         .forEach(tool => {
           tools[tool.function_name] = async (parameters: any) => {
             console.log(`🌙 Lunna está executando: ${tool.label}`, parameters);
@@ -214,6 +225,15 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
       console.error('🌙 Erro ao ajustar volume:', error);
     }
   };
+
+  useEffect(() => {
+    const loadUserType = async () => {
+      const type = await getUserType();
+      setUserType(type);
+    };
+    
+    loadUserType();
+  }, [getUserType]);
 
   useEffect(() => {
     return () => {

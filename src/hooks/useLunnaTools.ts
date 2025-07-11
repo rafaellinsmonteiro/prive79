@@ -10,6 +10,7 @@ export interface LunnaTool {
   function_name: string;
   is_active: boolean;
   parameters?: any;
+  allowed_user_types?: string[];
   display_order: number;
   category?: string;
   created_at: string;
