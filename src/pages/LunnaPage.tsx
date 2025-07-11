@@ -11,6 +11,8 @@ const LunnaPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [mode, setMode] = useState<'audio' | 'text'>('audio');
   
+  console.log('🌙 LunnaPage: mode state =', mode);
+  
   const handleSpeakingChange = (speaking: boolean) => {
     setIsSpeaking(speaking);
     if (videoRef.current) {
@@ -52,7 +54,10 @@ const LunnaPage = () => {
           <div className="mt-8 flex items-center justify-center">
             <div className="bg-black/20 backdrop-blur border border-white/10 rounded-full p-1 flex">
               <button
-                onClick={() => setMode('audio')}
+                onClick={() => {
+                  console.log('🌙 Setting mode to audio');
+                  setMode('audio');
+                }}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
                   mode === 'audio'
                     ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg'
@@ -63,7 +68,10 @@ const LunnaPage = () => {
                 Modo Áudio
               </button>
               <button
-                onClick={() => setMode('text')}
+                onClick={() => {
+                  console.log('🌙 Setting mode to text');
+                  setMode('text');
+                }}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
                   mode === 'text'
                     ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg'
