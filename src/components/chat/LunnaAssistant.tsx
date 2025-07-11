@@ -130,6 +130,75 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         } catch (error) {
           return `Erro ao buscar estatísticas: ${error.message}`;
         }
+      },
+
+      salvar_preferencias_usuario: async (parameters: { 
+        user_session_id: string; 
+        user_name?: string; 
+        preferred_cities?: string[]; 
+        preferred_age_range?: string;
+        preferred_price_range?: string;
+        preferred_services?: string[];
+        notes?: string;
+      }) => {
+        console.log('🌙 Lunna está salvando preferências do usuário:', parameters);
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              action: 'salvar_preferencias_usuario',
+              filters: parameters
+            })
+          });
+          const result = await response.json();
+          
+          return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
+        } catch (error) {
+          return `Erro ao salvar preferências: ${error.message}`;
+        }
+      },
+
+      buscar_preferencias_usuario: async (parameters: { user_session_id: string }) => {
+        console.log('🌙 Lunna está buscando preferências do usuário:', parameters);
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              action: 'buscar_preferencias_usuario',
+              filters: parameters
+            })
+          });
+          const result = await response.json();
+          
+          if (!result.data.existe) {
+            return `Usuário novo no sistema. Não há preferências salvas ainda.`;
+          }
+          
+          const user = result.data.usuario;
+          let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
+          
+          if (user.preferred_cities?.length > 0) {
+            resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
+          }
+          if (user.preferred_age_range) {
+            resumo += `Faixa etária: ${user.preferred_age_range}. `;
+          }
+          if (user.preferred_price_range) {
+            resumo += `Faixa de preço: ${user.preferred_price_range}. `;
+          }
+          if (user.preferred_services?.length > 0) {
+            resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
+          }
+          if (user.notes) {
+            resumo += `Observações: ${user.notes}`;
+          }
+          
+          return resumo.trim();
+        } catch (error) {
+          return `Erro ao buscar preferências: ${error.message}`;
+        }
       }
     },
   });

@@ -239,6 +239,71 @@ serve(async (req) => {
         }
         break
 
+      case 'salvar_preferencias_usuario':
+        if (!filters.user_session_id) {
+          throw new Error('ID da sessão do usuário é obrigatório')
+        }
+
+        const { data: existingUser } = await supabase
+          .from('lunna_user_preferences')
+          .select('*')
+          .eq('user_session_id', filters.user_session_id)
+          .single()
+
+        if (existingUser) {
+          // Atualizar usuário existente
+          const updateData = {
+            ...filters,
+            interaction_count: existingUser.interaction_count + 1,
+            last_interaction_at: new Date().toISOString()
+          }
+          delete updateData.user_session_id // Não atualizar o ID da sessão
+
+          const { data: updatedUser } = await supabase
+            .from('lunna_user_preferences')
+            .update(updateData)
+            .eq('user_session_id', filters.user_session_id)
+            .select()
+            .single()
+
+          result = { usuario: updatedUser }
+        } else {
+          // Criar novo usuário
+          const { data: newUser } = await supabase
+            .from('lunna_user_preferences')
+            .insert({
+              user_session_id: filters.user_session_id,
+              user_name: filters.user_name,
+              preferred_cities: filters.preferred_cities,
+              preferred_age_range: filters.preferred_age_range,
+              preferred_price_range: filters.preferred_price_range,
+              preferred_services: filters.preferred_services,
+              notes: filters.notes
+            })
+            .select()
+            .single()
+
+          result = { usuario: newUser }
+        }
+        break
+
+      case 'buscar_preferencias_usuario':
+        if (!filters.user_session_id) {
+          throw new Error('ID da sessão do usuário é obrigatório')
+        }
+
+        const { data: userPreferences } = await supabase
+          .from('lunna_user_preferences')
+          .select('*')
+          .eq('user_session_id', filters.user_session_id)
+          .single()
+
+        result = { 
+          usuario: userPreferences || null,
+          existe: !!userPreferences
+        }
+        break
+
       default:
         throw new Error(`Ação '${action}' não reconhecida`)
     }

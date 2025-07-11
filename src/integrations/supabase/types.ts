@@ -630,6 +630,51 @@ export type Database = {
           },
         ]
       }
+      lunna_user_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_count: number | null
+          last_interaction_at: string | null
+          notes: string | null
+          preferred_age_range: string | null
+          preferred_cities: string[] | null
+          preferred_price_range: string | null
+          preferred_services: string[] | null
+          updated_at: string | null
+          user_name: string | null
+          user_session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          notes?: string | null
+          preferred_age_range?: string | null
+          preferred_cities?: string[] | null
+          preferred_price_range?: string | null
+          preferred_services?: string[] | null
+          updated_at?: string | null
+          user_name?: string | null
+          user_session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          notes?: string | null
+          preferred_age_range?: string | null
+          preferred_cities?: string[] | null
+          preferred_price_range?: string | null
+          preferred_services?: string[] | null
+          updated_at?: string | null
+          user_name?: string | null
+          user_session_id?: string
+        }
+        Relationships: []
+      }
       menu_configurations: {
         Row: {
           city_id: string | null
