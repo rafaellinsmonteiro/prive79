@@ -62,7 +62,7 @@ const LunnaPage = () => {
 
         {/* Componente Principal da Lunna */}
         <div className="max-w-2xl mx-auto">
-          <LunnaAssistant agentId="sk_ad4e8417f2e85cb6cf1f1527dcb208f2a86c7526ec0bc6af" />
+          <LunnaAssistant agentId="agent_01jzx4f2x3ed98w1rhycp8sz7n" />
         </div>
 
         {/* Instruções de Configuração */}
