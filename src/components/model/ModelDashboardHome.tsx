@@ -10,7 +10,7 @@ import { useServices } from '@/hooks/useServices';
 import { usePrivaBank } from '@/hooks/usePrivaBank';
 import { format, addDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import dashboardHeroBg from '@/assets/dashboard-hero-bg.jpg';
+import dashboardHeroBg from '/lovable-uploads/42760971-a8a7-467e-93f4-bc2af10c76e9.png';
 interface ModelDashboardHomeProps {
   profile: any;
   modelId: string;
@@ -74,7 +74,7 @@ const ModelDashboardHome = ({
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${dashboardHeroBg})`
       }} />
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/70" />
         <CardContent className="relative p-6 z-10">
           <div className="flex items-center justify-between">
             <div>
