@@ -29,6 +29,7 @@ import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
 import ChatInteligentePage from "./pages/ChatInteligentePage";
 import PriveBankPage from "./pages/PriveBankPage";
+import ReviewsPage from "./pages/ReviewsPage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -121,6 +122,12 @@ const AppContent = () => {
             path="/privebank" 
             element={
               user ? <PriveBankPage /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/avaliacoes" 
+            element={
+              user ? <ReviewsPage /> : <Navigate to="/login" replace />
             } 
           />
           

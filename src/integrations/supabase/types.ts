@@ -1358,6 +1358,86 @@ export type Database = {
           },
         ]
       }
+      prive_trust_status: {
+        Row: {
+          achieved_at: string | null
+          average_rating: number | null
+          created_at: string
+          has_prive_trust: boolean
+          id: string
+          identity_verified: boolean
+          reviews_received_count: number
+          reviews_sent_approved: number
+          reviews_sent_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          average_rating?: number | null
+          created_at?: string
+          has_prive_trust?: boolean
+          id?: string
+          identity_verified?: boolean
+          reviews_received_count?: number
+          reviews_sent_approved?: number
+          reviews_sent_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string | null
+          average_rating?: number | null
+          created_at?: string
+          has_prive_trust?: boolean
+          id?: string
+          identity_verified?: boolean
+          reviews_received_count?: number
+          reviews_sent_approved?: number
+          reviews_sent_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pxp_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          review_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points: number
+          review_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          review_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pxp_transactions_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reels_categories: {
         Row: {
           created_at: string
@@ -1417,6 +1497,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reviews: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          description: string
+          id: string
+          improvement_points: string | null
+          is_approved: boolean | null
+          negative_points: string | null
+          overall_rating: number
+          positive_points: string | null
+          published_at: string | null
+          reviewed_id: string
+          reviewer_id: string
+          reviewer_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          description: string
+          id?: string
+          improvement_points?: string | null
+          is_approved?: boolean | null
+          negative_points?: string | null
+          overall_rating: number
+          positive_points?: string | null
+          published_at?: string | null
+          reviewed_id: string
+          reviewer_id: string
+          reviewer_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          improvement_points?: string | null
+          is_approved?: boolean | null
+          negative_points?: string | null
+          overall_rating?: number
+          positive_points?: string | null
+          published_at?: string | null
+          reviewed_id?: string
+          reviewer_id?: string
+          reviewer_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
@@ -1548,11 +1690,45 @@ export type Database = {
           },
         ]
       }
+      user_pxp: {
+        Row: {
+          created_at: string
+          current_level: number
+          current_points: number
+          id: string
+          total_earned: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          current_points?: number
+          id?: string
+          total_earned?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          current_points?: number
+          id?: string
+          total_earned?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_level: {
+        Args: { points: number }
+        Returns: number
+      }
       cleanup_old_typing_indicators: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -138,7 +138,7 @@ export const useAppointments = () => {
       // Verificar se o agendamento foi criado pelo admin
       const { data: appointmentData } = await supabase
         .from('appointments')
-        .select('created_by_admin')
+        .select('created_by_admin, status')
         .eq('id', id)
         .single();
 
@@ -158,11 +158,20 @@ export const useAppointments = () => {
         .single();
 
       if (error) throw error;
+
+      // Se o status foi alterado para 'completed', mostrar notificação sobre avaliação
+      if (updates.status === 'completed' && appointmentData?.status !== 'completed') {
+        toast.success('Agendamento marcado como concluído! Você receberá uma notificação para avaliar a experiência.');
+      }
+
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Agendamento atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['pending-reviews'] });
+      if (variables.status !== 'completed') {
+        toast.success('Agendamento atualizado com sucesso!');
+      }
     },
     onError: (error) => {
       console.error('Error updating appointment:', error);
