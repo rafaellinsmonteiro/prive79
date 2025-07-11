@@ -24,6 +24,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   Star, 
   Eye, 
@@ -31,7 +40,9 @@ import {
   XCircle, 
   Clock,
   Shield,
-  TrendingUp
+  TrendingUp,
+  Edit,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -54,6 +65,9 @@ interface Review {
 
 const ReviewsManager = () => {
   const [selectedTab, setSelectedTab] = useState('pending');
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedReview, setEditedReview] = useState<Partial<Review>>({});
   const queryClient = useQueryClient();
 
   // Fetch reviews
@@ -125,6 +139,54 @@ const ReviewsManager = () => {
       toast.error('Erro ao rejeitar avaliação');
     },
   });
+
+  // Update review
+  const updateReview = useMutation({
+    mutationFn: async (updates: Partial<Review> & { id: string }) => {
+      const { error } = await supabase
+        .from('reviews')
+        .update(updates)
+        .eq('id', updates.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-reviews'] });
+      toast.success('Avaliação atualizada com sucesso!');
+      setIsEditing(false);
+      setSelectedReview(null);
+    },
+    onError: (error) => {
+      console.error('Error updating review:', error);
+      toast.error('Erro ao atualizar avaliação');
+    },
+  });
+
+  const handleEditSave = () => {
+    if (selectedReview && editedReview) {
+      updateReview.mutate({
+        id: selectedReview.id,
+        ...editedReview
+      });
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditedReview({});
+  };
+
+  const openReviewModal = (review: Review) => {
+    setSelectedReview(review);
+    setEditedReview({
+      description: review.description,
+      positive_points: review.positive_points,
+      improvement_points: review.improvement_points,
+      negative_points: review.negative_points,
+      overall_rating: review.overall_rating
+    });
+    setIsEditing(false);
+  };
 
   // Stats query
   const { data: stats } = useQuery({
@@ -281,66 +343,225 @@ const ReviewsManager = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => openReviewModal(review)}
+                                  className="text-blue-600"
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Visualizar
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="bg-zinc-900 border-zinc-800 max-w-3xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle className="text-white flex items-center gap-2">
+                                    <FileText className="h-5 w-5" />
+                                    Detalhes da Avaliação
+                                    {selectedReview && (
+                                      <Badge variant="outline" className="ml-2">
+                                        {selectedReview.reviewer_type === 'model' ? 'Modelo' : 'Cliente'}
+                                      </Badge>
+                                    )}
+                                  </DialogTitle>
+                                </DialogHeader>
+                                
+                                {selectedReview && (
+                                  <div className="space-y-6">
+                                    {/* Nota Geral */}
+                                    <div className="space-y-2">
+                                      <Label className="text-zinc-300">Nota Geral</Label>
+                                      <div className="flex items-center gap-3">
+                                        {renderStars(isEditing ? (editedReview.overall_rating || selectedReview.overall_rating) : selectedReview.overall_rating)}
+                                        <span className="text-white font-medium">
+                                          {isEditing ? (editedReview.overall_rating || selectedReview.overall_rating) : selectedReview.overall_rating} estrelas
+                                        </span>
+                                        {isEditing && (
+                                          <select
+                                            value={editedReview.overall_rating || selectedReview.overall_rating}
+                                            onChange={(e) => setEditedReview(prev => ({ ...prev, overall_rating: parseInt(e.target.value) }))}
+                                            className="ml-4 bg-zinc-800 border-zinc-700 text-white rounded px-2 py-1"
+                                          >
+                                            {[1, 2, 3, 4, 5].map(rating => (
+                                              <option key={rating} value={rating}>{rating} estrela{rating > 1 ? 's' : ''}</option>
+                                            ))}
+                                          </select>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Descrição */}
+                                    <div className="space-y-2">
+                                      <Label className="text-zinc-300">Descrição da Experiência</Label>
+                                      {isEditing ? (
+                                        <Textarea
+                                          value={editedReview.description || selectedReview.description}
+                                          onChange={(e) => setEditedReview(prev => ({ ...prev, description: e.target.value }))}
+                                          className="bg-zinc-800 border-zinc-700 text-white min-h-[100px]"
+                                          placeholder="Descrição da experiência..."
+                                        />
+                                      ) : (
+                                        <div className="bg-zinc-800 p-4 rounded-lg text-zinc-300">
+                                          {selectedReview.description}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Pontos Positivos */}
+                                    <div className="space-y-2">
+                                      <Label className="text-zinc-300">Pontos Positivos</Label>
+                                      {isEditing ? (
+                                        <Textarea
+                                          value={editedReview.positive_points || selectedReview.positive_points || ''}
+                                          onChange={(e) => setEditedReview(prev => ({ ...prev, positive_points: e.target.value }))}
+                                          className="bg-zinc-800 border-zinc-700 text-white"
+                                          placeholder="Pontos positivos..."
+                                        />
+                                      ) : (
+                                        <div className="bg-zinc-800 p-4 rounded-lg text-zinc-300">
+                                          {selectedReview.positive_points || 'Não informado'}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Pontos de Melhoria */}
+                                    <div className="space-y-2">
+                                      <Label className="text-zinc-300">Pontos que Podem Melhorar</Label>
+                                      {isEditing ? (
+                                        <Textarea
+                                          value={editedReview.improvement_points || selectedReview.improvement_points || ''}
+                                          onChange={(e) => setEditedReview(prev => ({ ...prev, improvement_points: e.target.value }))}
+                                          className="bg-zinc-800 border-zinc-700 text-white"
+                                          placeholder="Pontos de melhoria..."
+                                        />
+                                      ) : (
+                                        <div className="bg-zinc-800 p-4 rounded-lg text-zinc-300">
+                                          {selectedReview.improvement_points || 'Não informado'}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Pontos Negativos */}
+                                    <div className="space-y-2">
+                                      <Label className="text-zinc-300">Pontos Negativos</Label>
+                                      {isEditing ? (
+                                        <Textarea
+                                          value={editedReview.negative_points || selectedReview.negative_points || ''}
+                                          onChange={(e) => setEditedReview(prev => ({ ...prev, negative_points: e.target.value }))}
+                                          className="bg-zinc-800 border-zinc-700 text-white"
+                                          placeholder="Pontos negativos..."
+                                        />
+                                      ) : (
+                                        <div className="bg-zinc-800 p-4 rounded-lg text-zinc-300">
+                                          {selectedReview.negative_points || 'Não informado'}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Status e Metadata */}
+                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-700">
+                                      <div>
+                                        <Label className="text-zinc-300">Status</Label>
+                                        <div className="mt-1">
+                                          {getStatusBadge(selectedReview.status)}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <Label className="text-zinc-300">Data de Criação</Label>
+                                        <div className="text-zinc-400 mt-1">
+                                          {new Date(selectedReview.created_at).toLocaleString('pt-BR')}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Ações */}
+                                    <div className="flex justify-between items-center pt-4 border-t border-zinc-700">
+                                      <div className="flex gap-2">
+                                        {!isEditing ? (
+                                          <Button
+                                            onClick={() => setIsEditing(true)}
+                                            variant="outline"
+                                            className="text-blue-600"
+                                          >
+                                            <Edit className="h-4 w-4 mr-1" />
+                                            Editar
+                                          </Button>
+                                        ) : (
+                                          <>
+                                            <Button
+                                              onClick={handleEditSave}
+                                              className="bg-green-600 hover:bg-green-700"
+                                              disabled={updateReview.isPending}
+                                            >
+                                              Salvar Alterações
+                                            </Button>
+                                            <Button
+                                              onClick={handleEditCancel}
+                                              variant="outline"
+                                            >
+                                              Cancelar
+                                            </Button>
+                                          </>
+                                        )}
+                                      </div>
+
+                                      {selectedReview.status === 'pending_publication' && (
+                                        <div className="flex gap-2">
+                                          <Button
+                                            onClick={() => {
+                                              approveReview.mutate(selectedReview.id);
+                                              setSelectedReview(null);
+                                            }}
+                                            className="bg-green-600 hover:bg-green-700"
+                                            disabled={approveReview.isPending}
+                                          >
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            Aprovar
+                                          </Button>
+                                          <Button
+                                            onClick={() => {
+                                              rejectReview.mutate(selectedReview.id);
+                                              setSelectedReview(null);
+                                            }}
+                                            variant="outline"
+                                            className="text-red-600"
+                                            disabled={rejectReview.isPending}
+                                          >
+                                            <XCircle className="h-4 w-4 mr-1" />
+                                            Rejeitar
+                                          </Button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+
                             {review.status === 'pending_publication' && (
                               <>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-green-600">
-                                      <CheckCircle className="h-4 w-4 mr-1" />
-                                      Aprovar
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-white">Aprovar Avaliação</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-zinc-400">
-                                        Esta avaliação será publicada e ficará visível para todos os usuários.
-                                        <div className="mt-4 p-4 bg-zinc-800 rounded-lg">
-                                          <div className="flex items-center mb-2">
-                                            {renderStars(review.overall_rating)}
-                                            <span className="ml-2 text-white">{review.overall_rating} estrelas</span>
-                                          </div>
-                                          <p className="text-sm text-zinc-300 line-clamp-3">{review.description}</p>
-                                        </div>
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => approveReview.mutate(review.id)}
-                                        className="bg-green-600 hover:bg-green-700"
-                                      >
-                                        Aprovar e Publicar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-red-600">
-                                      <XCircle className="h-4 w-4 mr-1" />
-                                      Rejeitar
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-white">Rejeitar Avaliação</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-zinc-400">
-                                        Esta avaliação retornará para rascunho e o usuário poderá editá-la.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => rejectReview.mutate(review.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Rejeitar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-green-600"
+                                  onClick={() => approveReview.mutate(review.id)}
+                                  disabled={approveReview.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Aprovar
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-red-600"
+                                  onClick={() => rejectReview.mutate(review.id)}
+                                  disabled={rejectReview.isPending}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Rejeitar
+                                </Button>
                               </>
                             )}
                           </div>
