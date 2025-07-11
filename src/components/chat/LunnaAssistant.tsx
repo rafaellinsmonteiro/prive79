@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useConversation } from '@11labs/react';
 import { useLunnaTools } from '@/hooks/useLunnaTools';
 import { useUserType } from '@/hooks/useUserType';
@@ -23,6 +23,113 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const { tools: availableTools, loading: toolsLoading } = useLunnaTools();
   const { getUserType } = useUserType();
   const [userType, setUserType] = useState<string | null>(null);
+
+  // Gerar ferramentas dinamicamente baseadas no tipo de usuário
+  const clientTools = useMemo(() => {
+    if (!availableTools || toolsLoading || !userType) {
+      console.log('🌙 Ferramentas não disponíveis ainda:', { availableTools: !!availableTools, toolsLoading, userType });
+      return {};
+    }
+
+    console.log('🌙 Gerando ferramentas para tipo de usuário:', userType);
+    console.log('🌙 Ferramentas disponíveis:', availableTools.length);
+
+    const tools: Record<string, (parameters: any) => Promise<string>> = {};
+    
+    availableTools
+      .filter(tool => {
+        // Filtrar por ativação
+        if (!tool.is_active) return false;
+        
+        // Filtrar por tipo de usuário
+        const hasPermission = tool.allowed_user_types?.includes(userType);
+        console.log('🌙 Ferramenta:', tool.name, 'Permitida para', userType, ':', hasPermission);
+        return hasPermission;
+      })
+      .forEach(tool => {
+        tools[tool.function_name] = async (parameters: any) => {
+          console.log(`🌙 Lunna está executando: ${tool.label}`, parameters);
+          
+          try {
+            const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                action: tool.function_name,
+                filters: parameters || {}
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(result.error || `Erro HTTP ${response.status}`);
+            }
+            
+            // Formatação específica por tipo de ferramenta
+            switch (tool.function_name) {
+              case 'buscar_cidades':
+                return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
+              
+              case 'buscar_modelos_por_cidade':
+                if (result.data.modelos.length === 0) {
+                  return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
+                }
+                const modelosCidade = result.data.modelos.map(m => 
+                  `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`
+                ).join(', ');
+                return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelosCidade}`;
+              
+              case 'buscar_modelos':
+              case 'buscar_modelos_geral':
+                const modelos = result.data.modelos.map(m => 
+                  `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`
+                ).join(', ');
+                return `Acompanhantes disponíveis no Prive: ${modelos}`;
+              
+              case 'estatisticas_prive':
+              case 'estatisticas_sistema':
+                return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
+              
+              case 'salvar_preferencias_usuario':
+                return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
+              
+              case 'buscar_preferencias_usuario':
+                if (!result.data.existe) {
+                  return `Usuário novo no sistema. Não há preferências salvas ainda.`;
+                }
+                const user = result.data.usuario;
+                let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
+                if (user.preferred_cities?.length > 0) {
+                  resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
+                }
+                if (user.preferred_age_range) {
+                  resumo += `Faixa etária: ${user.preferred_age_range}. `;
+                }
+                if (user.preferred_price_range) {
+                  resumo += `Faixa de preço: ${user.preferred_price_range}. `;
+                }
+                if (user.preferred_services?.length > 0) {
+                  resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
+                }
+                if (user.notes) {
+                  resumo += `Observações: ${user.notes}`;
+                }
+                return resumo.trim();
+              
+              default:
+                return JSON.stringify(result.data);
+            }
+            
+          } catch (error) {
+            console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
+            return `Erro ao executar ${tool.label}: ${error.message}`;
+          }
+        };
+      });
+
+    return tools;
+  }, [availableTools, toolsLoading, userType]);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -55,106 +162,7 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         toast.error('Erro na conexão com Lunna');
       }
     },
-    // Gerar ferramentas dinamicamente do banco de dados
-    clientTools: (() => {
-      if (!availableTools || toolsLoading) return {};
-
-      const tools: Record<string, (parameters: any) => Promise<string>> = {};
-      
-      availableTools
-        .filter(tool => {
-          // Filtrar por ativação
-          if (!tool.is_active) return false;
-          
-          // Filtrar por tipo de usuário
-          if (!userType || !tool.allowed_user_types?.includes(userType)) return false;
-          
-          return true;
-        })
-        .forEach(tool => {
-          tools[tool.function_name] = async (parameters: any) => {
-            console.log(`🌙 Lunna está executando: ${tool.label}`, parameters);
-            
-            try {
-              const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  action: tool.function_name,
-                  filters: parameters || {}
-                })
-              });
-              
-              const result = await response.json();
-              
-              if (!response.ok) {
-                throw new Error(result.error || `Erro HTTP ${response.status}`);
-              }
-              
-              // Formatação específica por tipo de ferramenta
-              switch (tool.function_name) {
-                case 'buscar_cidades':
-                  return `Cidades do Prive: ${result.data.cidades.map(c => c.nome).join(', ')}`;
-                
-                case 'buscar_modelos_por_cidade':
-                  if (result.data.modelos.length === 0) {
-                    return `Não temos acompanhantes cadastradas no Prive em ${parameters.cidade_nome}.`;
-                  }
-                  const modelosCidade = result.data.modelos.map(m => 
-                    `${m.nome} (${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/h)`
-                  ).join(', ');
-                  return `Acompanhantes do Prive em ${parameters.cidade_nome}: ${modelosCidade}`;
-                
-                case 'buscar_modelos':
-                case 'buscar_modelos_geral':
-                  const modelos = result.data.modelos.map(m => 
-                    `${m.nome} (${m.idade} anos, ${m.cidade || 'N/A'}, R$ ${m.preco_1h || 'consultar'}/h)`
-                  ).join(', ');
-                  return `Acompanhantes disponíveis no Prive: ${modelos}`;
-                
-                case 'estatisticas_prive':
-                case 'estatisticas_sistema':
-                  return `O Prive possui ${result.data.estatisticas.total_modelos} acompanhantes cadastradas em ${result.data.estatisticas.total_cidades} cidades diferentes.`;
-                
-                case 'salvar_preferencias_usuario':
-                  return `Preferências salvas com sucesso para o usuário ${parameters.user_name || parameters.user_session_id}. Total de interações: ${result.data.usuario.interaction_count}`;
-                
-                case 'buscar_preferencias_usuario':
-                  if (!result.data.existe) {
-                    return `Usuário novo no sistema. Não há preferências salvas ainda.`;
-                  }
-                  const user = result.data.usuario;
-                  let resumo = `Usuário ${user.user_name || user.user_session_id} - ${user.interaction_count} interações. `;
-                  if (user.preferred_cities?.length > 0) {
-                    resumo += `Cidades preferidas: ${user.preferred_cities.join(', ')}. `;
-                  }
-                  if (user.preferred_age_range) {
-                    resumo += `Faixa etária: ${user.preferred_age_range}. `;
-                  }
-                  if (user.preferred_price_range) {
-                    resumo += `Faixa de preço: ${user.preferred_price_range}. `;
-                  }
-                  if (user.preferred_services?.length > 0) {
-                    resumo += `Serviços de interesse: ${user.preferred_services.join(', ')}. `;
-                  }
-                  if (user.notes) {
-                    resumo += `Observações: ${user.notes}`;
-                  }
-                  return resumo.trim();
-                
-                default:
-                  return JSON.stringify(result.data);
-              }
-              
-            } catch (error) {
-              console.error(`🌙 Erro na ferramenta ${tool.function_name}:`, error);
-              return `Erro ao executar ${tool.label}: ${error.message}`;
-            }
-          };
-        });
-
-      return tools;
-    })(),
+    clientTools
   });
 
   const startConversation = async () => {
