@@ -64,6 +64,33 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
         } catch (error) {
           return `Erro ao buscar cidades: ${error.message}`;
         }
+      },
+      
+      buscar_modelos_por_cidade: async (parameters: { cidade_nome: string; limite?: number }) => {
+        console.log('🌙 Lunna está buscando modelos por cidade:', parameters);
+        try {
+          const response = await fetch('https://hhpcrtpevucuucoiodxh.functions.supabase.co/lunna-data-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'buscar_modelos_por_cidade',
+              filters: { cidade_nome: parameters.cidade_nome, limit: parameters.limite || 5 }
+            })
+          });
+          const result = await response.json();
+          
+          if (result.data.modelos.length === 0) {
+            return `Não encontrei acompanhantes em ${parameters.cidade_nome}. Posso mostrar as cidades disponíveis se quiser.`;
+          }
+          
+          const modelos = result.data.modelos.map(m => 
+            `${m.nome}, ${m.idade} anos, ${m.bairro || 'centro'}, R$ ${m.preco_1h || 'consultar'}/hora`
+          ).join('; ');
+          
+          return `Encontrei ${result.data.modelos.length} acompanhantes em ${parameters.cidade_nome}: ${modelos}`;
+        } catch (error) {
+          return `Erro ao buscar modelos por cidade: ${error.message}`;
+        }
       }
     },
   });
