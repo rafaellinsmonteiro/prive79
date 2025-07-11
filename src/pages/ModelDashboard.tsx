@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Image, Settings, BarChart3, LogOut, Shield, Home, Target } from 'lucide-react';
@@ -14,7 +14,9 @@ import ModelDashboardHome from '@/components/model/ModelDashboardHome';
 import ModelGoals from '@/components/model/ModelGoals';
 
 const ModelDashboard = () => {
-  const [activeSection, setActiveSection] = useState('home');
+  const [searchParams] = useSearchParams();
+  const section = searchParams.get('section');
+  const [activeSection, setActiveSection] = useState(section || 'home');
   const { user, signOut, loading, authComplete } = useAuth();
   const { profile, isLoading: profileLoading } = useModelProfile();
   const navigate = useNavigate();
@@ -31,6 +33,13 @@ const ModelDashboard = () => {
       navigate('/login', { replace: true });
     }
   }, [user, loading, authComplete, navigate, profile, profileLoading]);
+
+  // Update active section when URL params change
+  useEffect(() => {
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [section]);
 
   const handleSignOut = async () => {
     console.log('Model dashboard - initiating logout');

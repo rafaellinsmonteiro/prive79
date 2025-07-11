@@ -19,7 +19,8 @@ import {
   Search,
   Heart,
   LayoutDashboard,
-  ChevronDown
+  ChevronDown,
+  Target
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -51,6 +52,7 @@ const Header = () => {
         { label: 'Clientes', icon: Users, path: '/clientes' },
         { label: 'PriveBank', icon: DollarSign, path: '/privebank' },
         { label: 'Avaliações', icon: ThumbsUp, path: '/avaliacoes' },
+        { label: 'Metas', icon: Target, path: '/model-dashboard?section=goals' },
         { label: 'Perfil', icon: UserCircle, path: '/perfil' },
       ];
     } else {
