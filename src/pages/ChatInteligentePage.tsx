@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, MessageCircle, Sparkles, RotateCcw, Images } from 'lucide-react';
+import { Send, MessageCircle, Sparkles, RotateCcw, Images, Mic, MicOff, Volume2, VolumeX, Square } from 'lucide-react';
 import { useOpenAIChat } from '@/hooks/useOpenAIChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 const ChatInteligentePage = () => {
   const { user } = useAuth();
@@ -16,6 +18,11 @@ const ChatInteligentePage = () => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Voice functionality
+  const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+  const { speak, stop: stopSpeech, isPlaying, isLoading: isSpeechLoading } = useTextToSpeech();
+  const [voiceMode, setVoiceMode] = useState(false);
 
   // Redirect to login if not authenticated
   if (!user) {
@@ -41,6 +48,39 @@ const ChatInteligentePage = () => {
     await sendMessage(inputValue);
     setInputValue('');
     inputRef.current?.focus();
+  };
+
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      try {
+        const transcribedText = await stopRecording();
+        if (transcribedText.trim()) {
+          setInputValue(transcribedText);
+          // Auto-send if voice mode is enabled
+          if (voiceMode) {
+            await sendMessage(transcribedText);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing voice:', error);
+      }
+    } else {
+      await startRecording();
+    }
+  };
+
+  const handleSpeakLastMessage = () => {
+    const lastAssistantMessage = messages
+      .filter(msg => msg.role === 'assistant')
+      .pop();
+    
+    if (lastAssistantMessage && lastAssistantMessage.content) {
+      if (isPlaying) {
+        stopSpeech();
+      } else {
+        speak(lastAssistantMessage.content);
+      }
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -71,15 +111,30 @@ const ChatInteligentePage = () => {
               <p className="text-gray-400 text-sm">Encontre a modelo perfeita com IA</p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={startNewSession}
-            className="gap-2 bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Nova Conversa
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setVoiceMode(!voiceMode)}
+              className={`gap-2 border-gray-700 hover:bg-gray-700 hover:text-white ${
+                voiceMode 
+                  ? 'bg-purple-600 border-purple-500 text-white' 
+                  : 'bg-gray-800 text-gray-300'
+              }`}
+            >
+              <Mic className="h-4 w-4" />
+              Modo Voz
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={startNewSession}
+              className="gap-2 bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Nova Conversa
+            </Button>
+          </div>
         </div>
 
         {/* Chat Container */}
@@ -110,8 +165,21 @@ const ChatInteligentePage = () => {
                           : 'bg-gray-800 text-gray-100 border border-gray-700'
                       }`}
                     >
-                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {message.content}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed flex-1">
+                          {message.content}
+                        </div>
+                        {message.role === 'assistant' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSpeakLastMessage}
+                            disabled={isSpeechLoading}
+                            className="p-1 h-auto text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                          >
+                            {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </Button>
+                        )}
                       </div>
                       
                       {/* Show suggested models if available */}
@@ -231,19 +299,63 @@ const ChatInteligentePage = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Digite sua pergunta... ex: 'Procuro uma morena alta disponível hoje'"
-                  disabled={isLoading}
+                  placeholder={
+                    voiceMode 
+                      ? "Use o botão de voz ou digite sua pergunta..." 
+                      : "Digite sua pergunta... ex: 'Procuro uma morena alta disponível hoje'"
+                  }
+                  disabled={isLoading || isRecording}
                   className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-purple-500"
                 />
+                
+                {/* Voice Recording Button */}
+                <Button
+                  type="button"
+                  onClick={handleVoiceRecording}
+                  disabled={isLoading || isProcessing}
+                  size="icon"
+                  className={`shrink-0 border-0 ${
+                    isRecording 
+                      ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
+                      : 'bg-gray-700 hover:bg-gray-600'
+                  }`}
+                >
+                  {isRecording ? (
+                    <Square className="h-4 w-4" />
+                  ) : isProcessing ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+
                 <Button 
                   type="submit" 
-                  disabled={!inputValue.trim() || isLoading}
+                  disabled={!inputValue.trim() || isLoading || isRecording}
                   size="icon"
                   className="shrink-0 bg-purple-600 hover:bg-purple-700 border-0"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
+              
+              {/* Voice Recording Status */}
+              {(isRecording || isProcessing) && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
+                  {isRecording && (
+                    <>
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      Gravando... (clique no botão para parar)
+                    </>
+                  )}
+                  {isProcessing && (
+                    <>
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                      Processando áudio...
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

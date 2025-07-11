@@ -27,7 +27,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
-  const { isRecording, startRecording, stopRecording, audioBlob, error } = useVoiceRecorder();
+  const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
@@ -51,12 +51,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
     }
   }, [messages]);
 
-  // Handle audio blob when recording stops
-  useEffect(() => {
-    if (audioBlob) {
-      handleAudioUpload(audioBlob);
+  // Handle voice recording (now handled differently)
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      try {
+        const transcribedText = await stopRecording();
+        if (transcribedText.trim()) {
+          setMessage(transcribedText);
+        }
+      } catch (error) {
+        console.error('Error processing voice:', error);
+      }
+    } else {
+      await startRecording();
     }
-  }, [audioBlob]);
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim() || !user) return;
@@ -93,13 +102,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
     }
   };
 
-  const handleVoiceRecord = async () => {
-    if (isRecording) {
-      await stopRecording();
-    } else {
-      await startRecording();
-    }
-  };
 
   const handleAudioUpload = async (audioBlob: Blob) => {
     try {
@@ -222,11 +224,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
 
         {/* Input Area with Audio Button */}
         <div className="bg-zinc-800 px-4 py-4 border-t border-zinc-700">
-          {error && (
-            <div className="mb-2 p-2 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-sm">
-              {error}
-            </div>
-          )}
           
           <div className="flex items-center space-x-3">
             <Button

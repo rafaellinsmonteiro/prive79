@@ -34,7 +34,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   const { data: messages = [], isLoading } = useMessages(conversationId);
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
-  const { isRecording, startRecording, stopRecording, audioBlob, error } = useVoiceRecorder();
+  const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
@@ -46,12 +46,21 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
     }
   }, [messages]);
 
-  // Handle audio blob when recording stops
-  useEffect(() => {
-    if (audioBlob) {
-      handleAudioUpload(audioBlob);
+  // Handle voice recording (now handled differently)
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      try {
+        const transcribedText = await stopRecording();
+        if (transcribedText.trim()) {
+          setMessage(transcribedText);
+        }
+      } catch (error) {
+        console.error('Error processing voice:', error);
+      }
+    } else {
+      await startRecording();
     }
-  }, [audioBlob]);
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim() || !user) return;
@@ -88,13 +97,6 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
     }
   };
 
-  const handleVoiceRecord = async () => {
-    if (isRecording) {
-      await stopRecording();
-    } else {
-      await startRecording();
-    }
-  };
 
   const handleAudioUpload = async (audioBlob: Blob) => {
     try {
@@ -188,11 +190,6 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
 
       {/* Input Area with Audio Button */}
       <div className="bg-zinc-900 px-4 py-4 border-t border-zinc-800">
-        {error && (
-          <div className="mb-3 p-3 bg-red-900/50 border border-red-700 rounded-md text-red-300 text-sm">
-            {error}
-          </div>
-        )}
         
         <div className="flex items-center space-x-3">
           <Button

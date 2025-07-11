@@ -1,85 +1,124 @@
-
 import { useState, useRef, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-interface UseVoiceRecorderReturn {
-  isRecording: boolean;
-  startRecording: () => Promise<void>;
-  stopRecording: () => Promise<Blob | null>;
-  audioBlob: Blob | null;
-  error: string | null;
-}
-
-export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
+export const useVoiceRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
+  const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const chunksRef = useRef<Blob[]>([]);
 
   const startRecording = useCallback(async () => {
     try {
-      setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-        }
+        },
       });
 
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus',
+      });
+
       mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+      chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
+          chunksRef.current.push(event.data);
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        
-        // Stop all tracks to release microphone
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
-      console.log('Recording started');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to access microphone';
-      setError(errorMessage);
-      console.error('Error starting recording:', err);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível acessar o microfone. Verifique as permissões.",
+        variant: "destructive",
+      });
     }
   }, []);
 
-  const stopRecording = useCallback(async (): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          setAudioBlob(audioBlob);
-          setIsRecording(false);
-          console.log('Recording stopped');
-          resolve(audioBlob);
-        };
-        
-        mediaRecorderRef.current.stop();
-      } else {
-        setIsRecording(false);
-        resolve(null);
+  const stopRecording = useCallback((): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!mediaRecorderRef.current || !isRecording) {
+        reject(new Error('No recording in progress'));
+        return;
       }
+
+      mediaRecorderRef.current.onstop = async () => {
+        setIsRecording(false);
+        setIsProcessing(true);
+
+        try {
+          // Create blob from chunks
+          const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          
+          // Convert to base64
+          const base64Audio = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = (reader.result as string).split(',')[1];
+              resolve(base64);
+            };
+            reader.readAsDataURL(audioBlob);
+          });
+
+          // Send to speech-to-text function
+          const { data, error } = await supabase.functions.invoke('speech-to-text', {
+            body: { audio: base64Audio }
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          setIsProcessing(false);
+          resolve(data.text || '');
+        } catch (error) {
+          console.error('Error processing audio:', error);
+          setIsProcessing(false);
+          toast({
+            title: "Erro",
+            description: "Erro ao processar áudio. Tente novamente.",
+            variant: "destructive",
+          });
+          reject(error);
+        }
+
+        // Stop all tracks
+        const stream = mediaRecorderRef.current?.stream;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      };
+
+      mediaRecorderRef.current.stop();
     });
+  }, [isRecording]);
+
+  const cancelRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Stop all tracks
+      const stream = mediaRecorderRef.current.stream;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    }
   }, [isRecording]);
 
   return {
     isRecording,
+    isProcessing,
     startRecording,
     stopRecording,
-    audioBlob,
-    error,
+    cancelRecording,
   };
 };
