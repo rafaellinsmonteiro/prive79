@@ -30,6 +30,7 @@ import ServicesPage from "./pages/ServicesPage";
 import ChatInteligentePage from "./pages/ChatInteligentePage";
 import PriveBankPage from "./pages/PriveBankPage";
 import ReviewsPage from "./pages/ReviewsPage";
+import SearchPage from "./pages/SearchPage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -130,6 +131,7 @@ const AppContent = () => {
               user ? <ReviewsPage /> : <Navigate to="/login" replace />
             } 
           />
+          <Route path="/buscar" element={<SearchPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
