@@ -22,19 +22,25 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
   const conversation = useConversation({
     onConnect: () => {
       console.log('🌙 Lunna: Conectada!');
+      console.log('🌙 Status da conexão:', conversation.status);
       toast.success('Lunna está online!');
     },
     onDisconnect: () => {
       console.log('🌙 Lunna: Desconectada');
+      console.log('🌙 Status da conexão após desconexão:', conversation.status);
       toast.info('Lunna foi desconectada');
       setIsStarted(false);
     },
     onMessage: (message) => {
       console.log('🌙 Lunna disse:', message);
+      console.log('🌙 Tipo da mensagem:', typeof message);
+      console.log('🌙 Estrutura da mensagem:', Object.keys(message || {}));
       setLastMessage(message.message || '');
     },
     onError: (error) => {
       console.error('🌙 Erro da Lunna:', error);
+      console.log('🌙 Tipo do erro:', typeof error);
+      console.log('🌙 Propriedades do erro:', Object.keys(error || {}));
       const errorStr = String(error);
       if (errorStr.includes('does not exist')) {
         setErrorMessage('Agent ID não configurado. Configure um agent ID válido do ElevenLabs.');
@@ -70,22 +76,41 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
     }
 
     try {
+      console.log('🌙 Iniciando conversa com Agent ID:', agentId);
       setErrorMessage('');
-      // Solicitar acesso ao microfone antes de iniciar
-      await navigator.mediaDevices.getUserMedia({ audio: true });
       
+      // Solicitar acesso ao microfone antes de iniciar
+      console.log('🌙 Solicitando acesso ao microfone...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('🌙 Microfone autorizado:', !!stream);
+      
+      console.log('🌙 Iniciando sessão com ElevenLabs...');
       const conversationId = await conversation.startSession({ 
         agentId 
       });
       
       console.log('🌙 Conversa iniciada:', conversationId);
+      console.log('🌙 Status da conexão após startSession:', conversation.status);
       setIsStarted(true);
+      
+      // Aguardar um pouco para ver se a conexão se mantém
+      setTimeout(() => {
+        console.log('🌙 Status da conexão após 2s:', conversation.status);
+      }, 2000);
+      
     } catch (error: any) {
       console.error('🌙 Erro ao iniciar conversa:', error);
+      console.log('🌙 Nome do erro:', error.name);
+      console.log('🌙 Mensagem do erro:', error.message);
+      console.log('🌙 Stack do erro:', error.stack);
+      
       const errorStr = String(error);
       if (errorStr.includes('does not exist')) {
         setErrorMessage('O Agent ID fornecido não existe no ElevenLabs.');
         toast.error('Agent ID inválido. Verifique a configuração.');
+      } else if (errorStr.includes('Permission denied')) {
+        setErrorMessage('Acesso ao microfone negado. Permita o acesso e tente novamente.');
+        toast.error('Permissão do microfone necessária.');
       } else {
         setErrorMessage('Erro ao conectar. Verifique as permissões do microfone e sua conexão.');
         toast.error('Erro ao conectar com Lunna. Verifique as permissões do microfone.');
