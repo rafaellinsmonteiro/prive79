@@ -19,7 +19,7 @@ const Index = () => {
     error
   } = useModels(selectedCityId);
 
-  // Redirecionar usuários não autenticados para login
+  // Redirecionar usuários baseado no tipo
   useEffect(() => {
     console.log('🏠 Index: user:', !!user, 'modelProfile:', !!modelProfile, 'profileLoading:', profileLoading);
     
@@ -33,6 +33,13 @@ const Index = () => {
     if (user && modelProfile && !profileLoading) {
       console.log('🏠 Index: Model user detected, redirecting to dashboard');
       navigate('/model-dashboard', { replace: true });
+      return;
+    }
+    
+    // Redirecionar clientes para o client-dashboard
+    if (user && !modelProfile && !profileLoading) {
+      console.log('🏠 Index: Client user detected, redirecting to client dashboard');
+      navigate('/client-dashboard', { replace: true });
     }
   }, [user, modelProfile, profileLoading, navigate]);
 
