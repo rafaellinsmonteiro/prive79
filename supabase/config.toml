@@ -73,3 +73,6 @@ verify_jwt = false
 
 [functions.speech-to-text]
 verify_jwt = false
+
+[functions.lunna-data-access]
+verify_jwt = false
