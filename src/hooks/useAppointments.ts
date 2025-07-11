@@ -134,6 +134,17 @@ export const useAppointments = () => {
 
   const updateAppointment = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Appointment> & { id: string }) => {
+      // Verificar se o agendamento foi criado pelo admin
+      const { data: appointmentData } = await supabase
+        .from('appointments')
+        .select('created_by_admin')
+        .eq('id', id)
+        .single();
+
+      if (appointmentData?.created_by_admin) {
+        throw new Error('Agendamentos criados pelo admin não podem ser editados por modelos');
+      }
+
       const { data, error } = await supabase
         .from('appointments')
         .update(updates)
@@ -154,12 +165,27 @@ export const useAppointments = () => {
     },
     onError: (error) => {
       console.error('Error updating appointment:', error);
-      toast.error('Erro ao atualizar agendamento');
+      if (error.message.includes('criados pelo admin')) {
+        toast.error('Este agendamento não pode ser editado pois foi criado pelo admin');
+      } else {
+        toast.error('Erro ao atualizar agendamento');
+      }
     },
   });
 
   const deleteAppointment = useMutation({
     mutationFn: async (id: string) => {
+      // Verificar se o agendamento foi criado pelo admin
+      const { data: appointmentData } = await supabase
+        .from('appointments')
+        .select('created_by_admin')
+        .eq('id', id)
+        .single();
+
+      if (appointmentData?.created_by_admin) {
+        throw new Error('Agendamentos criados pelo admin não podem ser excluídos por modelos');
+      }
+
       const { error } = await supabase
         .from('appointments')
         .delete()
@@ -173,7 +199,11 @@ export const useAppointments = () => {
     },
     onError: (error) => {
       console.error('Error deleting appointment:', error);
-      toast.error('Erro ao remover agendamento');
+      if (error.message.includes('criados pelo admin')) {
+        toast.error('Este agendamento não pode ser excluído pois foi criado pelo admin');
+      } else {
+        toast.error('Erro ao remover agendamento');
+      }
     },
   });
 

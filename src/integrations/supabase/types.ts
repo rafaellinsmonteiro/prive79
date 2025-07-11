@@ -41,51 +41,145 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_attachments: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_attachments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointment_comments: {
+        Row: {
+          appointment_id: string
+          comment: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          comment: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_comments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
+          admin_notes: string | null
           appointment_date: string
           appointment_time: string
           client_id: string
           created_at: string
+          created_by_admin: boolean | null
           duration: number
           id: string
+          is_recurring_series: boolean | null
           location: string | null
           model_id: string
           observations: string | null
+          parent_appointment_id: string | null
           payment_status: string
           price: number
+          recurrence_end_date: string | null
+          recurrence_type: string | null
           service_id: string
           status: string
           updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
           appointment_date: string
           appointment_time: string
           client_id: string
           created_at?: string
+          created_by_admin?: boolean | null
           duration?: number
           id?: string
+          is_recurring_series?: boolean | null
           location?: string | null
           model_id: string
           observations?: string | null
+          parent_appointment_id?: string | null
           payment_status?: string
           price?: number
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           service_id: string
           status?: string
           updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
           appointment_date?: string
           appointment_time?: string
           client_id?: string
           created_at?: string
+          created_by_admin?: boolean | null
           duration?: number
           id?: string
+          is_recurring_series?: boolean | null
           location?: string | null
           model_id?: string
           observations?: string | null
+          parent_appointment_id?: string | null
           payment_status?: string
           price?: number
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           service_id?: string
           status?: string
           updated_at?: string
@@ -103,6 +197,13 @@ export type Database = {
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_parent_appointment_id_fkey"
+            columns: ["parent_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
@@ -1445,6 +1546,14 @@ export type Database = {
     Functions: {
       cleanup_old_typing_indicators: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_recurring_appointments: {
+        Args: {
+          _appointment_id: string
+          _recurrence_type: string
+          _recurrence_end_date: string
+        }
         Returns: undefined
       }
       ensure_model_chat_user: {
