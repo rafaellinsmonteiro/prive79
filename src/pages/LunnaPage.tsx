@@ -4,12 +4,12 @@ import LunnaAssistant from '@/components/chat/LunnaAssistant';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Moon, Sparkles, Brain, Zap } from 'lucide-react';
 import lunnaVideo from '@/assets/lunna-bg-video.mp4';
-
 const LunnaPage = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
-
   const handleSpeakingChange = (speaking: boolean) => {
     setIsSpeaking(speaking);
     if (videoRef.current) {
@@ -20,18 +20,9 @@ const LunnaPage = () => {
       }
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-rose-900/20 relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-rose-900/20 relative overflow-hidden">
       {/* Video Background */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        loop
-        muted
-        playsInline
-        src={lunnaVideo}
-      />
+      <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" loop muted playsInline src={lunnaVideo} />
       
       {/* Elegant overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60" />
@@ -64,12 +55,8 @@ const LunnaPage = () => {
               <div className="absolute -inset-8 bg-gradient-to-r from-rose-500/20 via-purple-500/20 to-rose-500/20 rounded-full blur-2xl opacity-60" />
               
               {/* Main card */}
-              <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-                <LunnaAssistant 
-                  agentId="agent_01jzx4f2x3ed98w1rhycp8sz7n" 
-                  onSpeakingChange={handleSpeakingChange}
-                  className="bg-transparent border-none shadow-none"
-                />
+              <div className="">
+                <LunnaAssistant agentId="agent_01jzx4f2x3ed98w1rhycp8sz7n" onSpeakingChange={handleSpeakingChange} className="bg-transparent border-none shadow-none" />
               </div>
             </div>
           </div>
@@ -108,8 +95,6 @@ const LunnaPage = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default LunnaPage;
