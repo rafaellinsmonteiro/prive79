@@ -129,11 +129,12 @@ export const useAdminAppointments = () => {
     mutationFn: async (appointmentData: {
       model_id: string;
       client_id: string;
-      service_id: string;
+      service_id?: string;
       appointment_date: string;
       appointment_time: string;
       duration: number;
       price: number;
+      currency?: 'BRL' | 'PRIV';
       location?: string;
       observations?: string;
       admin_notes?: string;

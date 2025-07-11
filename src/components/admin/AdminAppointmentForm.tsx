@@ -39,6 +39,8 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedService, setSelectedService] = useState('');
+  const [customValue, setCustomValue] = useState('');
+  const [currency, setCurrency] = useState<'BRL' | 'PRIV'>('BRL');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [observations, setObservations] = useState('');
@@ -93,21 +95,37 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedDate || !selectedModel || !selectedClient || !selectedService || !time) {
+    if (!selectedDate || !selectedModel || !selectedClient || !time) {
       return;
     }
 
-    const selectedServiceData = services.find(s => s.id === selectedService);
-    if (!selectedServiceData) return;
+    let finalPrice = 0;
+    let finalDuration = 60;
+    let finalServiceId = selectedService;
+
+    // Se um serviço foi selecionado, usar os dados do serviço
+    if (selectedService) {
+      const selectedServiceData = services.find(s => s.id === selectedService);
+      if (selectedServiceData) {
+        finalPrice = selectedServiceData.price;
+        finalDuration = selectedServiceData.duration;
+      }
+    }
+
+    // Se um valor customizado foi inserido, sobrescrever o preço
+    if (customValue && parseFloat(customValue) > 0) {
+      finalPrice = parseFloat(customValue);
+    }
 
     const appointmentData = {
       model_id: selectedModel,
       client_id: selectedClient,
-      service_id: selectedService,
+      service_id: finalServiceId || undefined,
       appointment_date: format(selectedDate, 'yyyy-MM-dd'),
       appointment_time: time,
-      duration: selectedServiceData.duration,
-      price: selectedServiceData.price,
+      duration: finalDuration,
+      price: finalPrice,
+      currency,
       location: location || undefined,
       observations: observations || undefined,
       admin_notes: adminNotes || undefined,
@@ -223,17 +241,46 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
 
               {/* Serviço */}
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="service" className="text-white">Serviço</Label>
+                <Label htmlFor="service" className="text-white">Serviço (opcional)</Label>
                 <Select value={selectedService} onValueChange={setSelectedService} disabled={!selectedModel}>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                    <SelectValue placeholder={loadingServices ? "Carregando..." : "Selecione um serviço"} />
+                    <SelectValue placeholder={loadingServices ? "Carregando..." : "Selecione um serviço (opcional)"} />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="" className="text-white">Nenhum serviço</SelectItem>
                     {services.map((service) => (
                       <SelectItem key={service.id} value={service.id} className="text-white">
                         {service.name} - R$ {service.price.toFixed(2)} ({service.duration}min)
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Valor e Moeda Customizados */}
+              <div className="space-y-2">
+                <Label htmlFor="customValue" className="text-white">Valor Customizado (opcional)</Label>
+                <Input
+                  id="customValue"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={customValue}
+                  onChange={(e) => setCustomValue(e.target.value)}
+                  placeholder="Digite o valor"
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="currency" className="text-white">Moeda</Label>
+                <Select value={currency} onValueChange={(value: 'BRL' | 'PRIV') => setCurrency(value)}>
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="BRL" className="text-white">R$ (Real Brasileiro)</SelectItem>
+                    <SelectItem value="PRIV" className="text-white">P$ (PrivaBank)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -345,7 +392,7 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
               </Button>
               <Button
                 type="submit"
-                disabled={createAppointment.isPending || !selectedDate || !selectedModel || !selectedClient || !selectedService || !time}
+                disabled={createAppointment.isPending || !selectedDate || !selectedModel || !selectedClient || !time}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 {createAppointment.isPending ? 'Criando...' : 'Criar Agendamento'}
