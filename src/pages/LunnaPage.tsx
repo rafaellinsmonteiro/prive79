@@ -28,7 +28,14 @@ const LunnaPage = () => {
       <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" loop muted playsInline src={lunnaVideo} />
       
       {/* Elegant overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60" />
+      <div className={`absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 transition-opacity duration-500 ${
+        mode === 'text' ? 'opacity-100' : 'opacity-100'
+      }`} />
+      
+      {/* Additional overlay for text mode */}
+      <div className={`absolute inset-0 bg-black/50 transition-opacity duration-500 ${
+        mode === 'text' ? 'opacity-100' : 'opacity-0'
+      }`} />
       
       {/* Subtle particle effect */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
