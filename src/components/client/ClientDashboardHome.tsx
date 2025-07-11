@@ -4,35 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { 
-  Briefcase, 
-  Heart, 
-  Flame, 
-  Star, 
-  Search, 
-  Calendar, 
-  MessageCircle, 
-  Users, 
-  Sparkles, 
-  TrendingUp,
-  Camera,
-  MapPin,
-  Clock,
-  ArrowRight
-} from 'lucide-react';
+import { Briefcase, Heart, Flame, Star, Search, Calendar, MessageCircle, Users, Sparkles, TrendingUp, Camera, MapPin, Clock, ArrowRight } from 'lucide-react';
 import dashboardHeroBg from '/lovable-uploads/42760971-a8a7-467e-93f4-bc2af10c76e9.png';
-
 interface ClientDashboardHomeProps {
   onSectionChange?: (section: string) => void;
 }
-
-const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
+const ClientDashboardHome = ({
+  onSectionChange
+}: ClientDashboardHomeProps) => {
   const [toggles, setToggles] = useState({
     business: true,
     fun: false,
     hot: false
   });
-
   const handleToggleChange = (toggle: keyof typeof toggles) => {
     setToggles(prev => ({
       ...prev,
@@ -43,10 +27,8 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
   // Cards baseados nos toggles ativos
   const getVisibleCards = () => {
     const cards = [];
-
     if (toggles.business) {
-      cards.push(
-        <Card key="business-networking" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+      cards.push(<Card key="business-networking" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Briefcase className="h-6 w-6 text-blue-400" />
@@ -57,9 +39,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>,
-        
-        <Card key="business-services" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+        </Card>, <Card key="business-services" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Users className="h-6 w-6 text-green-400" />
@@ -70,13 +50,10 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>
-      );
+        </Card>);
     }
-
     if (toggles.fun) {
-      cards.push(
-        <Card key="fun-events" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+      cards.push(<Card key="fun-events" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Heart className="h-6 w-6 text-pink-400" />
@@ -87,9 +64,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>,
-        
-        <Card key="fun-entertainment" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+        </Card>, <Card key="fun-entertainment" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Sparkles className="h-6 w-6 text-purple-400" />
@@ -100,13 +75,10 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>
-      );
+        </Card>);
     }
-
     if (toggles.hot) {
-      cards.push(
-        <Card key="hot-profiles" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+      cards.push(<Card key="hot-profiles" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Flame className="h-6 w-6 text-red-400" />
@@ -117,9 +89,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>,
-        
-        <Card key="hot-content" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
+        </Card>, <Card key="hot-content" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <Camera className="h-6 w-6 text-orange-400" />
@@ -130,23 +100,17 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>
-      );
+        </Card>);
     }
-
     return cards;
   };
-
   const activeToggleCount = Object.values(toggles).filter(Boolean).length;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header de boas-vindas */}
       <Card className="relative overflow-hidden border-amber-600/30">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-          style={{ backgroundImage: `url(${dashboardHeroBg})` }} 
-        />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
+        backgroundImage: `url(${dashboardHeroBg})`
+      }} />
         <div className="absolute inset-0 bg-black/70" />
         <CardContent className="relative p-6 z-10">
           <div className="flex items-center justify-between">
@@ -185,11 +149,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                   <p className="text-sm text-zinc-400">Networking e negócios</p>
                 </div>
               </div>
-              <Switch
-                id="business-toggle"
-                checked={toggles.business}
-                onCheckedChange={() => handleToggleChange('business')}
-              />
+              <Switch id="business-toggle" checked={toggles.business} onCheckedChange={() => handleToggleChange('business')} />
             </div>
 
             <div className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg">
@@ -200,11 +160,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                   <p className="text-sm text-zinc-400">Diversão e entretenimento</p>
                 </div>
               </div>
-              <Switch
-                id="fun-toggle"
-                checked={toggles.fun}
-                onCheckedChange={() => handleToggleChange('fun')}
-              />
+              <Switch id="fun-toggle" checked={toggles.fun} onCheckedChange={() => handleToggleChange('fun')} />
             </div>
 
             <div className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg">
@@ -215,30 +171,22 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                   <p className="text-sm text-zinc-400">Conteúdo adulto</p>
                 </div>
               </div>
-              <Switch
-                id="hot-toggle"
-                checked={toggles.hot}
-                onCheckedChange={() => handleToggleChange('hot')}
-              />
+              <Switch id="hot-toggle" checked={toggles.hot} onCheckedChange={() => handleToggleChange('hot')} />
             </div>
           </div>
 
-          {activeToggleCount === 0 && (
-            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
+          {activeToggleCount === 0 && <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
               <p className="text-yellow-200 text-sm">
                 ℹ️ Ative pelo menos uma preferência para ver conteúdo personalizado
               </p>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
       {/* Cards baseados nos toggles */}
-      {activeToggleCount > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {activeToggleCount > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {getVisibleCards()}
-        </div>
-      )}
+        </div>}
 
       {/* Cartões Financeiros e Perfil */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -249,7 +197,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                 <div className="p-2 bg-green-900/20 rounded-lg">
                   <span className="text-green-400 font-bold text-lg">R$</span>
                 </div>
-                <h3 className="font-medium text-white">Saldo BRL</h3>
+                <h3 className="font-medium text-white">Saldo em Reais</h3>
               </div>
             </div>
             <p className="text-2xl font-bold text-green-400">R$ 2.450,00</p>
@@ -264,7 +212,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                 <div className="p-2 bg-amber-900/20 rounded-lg">
                   <span className="text-amber-400 font-bold text-lg">P$</span>
                 </div>
-                <h3 className="font-medium text-white">PriveCoins</h3>
+                <h3 className="font-medium text-white">Saldo em PriveDollar</h3>
               </div>
             </div>
             <p className="text-2xl font-bold text-amber-400">P$ 850</p>
@@ -328,8 +276,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
       </div>
 
       {/* Recomendações baseadas nos toggles */}
-      {activeToggleCount > 0 && (
-        <Card className="bg-zinc-900 border-zinc-800">
+      {activeToggleCount > 0 && <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
@@ -338,8 +285,7 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {toggles.business && (
-                <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+              {toggles.business && <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Briefcase className="h-5 w-5 text-blue-400" />
                     <div>
@@ -348,11 +294,9 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                     </div>
                   </div>
                   <ArrowRight className="h-5 w-5 text-zinc-400" />
-                </div>
-              )}
+                </div>}
               
-              {toggles.fun && (
-                <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+              {toggles.fun && <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Heart className="h-5 w-5 text-pink-400" />
                     <div>
@@ -361,11 +305,9 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                     </div>
                   </div>
                   <ArrowRight className="h-5 w-5 text-zinc-400" />
-                </div>
-              )}
+                </div>}
               
-              {toggles.hot && (
-                <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+              {toggles.hot && <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Flame className="h-5 w-5 text-red-400" />
                     <div>
@@ -374,14 +316,10 @@ const ClientDashboardHome = ({ onSectionChange }: ClientDashboardHomeProps) => {
                     </div>
                   </div>
                   <ArrowRight className="h-5 w-5 text-zinc-400" />
-                </div>
-              )}
+                </div>}
             </div>
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
-
 export default ClientDashboardHome;
