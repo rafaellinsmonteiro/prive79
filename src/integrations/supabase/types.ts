@@ -521,6 +521,115 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_progress: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          notes: string | null
+          progress_date: string
+          progress_value: number
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          notes?: string | null
+          progress_date?: string
+          progress_value?: number
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          notes?: string | null
+          progress_date?: string
+          progress_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          admin_defined: boolean
+          appointment_types: string[] | null
+          content_formats: string[] | null
+          created_at: string
+          created_by_user_id: string | null
+          current_value: number
+          description: string | null
+          goal_type: string
+          id: string
+          is_active: boolean
+          model_id: string | null
+          period_end: string | null
+          period_start: string | null
+          period_type: string
+          reward_description: string | null
+          reward_points: number | null
+          target_value: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_defined?: boolean
+          appointment_types?: string[] | null
+          content_formats?: string[] | null
+          created_at?: string
+          created_by_user_id?: string | null
+          current_value?: number
+          description?: string | null
+          goal_type: string
+          id?: string
+          is_active?: boolean
+          model_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string
+          reward_description?: string | null
+          reward_points?: number | null
+          target_value: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_defined?: boolean
+          appointment_types?: string[] | null
+          content_formats?: string[] | null
+          created_at?: string
+          created_by_user_id?: string | null
+          current_value?: number
+          description?: string | null
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          model_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string
+          reward_description?: string | null
+          reward_points?: number | null
+          target_value?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_configurations: {
         Row: {
           city_id: string | null
