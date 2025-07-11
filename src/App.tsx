@@ -32,6 +32,7 @@ import ChatInteligentePage from "./pages/ChatInteligentePage";
 import PriveBankPage from "./pages/PriveBankPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import SearchPage from "./pages/SearchPage";
+import LunnaPage from "./pages/LunnaPage";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -119,6 +120,12 @@ const AppContent = () => {
             path="/chat-inteligente" 
             element={
               user ? <ChatInteligentePage /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/lunna" 
+            element={
+              user ? <LunnaPage /> : <Navigate to="/login" replace />
             } 
           />
           <Route 
