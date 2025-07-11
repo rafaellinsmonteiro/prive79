@@ -101,10 +101,10 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
 
     let finalPrice = 0;
     let finalDuration = 60;
-    let finalServiceId = selectedService;
+    let finalServiceId = selectedService === "none" ? undefined : selectedService;
 
     // Se um serviço foi selecionado, usar os dados do serviço
-    if (selectedService) {
+    if (selectedService && selectedService !== "none") {
       const selectedServiceData = services.find(s => s.id === selectedService);
       if (selectedServiceData) {
         finalPrice = selectedServiceData.price;
@@ -247,7 +247,7 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
                     <SelectValue placeholder={loadingServices ? "Carregando..." : "Selecione um serviço (opcional)"} />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-800 border-zinc-700">
-                    <SelectItem value="" className="text-white">Nenhum serviço</SelectItem>
+                    <SelectItem value="none" className="text-white">Nenhum serviço</SelectItem>
                     {services.map((service) => (
                       <SelectItem key={service.id} value={service.id} className="text-white">
                         {service.name} - R$ {service.price.toFixed(2)} ({service.duration}min)
