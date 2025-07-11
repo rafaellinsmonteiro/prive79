@@ -36,17 +36,25 @@ export interface GoalProgress {
   created_at: string;
 }
 
-export const useGoals = () => {
+export const useGoals = (modelId?: string) => {
   return useQuery({
-    queryKey: ['goals'],
+    queryKey: ['goals', modelId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('goals')
         .select(`
           *,
           model:models(name)
         `)
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
+
+      // Se modelId for fornecido, filtrar para esta modelo ou metas globais
+      if (modelId) {
+        query = query.or(`model_id.eq.${modelId},model_id.is.null`);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as Goal[];

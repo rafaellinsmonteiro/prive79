@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Image, Settings, BarChart3, LogOut, Shield, Home } from 'lucide-react';
+import { User, Image, Settings, BarChart3, LogOut, Shield, Home, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModelProfile } from '@/hooks/useModelProfile';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import EnhancedModelMediaManager from '@/components/model/EnhancedModelMediaMana
 import ModelPrivacySettings from '@/components/model/ModelPrivacySettings';
 import ModelStats from '@/components/model/ModelStats';
 import ModelDashboardHome from '@/components/model/ModelDashboardHome';
+import ModelGoals from '@/components/model/ModelGoals';
 
 const ModelDashboard = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -102,6 +103,7 @@ const ModelDashboard = () => {
     { key: 'home', label: 'Início', icon: Home },
     { key: 'profile', label: 'Perfil', icon: User },
     { key: 'media', label: 'Mídias', icon: Image },
+    { key: 'goals', label: 'Metas', icon: Target },
     { key: 'privacy', label: 'Privacidade', icon: Shield },
     { key: 'stats', label: 'Estatísticas', icon: BarChart3 },
   ];
@@ -114,6 +116,8 @@ const ModelDashboard = () => {
         return <EnhancedModelProfileManager profile={profile} />;
       case 'media':
         return <EnhancedModelMediaManager modelId={profile.model_id} />;
+      case 'goals':
+        return <ModelGoals modelId={profile.model_id} />;
       case 'privacy':
         return <ModelPrivacySettings modelId={profile.model_id} />;
       case 'stats':
