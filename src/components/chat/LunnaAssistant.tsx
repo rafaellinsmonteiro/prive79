@@ -88,7 +88,10 @@ const LunnaAssistant: React.FC<LunnaAssistantProps> = ({
               return `${modelosCidade.join(', ')}${result.data.modelos.length > 3 ? ` (+${result.data.modelos.length - 3})` : ''}`;
             case 'buscar_modelos':
             case 'buscar_modelos_geral':
-              const modelos = result.data.modelos.slice(0, 3).map(m => `${m.nome} (${m.idade}a, ${m.cidade}, R$${m.preco_1h || '?'}/h)`);
+              const modelos = result.data.modelos.slice(0, 3).map(m => {
+                const foto = m.fotos && m.fotos.length > 0 ? ` 📸` : '';
+                return `${m.nome} (${m.idade}a, ${m.cidade}, R$${m.preco_1h || '?'}/h)${foto}`;
+              });
               return `${modelos.join(', ')}${result.data.modelos.length > 3 ? ` (+${result.data.modelos.length - 3})` : ''}`;
             case 'estatisticas_prive':
             case 'estatisticas_sistema':
