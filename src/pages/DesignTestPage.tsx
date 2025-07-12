@@ -79,7 +79,7 @@ const DesignTestPage = () => {
     icon: Star
   }];
 
-  return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''}`}>
+  return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
       {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
         <div 
@@ -90,8 +90,8 @@ const DesignTestPage = () => {
 
       {/* Sidebar */}
       <div className={`
-          bg-[hsl(var(--dark-card))] 
-          border-r border-[hsl(var(--gold-accent))]/20 
+          bg-card 
+          border-r border-border 
           transition-all duration-300 ease-in-out
           flex flex-col
           shadow-xl
@@ -101,21 +101,21 @@ const DesignTestPage = () => {
           }
         `}>
         {/* Logo Section */}
-        <div className="p-6 border-b border-[hsl(var(--gold-accent))]/20">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] rounded-xl flex items-center justify-center shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.3]">
-                <Zap className="w-5 h-5 text-[hsl(var(--dark-primary))]" />
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-[0_4px_20px_hsl(var(--primary))_/_0.3]">
+                <Zap className="w-5 h-5 text-primary-foreground" />
               </div>
               {isExpanded && <div>
-                  <div className="font-bold text-lg text-[hsl(var(--dark-text))]">PrivePlatform</div>
-                  <div className="text-sm text-[hsl(var(--dark-muted))]">
+                  <div className="font-bold text-lg text-foreground">PrivePlatform</div>
+                  <div className="text-sm text-muted-foreground">
                     Premium Experience
                   </div>
                 </div>}
             </div>
             {!isMobile && (
-              <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--dark-text))] hover:bg-[hsl(var(--gold-accent))]/10 p-2 rounded-lg">
+              <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-muted-foreground hover:text-foreground hover:bg-accent p-2 rounded-lg">
                 <ChevronLeft className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? '' : 'rotate-180'}`} />
               </Button>
             )}
@@ -127,7 +127,7 @@ const DesignTestPage = () => {
           {/* Main Navigation */}
           <div>
             {(isExpanded || isMobileMenuOpen) && (
-              <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--dark-muted))] uppercase tracking-wider">
+              <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
                 Principal
               </div>
             )}
@@ -135,14 +135,14 @@ const DesignTestPage = () => {
               {navigationItems.map(item => <div key={item.id} className="relative group" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
                   <Button variant="ghost" className={`
                       w-full justify-start px-3 py-3 h-12 rounded-xl transition-all duration-200
-                      ${item.active ? 'bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] shadow-lg border border-[hsl(var(--gold-primary))]/20' : 'text-[hsl(var(--dark-muted))] hover:bg-[hsl(var(--gold-accent))]/10 hover:text-[hsl(var(--dark-text))]'}
+                      ${item.active ? 'bg-gradient-to-r from-primary/20 to-primary/30 text-primary shadow-lg border border-primary/20' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
                     `}>
                     <item.icon className="w-5 h-5 shrink-0" />
                     {(isExpanded || isMobileMenuOpen) && (
                       <>
                         <span className="ml-3 font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto bg-[hsl(var(--gold-primary))] text-[hsl(var(--dark-primary))] text-xs px-2 py-1 rounded-full shadow-sm">
+                          <Badge variant="secondary" className="ml-auto bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-sm">
                             {item.badge}
                           </Badge>
                         )}
@@ -162,15 +162,15 @@ const DesignTestPage = () => {
           </div>
 
           {/* Account Section */}
-          <div className="border-t border-[hsl(var(--gold-accent))]/20 pt-6">
+          <div className="border-t border-border pt-6">
             {(isExpanded || isMobileMenuOpen) && (
-              <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--dark-muted))] uppercase tracking-wider">
+              <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
                 Conta
               </div>
             )}
             <nav className="space-y-2">
               {accountItems.map(item => <div key={item.id} className="relative" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
-                  <Button variant="ghost" className="w-full justify-start px-3 py-3 h-12 rounded-xl text-[hsl(var(--dark-muted))] hover:bg-[hsl(var(--gold-accent))]/10 hover:text-[hsl(var(--dark-text))] transition-all duration-200">
+                  <Button variant="ghost" className="w-full justify-start px-3 py-3 h-12 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200">
                     <item.icon className="w-5 h-5 shrink-0" />
                     {(isExpanded || isMobileMenuOpen) && <span className="ml-3 font-medium">{item.label}</span>}
                   </Button>
@@ -187,19 +187,19 @@ const DesignTestPage = () => {
         </div>
 
         {/* Theme Toggle */}
-        <div className="p-4 border-t border-[hsl(var(--gold-accent))]/20">
-          <div className="flex items-center justify-center gap-3 bg-[hsl(var(--gold-accent))]/10 rounded-xl p-3">
-            <Sun className={`w-4 h-4 ${isDark ? 'text-[hsl(var(--dark-muted))]' : 'text-[hsl(var(--gold-primary))]'}`} />
-            <Switch checked={isDark} onCheckedChange={setIsDark} className="data-[state=checked]:bg-[hsl(var(--gold-primary))]" />
-            <Moon className={`w-4 h-4 ${isDark ? 'text-[hsl(var(--gold-primary))]' : 'text-[hsl(var(--dark-muted))]'}`} />
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center justify-center gap-3 bg-accent rounded-xl p-3">
+            <Sun className={`w-4 h-4 ${isDark ? 'text-muted-foreground' : 'text-primary'}`} />
+            <Switch checked={isDark} onCheckedChange={setIsDark} className="data-[state=checked]:bg-primary" />
+            <Moon className={`w-4 h-4 ${isDark ? 'text-primary' : 'text-muted-foreground'}`} />
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 bg-[hsl(var(--dark-primary))] overflow-hidden ${isMobile ? 'w-full' : ''}`}>
+      <div className={`flex-1 bg-background overflow-hidden ${isMobile ? 'w-full' : ''}`}>
         {/* Header */}
-        <header className="bg-[hsl(var(--dark-card))] border-b border-[hsl(var(--gold-accent))]/20 px-4 lg:px-8 py-4 lg:py-6 shadow-sm">
+        <header className="bg-card border-b border-border px-4 lg:px-8 py-4 lg:py-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Mobile Menu Button */}
@@ -208,17 +208,17 @@ const DesignTestPage = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 hover:bg-[hsl(var(--gold-accent))]/10"
+                  className="p-2 hover:bg-accent"
                 >
-                  <Menu className="w-5 h-5 text-[hsl(var(--dark-muted))]" />
+                  <Menu className="w-5 h-5 text-muted-foreground" />
                 </Button>
               )}
               
               <div>
-                <h1 className="text-xl lg:text-3xl font-bold text-[hsl(var(--gold-primary))] mb-1">
+                <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
                   Dashboard
                 </h1>
-                <p className="text-sm lg:text-base text-[hsl(var(--dark-muted))] hidden sm:block">
+                <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
                   Bem-vindo de volta! Aqui está o resumo da sua plataforma.
                 </p>
               </div>
@@ -228,32 +228,32 @@ const DesignTestPage = () => {
               {/* Search - Hidden on small mobile */}
               {!isMobile && (
                 <div className="relative hidden md:block">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[hsl(var(--dark-muted))]" />
-                  <Input placeholder="Buscar..." className="pl-10 w-60 lg:w-80 bg-[hsl(var(--gold-accent))]/10 border-[hsl(var(--gold-accent))]/20 focus:border-[hsl(var(--gold-primary))]" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Buscar..." className="pl-10 w-60 lg:w-80 bg-accent border-border focus:border-primary" />
                 </div>
               )}
               
-              <Button variant="ghost" size="sm" className="relative p-2 hover:bg-[hsl(var(--gold-accent))]/10">
-                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-[hsl(var(--dark-muted))]" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-[hsl(var(--gold-primary))] rounded-full"></div>
+              <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent">
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
               </Button>
               
-              <Button className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 text-[hsl(var(--dark-primary))] shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4">
+              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4">
                 <PlusCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                 <span className="hidden sm:inline">Novo</span>
                 <span className="sm:hidden">+</span>
               </Button>
               
-              <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-[hsl(var(--gold-accent))]/20">
-                <Avatar className="w-8 h-8 lg:w-10 lg:h-10 ring-2 ring-[hsl(var(--gold-primary))]/20">
+              <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-border">
+                <Avatar className="w-8 h-8 lg:w-10 lg:h-10 ring-2 ring-primary/20">
                   <AvatarImage src="/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png" />
-                  <AvatarFallback className="bg-gradient-to-br from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] font-semibold text-xs lg:text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs lg:text-sm">
                     JW
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-xs lg:text-sm hidden sm:block">
-                  <div className="font-semibold text-[hsl(var(--dark-text))]">John Wilson</div>
-                  <div className="text-[hsl(var(--dark-muted))]">Admin</div>
+                  <div className="font-semibold text-foreground">John Wilson</div>
+                  <div className="text-muted-foreground">Admin</div>
                 </div>
               </div>
             </div>
@@ -265,16 +265,16 @@ const DesignTestPage = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
             {stats.map((stat, index) => (
-              <Card key={index} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:shadow-lg transition-all duration-200 group">
+              <Card key={index} className="bg-card border-border hover:shadow-lg transition-all duration-200 group">
                 <CardContent className="p-3 lg:p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs lg:text-sm text-[hsl(var(--dark-muted))] mb-1 truncate">{stat.label}</p>
-                      <p className="text-lg lg:text-2xl font-bold text-[hsl(var(--dark-text))] truncate">{stat.value}</p>
-                      <p className="text-xs lg:text-sm text-[hsl(var(--gold-primary))] font-medium">{stat.change}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground mb-1 truncate">{stat.label}</p>
+                      <p className="text-lg lg:text-2xl font-bold text-foreground truncate">{stat.value}</p>
+                      <p className="text-xs lg:text-sm text-primary font-medium">{stat.change}</p>
                     </div>
-                    <div className="p-2 lg:p-3 bg-gradient-to-br from-[hsl(var(--gold-primary))]/10 to-[hsl(var(--gold-accent))]/10 rounded-xl group-hover:scale-110 transition-transform duration-200 ml-2">
-                      <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-[hsl(var(--gold-primary))]" />
+                    <div className="p-2 lg:p-3 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl group-hover:scale-110 transition-transform duration-200 ml-2">
+                      <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-primary" />
                     </div>
                   </div>
                 </CardContent>
@@ -285,35 +285,35 @@ const DesignTestPage = () => {
           {/* Main Dashboard Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Chart Card */}
-            <Card className="lg:col-span-2 bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
+            <Card className="lg:col-span-2 bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="text-[hsl(var(--dark-text))] text-lg lg:text-xl">Análise de Performance</CardTitle>
+                <CardTitle className="text-foreground text-lg lg:text-xl">Análise de Performance</CardTitle>
                 <div className="flex gap-2 w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="border-[hsl(var(--gold-accent))]/20 flex-1 sm:flex-none">
+                  <Button variant="outline" size="sm" className="border-border flex-1 sm:flex-none">
                     <Filter className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                     <span className="text-xs lg:text-sm">Filtro</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="border-[hsl(var(--gold-accent))]/20 flex-1 sm:flex-none">
+                  <Button variant="outline" size="sm" className="border-border flex-1 sm:flex-none">
                     <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                     <span className="text-xs lg:text-sm">Export</span>
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="h-60 lg:h-80 bg-gradient-to-br from-[hsl(var(--gold-primary))]/5 to-[hsl(var(--gold-accent))]/5 rounded-xl flex items-center justify-center">
+                <div className="h-60 lg:h-80 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl flex items-center justify-center">
                   <div className="text-center">
-                    <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-[hsl(var(--gold-primary))] mx-auto mb-4" />
-                    <p className="text-sm lg:text-base text-[hsl(var(--dark-muted))]">Gráfico de análise seria exibido aqui</p>
+                    <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-primary mx-auto mb-4" />
+                    <p className="text-sm lg:text-base text-muted-foreground">Gráfico de análise seria exibido aqui</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Activity Card */}
-            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-[hsl(var(--dark-text))] flex items-center gap-2 text-lg lg:text-xl">
-                  <Star className="w-4 h-4 lg:w-5 lg:h-5 text-[hsl(var(--gold-primary))]" />
+                <CardTitle className="text-foreground flex items-center gap-2 text-lg lg:text-xl">
+                  <Star className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
                   Atividade Recente
                 </CardTitle>
               </CardHeader>
@@ -336,17 +336,17 @@ const DesignTestPage = () => {
                   action: 'fez um pagamento',
                   time: '15 min atrás'
                 }].map((activity, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2 lg:p-3 rounded-lg hover:bg-[hsl(var(--gold-accent))]/10 transition-colors duration-200">
+                    <div key={index} className="flex items-center gap-3 p-2 lg:p-3 rounded-lg hover:bg-accent transition-colors duration-200">
                       <Avatar className="w-6 h-6 lg:w-8 lg:h-8">
-                        <AvatarFallback className="bg-gradient-to-br from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-xs">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/30 text-xs">
                           {activity.user.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs lg:text-sm text-[hsl(var(--dark-text))] truncate">
+                        <p className="text-xs lg:text-sm text-foreground truncate">
                           <span className="font-medium">{activity.user}</span> {activity.action}
                         </p>
-                        <p className="text-xs text-[hsl(var(--dark-muted))]">{activity.time}</p>
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
                     </div>
                   ))}
