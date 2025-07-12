@@ -25,6 +25,7 @@ import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ModelDashboard from "./pages/ModelDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
+import DesignTestPage from "./pages/DesignTestPage";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -141,6 +142,7 @@ const AppContent = () => {
             } 
           />
           <Route path="/buscar" element={<SearchPage />} />
+          <Route path="/design-test" element={<DesignTestPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
