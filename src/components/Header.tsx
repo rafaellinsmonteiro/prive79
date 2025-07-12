@@ -2,31 +2,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { 
-  Menu, 
-  LogIn, 
-  User, 
-  MessageCircle, 
-  Home, 
-  CalendarDays, 
-  Settings, 
-  Users, 
-  Star, 
-  LogOut,
-  DollarSign,
-  ThumbsUp,
-  UserCircle,
-  Search,
-  Heart,
-  LayoutDashboard,
-  ChevronDown,
-  Target
-} from "lucide-react";
+import { Menu, LogIn, User, MessageCircle, Home, CalendarDays, Settings, Users, Star, LogOut, DollarSign, ThumbsUp, UserCircle, Search, Heart, LayoutDashboard, ChevronDown, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
-
 const Header = () => {
   const {
     user,
@@ -42,72 +22,89 @@ const Header = () => {
   // Menu items based on user type
   const getMenuItems = () => {
     if (!currentUser) return [];
-    
     if (currentUser.user_role === 'modelo') {
-      return [
-        { label: 'Dashboard', icon: LayoutDashboard, path: '/model-dashboard' },
-        { label: 'Mensagens', icon: MessageCircle, path: '/chat' },
-        { label: 'Agenda', icon: CalendarDays, path: '/agenda' },
-        { label: 'Serviços', icon: Star, path: '/servicos' },
-        { label: 'Clientes', icon: Users, path: '/clientes' },
-        { label: 'PriveBank', icon: DollarSign, path: '/privebank' },
-        { label: 'Avaliações', icon: ThumbsUp, path: '/avaliacoes' },
-        { label: 'Metas', icon: Target, path: '/model-dashboard?section=goals' },
-        { label: 'Perfil', icon: UserCircle, path: '/perfil' },
-      ];
+      return [{
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        path: '/model-dashboard'
+      }, {
+        label: 'Mensagens',
+        icon: MessageCircle,
+        path: '/chat'
+      }, {
+        label: 'Agenda',
+        icon: CalendarDays,
+        path: '/agenda'
+      }, {
+        label: 'Serviços',
+        icon: Star,
+        path: '/servicos'
+      }, {
+        label: 'Clientes',
+        icon: Users,
+        path: '/clientes'
+      }, {
+        label: 'PriveBank',
+        icon: DollarSign,
+        path: '/privebank'
+      }, {
+        label: 'Avaliações',
+        icon: ThumbsUp,
+        path: '/avaliacoes'
+      }, {
+        label: 'Metas',
+        icon: Target,
+        path: '/model-dashboard?section=goals'
+      }, {
+        label: 'Perfil',
+        icon: UserCircle,
+        path: '/perfil'
+      }];
     } else {
-      return [
-        { label: 'Início', icon: Home, path: '/' },
-        { label: 'Mensagens', icon: MessageCircle, path: '/chat' },
-        { label: 'Buscar', icon: Search, path: '/buscar' },
-        { label: 'Interesses', icon: Heart, path: '/interesses' },
-        { label: 'PriveBank', icon: DollarSign, path: '/privebank' },
-        { label: 'Avaliações', icon: ThumbsUp, path: '/avaliacoes' },
-        { label: 'Perfil', icon: UserCircle, path: '/perfil' },
-      ];
+      return [{
+        label: 'Início',
+        icon: Home,
+        path: '/'
+      }, {
+        label: 'Mensagens',
+        icon: MessageCircle,
+        path: '/chat'
+      }, {
+        label: 'Buscar',
+        icon: Search,
+        path: '/buscar'
+      }, {
+        label: 'Interesses',
+        icon: Heart,
+        path: '/interesses'
+      }, {
+        label: 'PriveBank',
+        icon: DollarSign,
+        path: '/privebank'
+      }, {
+        label: 'Avaliações',
+        icon: ThumbsUp,
+        path: '/avaliacoes'
+      }, {
+        label: 'Perfil',
+        icon: UserCircle,
+        path: '/perfil'
+      }];
     }
   };
-
   const menuItems = getMenuItems();
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
-
   const getUserInitials = (name?: string) => {
     if (!name) return 'U';
     return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
   };
-
   if (!user || !authComplete) {
-    return (
-      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-40">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center">
-              <img src={logo} alt="Logo" className="h-8 w-auto" />
-            </div>
-            
-            {/* Login Button */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/login')}
-              className="flex items-center gap-2"
-            >
-              <LogIn className="h-4 w-4" />
-              Entrar
-            </Button>
-          </div>
-        </div>
-      </header>
-    );
+    return;
   }
-
-  return (
-    <header className="bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/90 border-b border-border sticky top-0 z-40">
+  return <header className="bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/90 border-b border-border sticky top-0 z-40">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Hamburger Menu + Logo */}
@@ -124,17 +121,10 @@ const Header = () => {
                     <h2 className="text-lg font-semibold">Menu</h2>
                   </div>
                   <nav className="space-y-1">
-                    {menuItems.map((item) => (
-                      <Button
-                        key={item.path}
-                        variant="ghost"
-                        className="w-full justify-start gap-3 text-sm font-medium h-10"
-                        onClick={() => navigate(item.path)}
-                      >
+                    {menuItems.map(item => <Button key={item.path} variant="ghost" className="w-full justify-start gap-3 text-sm font-medium h-10" onClick={() => navigate(item.path)}>
                         <item.icon className="h-4 w-4" />
                         {item.label}
-                      </Button>
-                    ))}
+                      </Button>)}
                   </nav>
                 </div>
               </SheetContent>
@@ -195,7 +185,6 @@ const Header = () => {
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
 export default Header;
