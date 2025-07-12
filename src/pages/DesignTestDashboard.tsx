@@ -3,7 +3,6 @@ import DesignTestLayout from '@/components/design-test/DesignTestLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
   Users, 
@@ -24,7 +23,7 @@ const statsCards = [
     change: '+12.5%',
     trend: 'up',
     icon: DollarSign,
-    gradient: 'from-gold-primary to-gold-accent'
+    gradient: 'from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))]'
   },
   {
     title: 'Novos Clientes',
@@ -114,12 +113,12 @@ export default function DesignTestDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statsCards.map((stat, index) => (
-            <Card key={index} className="bg-dark-card border-gold-accent/20 hover:border-gold-accent/40 transition-all duration-300">
+            <Card key={index} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-accent))]/40 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-dark-muted text-sm font-medium">{stat.title}</p>
-                    <p className="text-2xl font-bold text-dark-text mt-2">{stat.value}</p>
+                    <p className="text-[hsl(var(--dark-muted))] text-sm font-medium">{stat.title}</p>
+                    <p className="text-2xl font-bold text-[hsl(var(--dark-text))] mt-2">{stat.value}</p>
                     <div className="flex items-center gap-1 mt-2">
                       <TrendingUp className="h-4 w-4 text-green-500" />
                       <span className="text-green-500 text-sm font-medium">{stat.change}</span>
@@ -136,11 +135,11 @@ export default function DesignTestDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <Card className="lg:col-span-2 bg-dark-card border-gold-accent/20">
+          <Card className="lg:col-span-2 bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
             <CardHeader>
-              <CardTitle className="text-dark-text flex items-center justify-between">
+              <CardTitle className="text-[hsl(var(--dark-text))] flex items-center justify-between">
                 Atividade Recente
-                <Button variant="ghost" size="sm" className="text-gold-primary hover:text-gold-accent">
+                <Button variant="ghost" size="sm" className="text-[hsl(var(--gold-primary))] hover:text-[hsl(var(--gold-accent))]">
                   Ver todas
                   <ArrowUpRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -148,24 +147,24 @@ export default function DesignTestDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-dark-primary/50">
-                  <div className="w-2 h-2 rounded-full bg-gold-primary mt-2"></div>
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-[hsl(var(--dark-primary))]/50">
+                  <div className="w-2 h-2 rounded-full bg-[hsl(var(--gold-primary))] mt-2"></div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-dark-text">{activity.title}</h4>
-                      <span className="text-xs text-dark-muted flex items-center gap-1">
+                      <h4 className="font-medium text-[hsl(var(--dark-text))]">{activity.title}</h4>
+                      <span className="text-xs text-[hsl(var(--dark-muted))] flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {activity.time}
                       </span>
                     </div>
-                    <p className="text-sm text-dark-muted mt-1">{activity.description}</p>
+                    <p className="text-sm text-[hsl(var(--dark-muted))] mt-1">{activity.description}</p>
                     <Badge 
                       variant="secondary" 
                       className={`mt-2 text-xs ${
                         activity.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
                         activity.status === 'positive' ? 'bg-green-500/20 text-green-400' :
                         activity.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-gold-primary/20 text-gold-primary'
+                        'bg-[hsl(var(--gold-primary))]/20 text-[hsl(var(--gold-primary))]'
                       }`}
                     >
                       {activity.status === 'confirmed' ? 'Confirmado' :
@@ -180,28 +179,28 @@ export default function DesignTestDashboard() {
           </Card>
 
           {/* Top Models */}
-          <Card className="bg-dark-card border-gold-accent/20">
+          <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
             <CardHeader>
-              <CardTitle className="text-dark-text">Top Modelos</CardTitle>
+              <CardTitle className="text-[hsl(var(--dark-text))]">Top Modelos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {topModels.map((model, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-dark-primary/50 hover:bg-dark-primary/70 transition-colors">
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--dark-primary))]/50 hover:bg-[hsl(var(--dark-primary))]/70 transition-colors">
                   <img
                     src={model.image}
                     alt={model.name}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div className="flex-1">
-                    <h4 className="font-medium text-dark-text">{model.name}</h4>
+                    <h4 className="font-medium text-[hsl(var(--dark-text))]">{model.name}</h4>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm text-gold-primary font-medium">{model.revenue}</span>
+                      <span className="text-sm text-[hsl(var(--gold-primary))] font-medium">{model.revenue}</span>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                        <span className="text-xs text-dark-muted">{model.rating}</span>
+                        <span className="text-xs text-[hsl(var(--dark-muted))]">{model.rating}</span>
                       </div>
                     </div>
-                    <p className="text-xs text-dark-muted">{model.appointments} agendamentos</p>
+                    <p className="text-xs text-[hsl(var(--dark-muted))]">{model.appointments} agendamentos</p>
                   </div>
                 </div>
               ))}
@@ -210,13 +209,13 @@ export default function DesignTestDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <Card className="bg-dark-card border-gold-accent/20">
+        <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
           <CardHeader>
-            <CardTitle className="text-dark-text">Ações Rápidas</CardTitle>
+            <CardTitle className="text-[hsl(var(--dark-text))]">Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button className="h-20 bg-gradient-to-br from-gold-primary to-gold-accent hover:from-gold-accent hover:to-gold-primary text-dark-primary font-medium">
+              <Button className="h-20 bg-gradient-to-br from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] hover:from-[hsl(var(--gold-accent))] hover:to-[hsl(var(--gold-primary))] text-[hsl(var(--dark-primary))] font-medium">
                 <div className="flex flex-col items-center gap-2">
                   <Plus className="h-5 w-5" />
                   <span className="text-sm">Novo Modelo</span>

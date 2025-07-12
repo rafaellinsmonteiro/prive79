@@ -27,16 +27,13 @@
     --ring: 45 93% 58%;
     --radius: 0.5rem;
     
-    /* Design Test Colors - Light */
-    --sidebar-bg: 0 0% 100%;
-    --sidebar-border: 210 20% 90%;
-    --sidebar-text: 220 9% 10%;
-    --sidebar-text-muted: 220 8% 45%;
-    --sidebar-hover: 210 20% 93%;
-    --sidebar-active: 45 93% 96%;
-    --sidebar-active-text: 45 93% 30%;
-    --content-bg: 220 13% 97%;
-    --header-bg: 0 0% 100%;
+    /* Design Test Colors - Dark Theme */
+    --dark-primary: 224 71% 4%;
+    --dark-card: 220 13% 9%;
+    --dark-text: 213 31% 91%;
+    --dark-muted: 217 11% 65%;
+    --gold-primary: 45 93% 58%;
+    --gold-accent: 43 89% 65%;
   }
 
   .dark {
