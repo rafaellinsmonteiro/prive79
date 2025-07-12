@@ -1,101 +1,79 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  MessageSquare, 
-  Calendar, 
-  TrendingUp, 
-  Settings, 
-  LogOut, 
-  Sun, 
-  Moon, 
-  ChevronLeft, 
-  Search,
-  Bell,
-  Star,
-  Heart,
-  BarChart3,
-  PlusCircle,
-  Filter,
-  Download,
-  Zap
-} from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Calendar, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, Star, Heart, BarChart3, PlusCircle, Filter, Download, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-
 const DesignTestPage = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDark, setIsDark] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
-  const navigationItems = [
-    {
-      icon: LayoutDashboard,
-      label: 'Dashboard',
-      id: 'dashboard',
-      active: true
-    },
-    {
-      icon: Users,
-      label: 'Modelos',
-      id: 'models',
-      badge: '24'
-    },
-    {
-      icon: MessageSquare,
-      label: 'Conversas',
-      id: 'chat',
-      badge: '5'
-    },
-    {
-      icon: Calendar,
-      label: 'Agenda',
-      id: 'calendar'
-    },
-    {
-      icon: TrendingUp,
-      label: 'Analytics',
-      id: 'analytics'
-    }
-  ];
-
-  const accountItems = [
-    {
-      icon: Settings,
-      label: 'Configurações',
-      id: 'settings'
-    },
-    {
-      icon: LogOut,
-      label: 'Sair',
-      id: 'logout'
-    }
-  ];
-
-  const stats = [
-    { label: 'Usuários Ativos', value: '2,543', change: '+12%', icon: Users },
-    { label: 'Receita Mensal', value: 'R$ 45.2k', change: '+8%', icon: TrendingUp },
-    { label: 'Conversas', value: '1,234', change: '+23%', icon: MessageSquare },
-    { label: 'Agendamentos', value: '89', change: '+5%', icon: Calendar }
-  ];
-
-  return (
-    <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''}`}>
+  const navigationItems = [{
+    icon: LayoutDashboard,
+    label: 'Dashboard',
+    id: 'dashboard',
+    active: true
+  }, {
+    icon: Users,
+    label: 'Modelos',
+    id: 'models',
+    badge: '24'
+  }, {
+    icon: MessageSquare,
+    label: 'Conversas',
+    id: 'chat',
+    badge: '5'
+  }, {
+    icon: Calendar,
+    label: 'Agenda',
+    id: 'calendar'
+  }, {
+    icon: TrendingUp,
+    label: 'Analytics',
+    id: 'analytics'
+  }];
+  const accountItems = [{
+    icon: Settings,
+    label: 'Configurações',
+    id: 'settings'
+  }, {
+    icon: LogOut,
+    label: 'Sair',
+    id: 'logout'
+  }];
+  const stats = [{
+    label: 'Usuários Ativos',
+    value: '2,543',
+    change: '+12%',
+    icon: Users
+  }, {
+    label: 'Receita Mensal',
+    value: 'R$ 45.2k',
+    change: '+8%',
+    icon: TrendingUp
+  }, {
+    label: 'Conversas',
+    value: '1,234',
+    change: '+23%',
+    icon: MessageSquare
+  }, {
+    label: 'Agendamentos',
+    value: '89',
+    change: '+5%',
+    icon: Calendar
+  }];
+  return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''}`}>
       {/* Sidebar */}
-      <div 
-        className={`
+      <div className={`
           bg-[hsl(var(--sidebar-bg))] 
           border-r border-[hsl(var(--sidebar-border))] 
           transition-all duration-300 ease-in-out
           ${isExpanded ? 'w-72' : 'w-20'} 
           flex flex-col
           shadow-xl
-        `}
-      >
+        `}>
         {/* Logo Section */}
         <div className="p-6 border-b border-[hsl(var(--sidebar-border))]">
           <div className="flex items-center justify-between">
@@ -103,23 +81,14 @@ const DesignTestPage = () => {
               <div className="w-10 h-10 bg-gradient-to-br from-primary to-yellow-500 rounded-xl flex items-center justify-center shadow-[var(--shadow-gold)]">
                 <Zap className="w-5 h-5 text-primary-foreground" />
               </div>
-              {isExpanded && (
-                <div>
-                  <div className="font-bold text-lg text-[hsl(var(--sidebar-text))]">
-                    PrivéPlatform
-                  </div>
+              {isExpanded && <div>
+                  <div className="font-bold text-lg text-[hsl(var(--sidebar-text))]">PrivePlatform</div>
                   <div className="text-sm text-[hsl(var(--sidebar-text-muted))]">
                     Premium Experience
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-[hsl(var(--sidebar-text-muted))] hover:text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover))] p-2 rounded-lg"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-[hsl(var(--sidebar-text-muted))] hover:text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover))] p-2 rounded-lg">
               <ChevronLeft className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? '' : 'rotate-180'}`} />
             </Button>
           </div>
@@ -129,88 +98,50 @@ const DesignTestPage = () => {
         <div className="flex-1 px-4 py-6 space-y-8">
           {/* Main Navigation */}
           <div>
-            {isExpanded && (
-              <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--sidebar-text-muted))] uppercase tracking-wider">
+            {isExpanded && <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--sidebar-text-muted))] uppercase tracking-wider">
                 Principal
-              </div>
-            )}
+              </div>}
             <nav className="space-y-2">
-              {navigationItems.map(item => (
-                <div 
-                  key={item.id} 
-                  className="relative group"
-                  onMouseEnter={() => setHoveredItem(item.id)} 
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <Button 
-                    variant="ghost" 
-                    className={`
+              {navigationItems.map(item => <div key={item.id} className="relative group" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
+                  <Button variant="ghost" className={`
                       w-full justify-start px-3 py-3 h-12 rounded-xl transition-all duration-200
-                      ${item.active 
-                        ? 'bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-text))] shadow-lg border border-primary/20' 
-                        : 'text-[hsl(var(--sidebar-text-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-text))]'
-                      }
-                    `}
-                  >
+                      ${item.active ? 'bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-text))] shadow-lg border border-primary/20' : 'text-[hsl(var(--sidebar-text-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-text))]'}
+                    `}>
                     <item.icon className="w-5 h-5 shrink-0" />
-                    {isExpanded && (
-                      <>
+                    {isExpanded && <>
                         <span className="ml-3 font-medium">{item.label}</span>
-                        {item.badge && (
-                          <Badge 
-                            variant="secondary" 
-                            className="ml-auto bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-sm"
-                          >
+                        {item.badge && <Badge variant="secondary" className="ml-auto bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-sm">
                             {item.badge}
-                          </Badge>
-                        )}
-                      </>
-                    )}
+                          </Badge>}
+                      </>}
                   </Button>
                   
                   {/* Tooltip para estado colapsado */}
-                  {!isExpanded && hoveredItem === item.id && (
-                    <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
+                  {!isExpanded && hoveredItem === item.id && <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
                       {item.label}
                       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    </div>}
+                </div>)}
             </nav>
           </div>
 
           {/* Account Section */}
           <div className="border-t border-[hsl(var(--sidebar-border))] pt-6">
-            {isExpanded && (
-              <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--sidebar-text-muted))] uppercase tracking-wider">
+            {isExpanded && <div className="text-xs font-semibold mb-4 px-3 text-[hsl(var(--sidebar-text-muted))] uppercase tracking-wider">
                 Conta
-              </div>
-            )}
+              </div>}
             <nav className="space-y-2">
-              {accountItems.map(item => (
-                <div 
-                  key={item.id} 
-                  className="relative"
-                  onMouseEnter={() => setHoveredItem(item.id)} 
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start px-3 py-3 h-12 rounded-xl text-[hsl(var(--sidebar-text-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-text))] transition-all duration-200"
-                  >
+              {accountItems.map(item => <div key={item.id} className="relative" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
+                  <Button variant="ghost" className="w-full justify-start px-3 py-3 h-12 rounded-xl text-[hsl(var(--sidebar-text-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-text))] transition-all duration-200">
                     <item.icon className="w-5 h-5 shrink-0" />
                     {isExpanded && <span className="ml-3 font-medium">{item.label}</span>}
                   </Button>
                   
-                  {!isExpanded && hoveredItem === item.id && (
-                    <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
+                  {!isExpanded && hoveredItem === item.id && <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
                       {item.label}
                       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    </div>}
+                </div>)}
             </nav>
           </div>
         </div>
@@ -219,11 +150,7 @@ const DesignTestPage = () => {
         <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
           <div className="flex items-center justify-center gap-3 bg-[hsl(var(--sidebar-hover))] rounded-xl p-3">
             <Sun className={`w-4 h-4 ${isDark ? 'text-[hsl(var(--sidebar-text-muted))]' : 'text-primary'}`} />
-            <Switch 
-              checked={isDark} 
-              onCheckedChange={setIsDark} 
-              className="data-[state=checked]:bg-primary"
-            />
+            <Switch checked={isDark} onCheckedChange={setIsDark} className="data-[state=checked]:bg-primary" />
             <Moon className={`w-4 h-4 ${isDark ? 'text-primary' : 'text-[hsl(var(--sidebar-text-muted))]'}`} />
           </div>
         </div>
@@ -246,10 +173,7 @@ const DesignTestPage = () => {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[hsl(var(--sidebar-text-muted))]" />
-                <Input 
-                  placeholder="Buscar..." 
-                  className="pl-10 w-80 bg-[hsl(var(--sidebar-hover))] border-[hsl(var(--sidebar-border))] focus:border-primary"
-                />
+                <Input placeholder="Buscar..." className="pl-10 w-80 bg-[hsl(var(--sidebar-hover))] border-[hsl(var(--sidebar-border))] focus:border-primary" />
               </div>
               
               <Button variant="ghost" size="sm" className="relative p-2 hover:bg-[hsl(var(--sidebar-hover))]">
@@ -282,8 +206,7 @@ const DesignTestPage = () => {
         <main className="p-8 overflow-y-auto">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <Card key={index} className="bg-[hsl(var(--sidebar-bg))] border-[hsl(var(--sidebar-border))] hover:shadow-lg transition-all duration-200 group">
+            {stats.map((stat, index) => <Card key={index} className="bg-[hsl(var(--sidebar-bg))] border-[hsl(var(--sidebar-border))] hover:shadow-lg transition-all duration-200 group">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -296,8 +219,7 @@ const DesignTestPage = () => {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           {/* Main Dashboard Content */}
@@ -337,13 +259,23 @@ const DesignTestPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { user: 'Maria Silva', action: 'agendou um encontro', time: '2 min atrás' },
-                    { user: 'João Santos', action: 'enviou uma mensagem', time: '5 min atrás' },
-                    { user: 'Ana Costa', action: 'atualizou o perfil', time: '10 min atrás' },
-                    { user: 'Pedro Lima', action: 'fez um pagamento', time: '15 min atrás' }
-                  ].map((activity, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[hsl(var(--sidebar-hover))] transition-colors duration-200">
+                  {[{
+                  user: 'Maria Silva',
+                  action: 'agendou um encontro',
+                  time: '2 min atrás'
+                }, {
+                  user: 'João Santos',
+                  action: 'enviou uma mensagem',
+                  time: '5 min atrás'
+                }, {
+                  user: 'Ana Costa',
+                  action: 'atualizou o perfil',
+                  time: '10 min atrás'
+                }, {
+                  user: 'Pedro Lima',
+                  action: 'fez um pagamento',
+                  time: '15 min atrás'
+                }].map((activity, index) => <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[hsl(var(--sidebar-hover))] transition-colors duration-200">
                       <Avatar className="w-8 h-8">
                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-yellow-500/20 text-xs">
                           {activity.user.split(' ').map(n => n[0]).join('')}
@@ -355,16 +287,13 @@ const DesignTestPage = () => {
                         </p>
                         <p className="text-xs text-[hsl(var(--sidebar-text-muted))]">{activity.time}</p>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default DesignTestPage;
