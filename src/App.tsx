@@ -43,8 +43,9 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/design-test'];
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login'];
+  const isDesignTestRoute = location.pathname.startsWith('/design-test');
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute;
 
   if (loading) {
     return (
@@ -143,6 +144,17 @@ const AppContent = () => {
           />
           <Route path="/buscar" element={<SearchPage />} />
           <Route path="/design-test" element={<DesignTestPage />} />
+          
+          {/* Design Test Pages */}
+          <Route path="/design-test/dashboard" element={<DesignTestPage />} />
+          <Route path="/design-test/models" element={<DesignTestPage />} />
+          <Route path="/design-test/clients" element={<DesignTestPage />} />
+          <Route path="/design-test/appointments" element={<DesignTestPage />} />
+          <Route path="/design-test/reviews" element={<DesignTestPage />} />
+          <Route path="/design-test/gallery" element={<DesignTestPage />} />
+          <Route path="/design-test/reels" element={<DesignTestPage />} />
+          <Route path="/design-test/chat" element={<DesignTestPage />} />
+          <Route path="/design-test/settings" element={<DesignTestPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
