@@ -222,49 +222,43 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     
     const videoBlob = await videoResponse.blob()
     
-    // Use signed upload with correct signature generation
+    // Use basic signed upload without folder first to test
     const timestamp = Math.round(Date.now() / 1000)
-    const folder = `models/${modelId}/videos`
     
-    // Create parameters object and sort alphabetically (required by Cloudinary)
-    // Note: resource_type is NOT included in signature for video uploads
-    const params = {
-      folder: folder,
-      timestamp: timestamp.toString()
-    }
+    // Minimal parameters for signature
+    const stringToSign = `timestamp=${timestamp}`
     
-    // Sort parameters alphabetically and create string to sign
-    const sortedParams = Object.keys(params)
-      .sort()
-      .map(key => `${key}=${params[key as keyof typeof params]}`)
-      .join('&')
+    console.log('String to sign:', stringToSign)
     
-    console.log('String to sign:', sortedParams)
-    
-    // Generate signature
-    const signature = await crypto.subtle.importKey(
+    // Generate signature using SHA-1 HMAC
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(apiSecret),
+      encoder.encode(apiSecret),
       { name: 'HMAC', hash: 'SHA-1' },
       false,
       ['sign']
-    ).then(key => 
-      crypto.subtle.sign('HMAC', key, new TextEncoder().encode(sortedParams))
-    ).then(signature => 
-      Array.from(new Uint8Array(signature))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
     )
+    
+    const signature = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(stringToSign)
+    )
+    
+    const signatureHex = Array.from(new Uint8Array(signature))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    
+    console.log('Generated signature:', signatureHex)
     
     const formData = new FormData()
     formData.append('file', videoBlob)
-    formData.append('folder', folder)
-    formData.append('resource_type', 'video')
     formData.append('timestamp', timestamp.toString())
     formData.append('api_key', apiKey)
-    formData.append('signature', signature)
+    formData.append('signature', signatureHex)
     
-    console.log('Uploading video to Cloudinary with signed upload...')
+    console.log('Uploading video to Cloudinary with minimal signature...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
       method: 'POST',
       body: formData
