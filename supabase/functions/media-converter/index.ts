@@ -233,6 +233,9 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     const timestamp = Math.round(Date.now() / 1000)
     const paramsToSign = `folder=models/${modelId}/videos&resource_type=video&timestamp=${timestamp}`
     
+    console.log('Params to sign:', paramsToSign)
+    console.log('API Secret first 10 chars:', apiSecret.substring(0, 10))
+    
     const signature = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(apiSecret),
@@ -250,6 +253,8 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     formData.append('api_key', apiKey)
     formData.append('timestamp', timestamp.toString())
     formData.append('signature', signature)
+    
+    console.log('Generated signature:', signature)
     
     console.log('Uploading video to Cloudinary...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
