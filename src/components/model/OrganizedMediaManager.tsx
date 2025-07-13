@@ -1032,7 +1032,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           <div className="flex items-center justify-between">
             <CardTitle className="text-foreground flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Gerenciador de Conteúdo
+              Mídias
             </CardTitle>
             
             <div className="flex items-center gap-2">
