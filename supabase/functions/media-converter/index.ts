@@ -192,6 +192,8 @@ async function fallbackHeicConversion(fileUrl: string, fileName: string, modelId
 async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId: string, supabase: any, cloudinaryUrl?: string) {
   try {
     console.log('Generating video thumbnail for:', fileName)
+    console.log('Cloudinary URL provided:', !!cloudinaryUrl)
+    console.log('Cloudinary URL value:', cloudinaryUrl ? 'CONFIGURED' : 'NOT_CONFIGURED')
     
     // Check if Cloudinary is configured
     if (!cloudinaryUrl) {
