@@ -139,10 +139,15 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
         query = query.overlaps('tags', filters.tags);
       }
 
-      const { data, error } = await query.order('display_order', { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const { data, error } = await query.order('display_order');
+      
+      if (error) {
+        console.error('Error fetching photos:', error);
+        throw error;
+      }
+      
+      console.log('Photos loaded:', data?.length);
+      return data || [];
     },
     enabled: !!modelId,
   });
@@ -176,8 +181,13 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
       const { data, error } = await query.order('display_order', { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching videos:', error);
+        throw error;
+      }
+      
+      console.log('Videos loaded:', data?.length, data);
+      return data || [];
     },
     enabled: !!modelId,
   });
@@ -436,6 +446,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             // Forçar o tipo para photo quando é HEIC convertido
             upload.type = 'photo';
             toast.success(`HEIC convertido: ${upload.file.name}`);
+          } else {
+            throw new Error('Conversão HEIC falhou');
           }
         } catch (error) {
           console.error('Error converting HEIC:', error);
@@ -490,7 +502,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             is_primary: photos.length === 0
           });
         if (dbError) throw dbError;
-        refetchPhotos();
+        // Forçar refetch das fotos para mostrar imagens convertidas
+        await refetchPhotos();
       } else {
         const { error: dbError } = await supabase
           .from('model_videos')
@@ -501,7 +514,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             title: upload.file.name.split('.')[0]
           });
         if (dbError) throw dbError;
-        refetchVideos();
+        // Forçar refetch dos vídeos para mostrar thumbnails
+        await refetchVideos();
       }
 
       // Marcar como completo
@@ -510,6 +524,10 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           ? { ...item, status: 'completed', progress: 100 }
           : item
       ));
+
+      // Invalidar cache das queries para forçar atualização
+      queryClient.invalidateQueries({ queryKey: ['model-photos', modelId] });
+      queryClient.invalidateQueries({ queryKey: ['model-videos', modelId] });
 
       toast.success(`${upload.file.name} enviado com sucesso!`);
 
