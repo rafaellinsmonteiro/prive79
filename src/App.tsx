@@ -29,6 +29,7 @@ import DesignTestPage from "./pages/DesignTestPage";
 import DesignTestModelsPage from "./pages/DesignTestModelsPage";
 import DesignTestChatPage from "./pages/DesignTestChatPage";
 import DesignTestAppointmentsPage from "./pages/DesignTestAppointmentsPage";
+import DesignTestClientsPage from "./pages/DesignTestClientsPage";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -152,7 +153,7 @@ const AppContent = () => {
           {/* Design Test Pages */}
           <Route path="/design-test/dashboard" element={<DesignTestPage />} />
           <Route path="/design-test/models" element={<DesignTestModelsPage />} />
-          <Route path="/design-test/clients" element={<DesignTestPage />} />
+          <Route path="/design-test/clients" element={<DesignTestClientsPage />} />
           <Route path="/design-test/appointments" element={<DesignTestAppointmentsPage />} />
           <Route path="/design-test/reviews" element={<DesignTestPage />} />
           <Route path="/design-test/gallery" element={<DesignTestPage />} />
