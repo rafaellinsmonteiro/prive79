@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import ReactCrop, { type Crop as ReactCropType, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -75,6 +76,16 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
   const [flipVertical, setFlipVertical] = useState(false);
   const [cropAspect, setCropAspect] = useState<number | undefined>(1);
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+
+  // Estados para upload múltiplo
+  const [uploadQueue, setUploadQueue] = useState<Array<{
+    id: string;
+    file: File;
+    type: 'photo' | 'video';
+    progress: number;
+    status: 'pending' | 'uploading' | 'completed' | 'error';
+    error?: string;
+  }>>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -319,21 +330,137 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
   });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+    const newUploads = files.map(file => {
+      const isImage = file.type.startsWith('image/') || file.type === 'image/heif' || file.type === 'image/heic';
+      const isVideo = file.type.startsWith('video/');
 
-    if (!isImage && !isVideo) {
-      toast.error('Apenas imagens e vídeos são aceitos');
-      return;
+      if (!isImage && !isVideo) {
+        toast.error(`Arquivo ${file.name} não é suportado. Apenas imagens (incluindo HEIF) e vídeos são aceitos.`);
+        return null;
+      }
+
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        type: isImage ? 'photo' as const : 'video' as const,
+        progress: 0,
+        status: 'pending' as const
+      };
+    }).filter(Boolean) as Array<{
+      id: string;
+      file: File;
+      type: 'photo' | 'video';
+      progress: number;
+      status: 'pending' | 'uploading' | 'completed' | 'error';
+    }>;
+
+    if (newUploads.length === 0) return;
+
+    setUploadQueue(prev => [...prev, ...newUploads]);
+    
+    // Processar uploads um por vez
+    processUploadQueue(newUploads);
+  };
+
+  const processUploadQueue = async (uploads: typeof uploadQueue) => {
+    for (const upload of uploads) {
+      await processIndividualUpload(upload);
     }
+  };
 
-    uploadMutation.mutate({
-      file,
-      type: isImage ? 'photo' : 'video'
-    });
+  const processIndividualUpload = async (upload: typeof uploadQueue[0]) => {
+    try {
+      // Atualizar status para uploading
+      setUploadQueue(prev => prev.map(item => 
+        item.id === upload.id 
+          ? { ...item, status: 'uploading' }
+          : item
+      ));
+
+      const bucketName = upload.type === 'photo' ? 'model-photos' : 'model-videos';
+      const fileName = `${modelId}/${Date.now()}-${upload.file.name}`;
+      
+      // Simular progresso durante upload
+      const progressInterval = setInterval(() => {
+        setUploadQueue(prev => prev.map(item => 
+          item.id === upload.id && item.progress < 90
+            ? { ...item, progress: item.progress + 10 }
+            : item
+        ));
+      }, 200);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, upload.file);
+
+      clearInterval(progressInterval);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+
+      const baseData = {
+        model_id: modelId,
+        display_order: (upload.type === 'photo' ? photos : videos).length,
+        stage: stages[0] || 'Organizar',
+        tags: [],
+        folder_id: filters.folder !== 'all' && filters.folder !== 'no-folder' ? filters.folder : null,
+        created_by_user_id: (await supabase.auth.getUser()).data.user?.id
+      };
+
+      if (upload.type === 'photo') {
+        const { error: dbError } = await supabase
+          .from('model_photos')
+          .insert({
+            ...baseData,
+            photo_url: publicUrl,
+            is_primary: photos.length === 0
+          });
+        if (dbError) throw dbError;
+        refetchPhotos();
+      } else {
+        const { error: dbError } = await supabase
+          .from('model_videos')
+          .insert({
+            ...baseData,
+            video_url: publicUrl,
+            title: upload.file.name.split('.')[0]
+          });
+        if (dbError) throw dbError;
+        refetchVideos();
+      }
+
+      // Marcar como completo
+      setUploadQueue(prev => prev.map(item => 
+        item.id === upload.id 
+          ? { ...item, status: 'completed', progress: 100 }
+          : item
+      ));
+
+      toast.success(`${upload.file.name} enviado com sucesso!`);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadQueue(prev => prev.map(item => 
+        item.id === upload.id 
+          ? { ...item, status: 'error', error: 'Erro no upload' }
+          : item
+      ));
+      toast.error(`Erro ao enviar ${upload.file.name}`);
+    }
+  };
+
+  const clearCompletedUploads = () => {
+    setUploadQueue(prev => prev.filter(item => item.status !== 'completed'));
+  };
+
+  const removeUpload = (id: string) => {
+    setUploadQueue(prev => prev.filter(item => item.id !== id));
   };
 
   const addStage = () => {
@@ -904,13 +1031,82 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
+            accept="image/*,image/heif,image/heic,video/*"
             onChange={handleFileUpload}
             className="hidden"
             multiple
           />
         </CardContent>
       </Card>
+
+      {/* Fila de Upload */}
+      {uploadQueue.length > 0 && (
+        <Card className="border-border bg-card">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Upload de Arquivos ({uploadQueue.filter(u => u.status === 'completed').length}/{uploadQueue.length})
+              </CardTitle>
+              {uploadQueue.some(u => u.status === 'completed') && (
+                <Button variant="outline" size="sm" onClick={clearCompletedUploads}>
+                  Limpar Concluídos
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {uploadQueue.map((upload) => (
+              <div key={upload.id} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {upload.type === 'photo' ? (
+                      <Image className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Video className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="text-sm font-medium truncate max-w-64">
+                      {upload.file.name}
+                    </span>
+                    <Badge 
+                      variant={
+                        upload.status === 'completed' ? 'default' :
+                        upload.status === 'error' ? 'destructive' :
+                        upload.status === 'uploading' ? 'secondary' : 'outline'
+                      }
+                      className="text-xs"
+                    >
+                      {upload.status === 'pending' && 'Pendente'}
+                      {upload.status === 'uploading' && 'Enviando'}
+                      {upload.status === 'completed' && 'Concluído'}
+                      {upload.status === 'error' && 'Erro'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {upload.progress}%
+                    </span>
+                    {upload.status !== 'completed' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeUpload(upload.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <Progress value={upload.progress} className="h-2" />
+                {upload.error && (
+                  <p className="text-xs text-destructive">{upload.error}</p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Conteúdo */}
       <Card className="border-border bg-card">
@@ -1462,7 +1658,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
        <input
          ref={hiddenFileInput}
          type="file"
-         accept="image/*"
+         accept="image/*,image/heif,image/heic"
          onChange={onSelectFile}
          className="hidden"
        />
