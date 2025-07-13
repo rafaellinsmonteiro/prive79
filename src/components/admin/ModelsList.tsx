@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { Edit, Trash2, GripVertical, Eye, EyeOff, User, MapPin, Calendar, Images } from 'lucide-react';
 import { Model } from '@/hooks/useModels';
 import { useDeleteModel, useUpdateModel, useUpdateModelOrder } from '@/hooks/useAdminModels';
 import { useToast } from '@/hooks/use-toast';
@@ -109,7 +109,11 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Carregando modelos...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-muted-foreground">Carregando modelos...</div>
+      </div>
+    );
   }
 
   return (
@@ -117,43 +121,70 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
       {models.map((model) => (
         <Card
           key={model.id}
-          className="bg-zinc-900 border-zinc-800"
+          className="bg-card border-border hover:shadow-lg transition-all duration-200 group"
           draggable
           onDragStart={(e) => handleDragStart(e, model.id)}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, model.id)}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <GripVertical className="h-5 w-5 text-zinc-500 cursor-move" />
-              
-              <div className="flex-shrink-0">
-                {model.photos[0] ? (
-                  <img
-                    src={model.photos[0].photo_url}
-                    alt={model.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-zinc-800 rounded flex items-center justify-center">
-                    <span className="text-zinc-500 text-xs">Sem foto</span>
-                  </div>
-                )}
+          <CardContent className="p-6">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <GripVertical className="h-5 w-5 text-muted-foreground cursor-move hover:text-foreground transition-colors" />
+                
+                <div className="flex-shrink-0">
+                  {model.photos[0] ? (
+                    <div className="relative">
+                      <img
+                        src={model.photos[0].photo_url}
+                        alt={model.name}
+                        className="w-16 h-16 lg:w-20 lg:h-20 object-cover rounded-xl ring-2 ring-border group-hover:ring-primary/20 transition-all duration-200"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center ring-2 ring-card">
+                        <Images className="w-3 h-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 lg:w-20 lg:h-20 bg-accent rounded-xl flex items-center justify-center ring-2 ring-border">
+                      <User className="w-6 h-6 lg:w-8 lg:h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-medium text-white">{model.name}</h3>
-                  <Badge variant={model.is_active ? "default" : "secondary"}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-lg lg:text-xl font-semibold text-foreground truncate">{model.name}</h3>
+                  <Badge 
+                    variant={model.is_active ? "default" : "secondary"}
+                    className={model.is_active ? 
+                      "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm" : 
+                      "bg-muted text-muted-foreground"
+                    }
+                  >
                     {model.is_active ? "Ativa" : "Inativa"}
                   </Badge>
                 </div>
-                <p className="text-zinc-400 text-sm">
-                  {model.age} anos • {model.location || 'Localização não informada'}
-                </p>
-                <p className="text-zinc-500 text-sm">
-                  {model.photos.length} foto(s) • Ordem: {model.display_order || 0}
-                </p>
+                
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{model.age} anos</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    <span className="truncate">{model.location || 'Localização não informada'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Images className="w-3 h-3" />
+                    <span>{model.photos.length} foto(s)</span>
+                  </div>
+                  <span>•</span>
+                  <span>Ordem: {model.display_order || 0}</span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -161,11 +192,12 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleToggleActive(model.id, model.is_active || false)}
+                  className="hover:bg-accent transition-colors"
                 >
                   {model.is_active ? (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-primary" />
                   ) : (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                   )}
                 </Button>
                 
@@ -173,28 +205,33 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
                   variant="ghost"
                   size="icon"
                   onClick={() => onEdit(model.id)}
+                  className="hover:bg-accent transition-colors"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                 </Button>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-300">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-card border-border">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogTitle className="text-foreground">Confirmar exclusão</AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground">
                         Tem certeza que deseja excluir a modelo {model.name}? Esta ação não pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogCancel className="hover:bg-accent">Cancelar</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleDelete(model.id)}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                       >
                         Excluir
                       </AlertDialogAction>
@@ -209,7 +246,11 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
 
       {models.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-zinc-400">Nenhuma modelo cadastrada ainda.</p>
+          <div className="mx-auto w-24 h-24 bg-accent rounded-full flex items-center justify-center mb-4">
+            <User className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground text-lg">Nenhuma modelo cadastrada ainda.</p>
+          <p className="text-muted-foreground text-sm mt-1">Clique em "Nova Modelo" para começar.</p>
         </div>
       )}
     </div>
