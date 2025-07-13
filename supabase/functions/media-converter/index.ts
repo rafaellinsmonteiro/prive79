@@ -227,9 +227,9 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     const folder = `models/${modelId}/videos`
     
     // Create parameters object and sort alphabetically (required by Cloudinary)
+    // Note: resource_type is NOT included in signature for video uploads
     const params = {
       folder: folder,
-      resource_type: 'video',
       timestamp: timestamp.toString()
     }
     
