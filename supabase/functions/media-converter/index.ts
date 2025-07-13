@@ -223,41 +223,13 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     
     const videoBlob = await videoResponse.blob()
     
-    // Upload video to Cloudinary
+    // Use unsigned upload (simpler approach)
     const formData = new FormData()
     formData.append('file', videoBlob)
-    formData.append('resource_type', 'video')
+    formData.append('upload_preset', 'ml_default') // Using default unsigned preset
     formData.append('folder', `models/${modelId}/videos`)
     
-    // Generate signature
-    const timestamp = Math.round(Date.now() / 1000)
-    // Parameters must be sorted alphabetically for Cloudinary signature
-    const paramsToSign = `folder=models/${modelId}/videos&resource_type=video&timestamp=${timestamp}`
-    
-    console.log('Params to sign:', paramsToSign)
-    console.log('API Secret first 10 chars:', apiSecret.substring(0, 10))
-    
-    const signature = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(apiSecret),
-      { name: 'HMAC', hash: 'SHA-1' },
-      false,
-      ['sign']
-    ).then(key => 
-      crypto.subtle.sign('HMAC', key, new TextEncoder().encode(paramsToSign))
-    ).then(signature => 
-      Array.from(new Uint8Array(signature))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-    )
-    
-    formData.append('api_key', apiKey)
-    formData.append('timestamp', timestamp.toString())
-    formData.append('signature', signature)
-    
-    console.log('Generated signature:', signature)
-    
-    console.log('Uploading video to Cloudinary...')
+    console.log('Uploading video to Cloudinary with unsigned upload...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
       method: 'POST',
       body: formData
