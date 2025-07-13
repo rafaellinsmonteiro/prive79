@@ -112,9 +112,7 @@ const ModelOnlineToggle = () => {
       <div className="flex items-center gap-2">
         
         
-        {manualOverride && <Badge variant="outline" className="text-xs">
-            M
-          </Badge>}
+        {manualOverride}
       </div>
 
       {manualOverride && <Button size="sm" variant="ghost" onClick={resetToAutoMode} disabled={loading} className="text-xs">
