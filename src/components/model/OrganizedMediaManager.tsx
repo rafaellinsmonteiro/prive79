@@ -1068,19 +1068,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
            <DialogHeader>
-             <DialogTitle className="flex items-center justify-between">
-               <span>{selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}</span>
-               {selectedItem?.type === 'photo' && (
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={startImageEdit}
-                   className="ml-2"
-                 >
-                   <Edit3 className="h-4 w-4 mr-2" />
-                   Editar Imagem
-                 </Button>
-               )}
+             <DialogTitle>
+               {selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}
              </DialogTitle>
            </DialogHeader>
           
@@ -1107,73 +1096,86 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                         <Video className="h-24 w-24 text-muted-foreground" />
                       )}
                     </div>
-                  )}
-                  
-                  {selectedItem.type === 'photo' && selectedItem.is_primary && (
-                    <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
-                      Principal
-                    </Badge>
-                  )}
-                </div>
-                
-                {selectedItem.type === 'photo' && (
-                  <div className="flex justify-center">
-                    <Button
-                      variant={selectedItem.is_primary ? "default" : "outline"}
-                      onClick={() => togglePrimary(selectedItem.id)}
-                    >
-                      <Star className={`h-4 w-4 mr-2 ${selectedItem.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                      {selectedItem.is_primary ? 'Foto Principal' : 'Definir como Principal'}
-                    </Button>
-                  </div>
-                )}
+                   )}
+                   
+                   {selectedItem.type === 'photo' && selectedItem.is_primary && (
+                     <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
+                       Principal
+                     </Badge>
+                   )}
+                 </div>
+                 
+                 {/* Botão de Edição de Imagem */}
+                 {selectedItem.type === 'photo' && (
+                   <div className="flex justify-center">
+                     <Button
+                       variant="outline"
+                       onClick={startImageEdit}
+                       className="w-full"
+                     >
+                       <Edit3 className="h-4 w-4 mr-2" />
+                       Editar Imagem
+                     </Button>
+                   </div>
+                 )}
+                 
+                 {selectedItem.type === 'photo' && (
+                   <div className="flex justify-center">
+                     <Button
+                       variant={selectedItem.is_primary ? "default" : "outline"}
+                       onClick={() => togglePrimary(selectedItem.id)}
+                     >
+                       <Star className={`h-4 w-4 mr-2 ${selectedItem.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                       {selectedItem.is_primary ? 'Foto Principal' : 'Definir como Principal'}
+                     </Button>
+                   </div>
+                 )}
               </div>
               
               {/* Configurações e ajustes */}
               <div className="space-y-6">
-                {selectedItem.type === 'video' && (
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Título do Vídeo</Label>
-                    <Input
-                      value={selectedItem.title || ''}
-                      onChange={(e) => {
+                 {selectedItem.type === 'video' && (
+                   <div>
+                     <Label className="text-sm font-medium mb-2 block">Título do Vídeo</Label>
+                     <Input
+                       value={selectedItem.title || ''}
+                       onChange={(e) => {
                         updateMediaMutation.mutate({
                           id: selectedItem.id,
                           type: 'video',
                           data: { title: e.target.value }
                         });
                         setSelectedItem({...selectedItem, title: e.target.value});
-                      }}
-                      placeholder="Título do vídeo"
-                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
-                    />
+                       }}
+                       placeholder="Título do vídeo"
+                     />
                   </div>
                 )}
 
                 {/* Etapa */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Etapa</Label>
+                 <div>
+                   <Label className="text-sm font-medium mb-2 block">Etapa</Label>
                   <Select 
                     value={selectedItem.stage || stages[0]} 
                     onValueChange={(stage) => {
                       updateStage(selectedItem.id, selectedItem.type, stage);
                       setSelectedItem({...selectedItem, stage});
                     }}
-                  >
-                    <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                      {stages.map(stage => (
-                        <SelectItem key={stage} value={stage} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">{stage}</SelectItem>
-                      ))}
-                    </SelectContent>
+                   >
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {stages.map(stage => (
+                         <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                       ))}
+                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Pasta */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Pasta</Label>
+                 <div>
+                   <Label className="text-sm font-medium mb-2 block">Pasta</Label>
                   <Select 
                     value={selectedItem.folder_id || 'no-folder'} 
                     onValueChange={(folderId) => {
@@ -1181,27 +1183,27 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                       updateFolder(selectedItem.id, selectedItem.type, newFolderId);
                       setSelectedItem({...selectedItem, folder_id: newFolderId});
                     }}
-                  >
-                    <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                      <SelectItem value="no-folder" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Sem pasta</SelectItem>
-                      {folders.map(folder => (
-                        <SelectItem key={folder.id} value={folder.id} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                          {folder.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                   >
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="no-folder">Sem pasta</SelectItem>
+                       {folders.map(folder => (
+                         <SelectItem key={folder.id} value={folder.id}>
+                           {folder.name}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Tags */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Tags</Label>
+                 <div>
+                   <Label className="text-sm font-medium mb-2 block">Tags</Label>
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {(selectedItem.tags || []).map(tag => (
-                      <Badge key={tag} variant="outline" className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+                     {(selectedItem.tags || []).map(tag => (
+                       <Badge key={tag} variant="outline" className="flex items-center gap-1">
                         {tag}
                         <Button
                           variant="ghost"
@@ -1240,10 +1242,9 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                         }
                       }}
                     />
-                    <Button
-                      variant="outline"
-                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={(e) => {
+                     <Button
+                       variant="outline"
+                       onClick={(e) => {
                         const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement;
                         const newTag = input?.value.trim();
                         if (newTag && !(selectedItem.tags || []).includes(newTag)) {
@@ -1262,13 +1263,13 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                 </div>
 
                 {/* Opções de Visibilidade */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Visibilidade</Label>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
-                      <div className="flex items-center space-x-2">
-                        <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                        <Label className="text-sm text-gray-700 dark:text-gray-300">Mostrar no Perfil</Label>
+                 <div>
+                   <Label className="text-sm font-medium mb-2 block">Visibilidade</Label>
+                   <div className="space-y-3">
+                     <div className="flex items-center justify-between p-2 rounded border bg-muted/50">
+                       <div className="flex items-center space-x-2">
+                         <Eye className="h-4 w-4 text-muted-foreground" />
+                         <Label className="text-sm">Mostrar no Perfil</Label>
                       </div>
                       <Switch
                         checked={selectedItem.show_in_profile}
@@ -1282,11 +1283,11 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                         }}
                       />
                     </div>
-                    
-                    <div className="flex items-center justify-between p-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
-                      <div className="flex items-center space-x-2">
-                        <Image className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                        <Label className="text-sm text-gray-700 dark:text-gray-300">Mostrar na Galeria</Label>
+                     
+                     <div className="flex items-center justify-between p-2 rounded border bg-muted/50">
+                       <div className="flex items-center space-x-2">
+                         <Image className="h-4 w-4 text-muted-foreground" />
+                         <Label className="text-sm">Mostrar na Galeria</Label>
                       </div>
                       <Switch
                         checked={selectedItem.show_in_gallery}
