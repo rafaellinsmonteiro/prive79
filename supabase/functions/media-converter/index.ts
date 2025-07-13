@@ -272,26 +272,42 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
 
 async function fallbackVideoThumbnail(fileUrl: string, fileName: string, modelId: string, supabase: any) {
   try {
-    console.log('Using fallback video thumbnail generation for:', fileName)
+    console.log('Generating enhanced video thumbnail for:', fileName)
     
-    // Create a simple placeholder thumbnail
+    // Get video file to determine actual dimensions and size
+    const videoResponse = await fetch(fileUrl)
+    if (!videoResponse.ok) {
+      throw new Error('Failed to fetch video file')
+    }
+    
+    const videoBlob = await videoResponse.blob()
+    const fileSizeKB = Math.round(videoBlob.size / 1024)
+    const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(1)
+    
+    // Create a more informative thumbnail
     const width = 480
     const height = 320
     
-    // Generate SVG placeholder
+    // Generate enhanced SVG thumbnail with video info
     const svgThumbnail = `
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3730a3;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111827;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="playBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="url(#bg)"/>
-  <circle cx="240" cy="160" r="40" fill="white" opacity="0.9"/>
-  <polygon points="220,140 220,180 260,160" fill="#6366f1"/>
-  <text x="240" y="220" text-anchor="middle" fill="white" font-family="Arial" font-size="14">${fileName}</text>
-  <text x="240" y="280" text-anchor="middle" fill="white" font-family="Arial" font-size="12" opacity="0.8">Thumbnail gerado</text>
+  <rect width="100%" height="100%" fill="url(#bg)" rx="8"/>
+  <circle cx="240" cy="120" r="35" fill="url(#playBg)" opacity="0.9"/>
+  <polygon points="225,105 225,135 255,120" fill="white"/>
+  <text x="240" y="180" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">${fileName.length > 25 ? fileName.substring(0, 22) + '...' : fileName}</text>
+  <text x="240" y="200" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="12">Vídeo • ${fileSizeMB}MB</text>
+  <text x="240" y="220" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="11">Clique para reproduzir</text>
+  <rect x="20" y="20" width="440" height="280" fill="none" stroke="#374151" stroke-width="1" rx="6" opacity="0.3"/>
 </svg>`
     
     const thumbnailPath = `${modelId}/thumbnails/${Date.now()}-thumb-${fileName}.svg`
