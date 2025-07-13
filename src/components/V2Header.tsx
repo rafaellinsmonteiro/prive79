@@ -6,9 +6,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, Bell, PlusCircle, Menu, ChevronDown, UserCircle, LogOut } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useProfilePhoto } from "@/hooks/useProfilePhoto";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from '@/hooks/use-mobile';
-import defaultAvatar from "@/assets/default-avatar.png";
 
 interface V2HeaderProps {
   title: string;
@@ -19,6 +19,7 @@ interface V2HeaderProps {
 const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
   const { signOut } = useAuth();
   const { data: currentUser } = useCurrentUser();
+  const { currentPhotoUrl } = useProfilePhoto();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -86,7 +87,7 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-auto w-auto p-2 rounded-full hover:bg-accent flex items-center gap-2 lg:gap-3">
                   <Avatar className="w-8 h-8 lg:w-10 lg:h-10 ring-2 ring-primary/20">
-                    <AvatarImage src={currentUser?.profile_photo_url || defaultAvatar} alt={currentUser?.name || 'User'} />
+                    <AvatarImage src={currentPhotoUrl} alt={currentUser?.name || 'User'} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs lg:text-sm">
                       {getUserInitials(currentUser?.name)}
                     </AvatarFallback>
@@ -101,7 +102,7 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser?.profile_photo_url || defaultAvatar} alt={currentUser?.name || 'User'} />
+                    <AvatarImage src={currentPhotoUrl} alt={currentUser?.name || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                       {getUserInitials(currentUser?.name)}
                     </AvatarFallback>
