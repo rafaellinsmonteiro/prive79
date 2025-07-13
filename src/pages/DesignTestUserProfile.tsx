@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUserBalance } from '@/hooks/useUserBalance';
 import { supabase } from '@/integrations/supabase/client';
 import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
 
@@ -18,6 +19,7 @@ const DesignTestUserProfile = () => {
   const isMobile = useIsMobile();
   const { user, signOut, isAdmin } = useAuth();
   const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useCurrentUser();
+  const { data: balanceData } = useUserBalance();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(!isMobile);
   const [isDark, setIsDark] = useState(true);
@@ -336,6 +338,34 @@ const DesignTestUserProfile = () => {
                 )}
               </div>
             </div>
+
+            {/* Balance Display */}
+            {(isExpanded || isMobileMenuOpen) && balanceData && (
+              <div className="mb-4 px-3">
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-3 space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Saldos
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">R$</span>
+                      <span className="font-semibold text-sm text-foreground">
+                        {new Intl.NumberFormat('pt-BR', { 
+                          style: 'currency', 
+                          currency: 'BRL' 
+                        }).format(Number(balanceData.balance_brl) || 0)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">P$</span>
+                      <span className="font-semibold text-sm text-primary">
+                        {new Intl.NumberFormat('pt-BR').format(Number(balanceData.balance) || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <nav className="space-y-2">
               {accountItems.map(item => <div key={item.id} className="relative" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
