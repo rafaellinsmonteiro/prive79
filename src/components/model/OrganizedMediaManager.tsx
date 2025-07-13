@@ -335,7 +335,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
     const newUploads = files.map(file => {
       const isImage = file.type.startsWith('image/') || file.type === 'image/heif' || file.type === 'image/heic';
-      const isVideo = file.type.startsWith('video/');
+      const isVideo = file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov');
 
       if (!isImage && !isVideo) {
         toast.error(`Arquivo ${file.name} não é suportado. Apenas imagens (incluindo HEIF) e vídeos são aceitos.`);
@@ -386,7 +386,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       // Simular progresso durante upload
       const progressInterval = setInterval(() => {
         setUploadQueue(prev => prev.map(item => 
-          item.id === upload.id && item.progress < 90
+          item.id === upload.id && item.progress < 70
             ? { ...item, progress: item.progress + 10 }
             : item
         ));
@@ -400,9 +400,73 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
       if (uploadError) throw uploadError;
 
+      // Atualizar progresso para 80%
+      setUploadQueue(prev => prev.map(item => 
+        item.id === upload.id 
+          ? { ...item, progress: 80 }
+          : item
+      ));
+
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
         .getPublicUrl(fileName);
+
+      let finalUrl = publicUrl;
+      let thumbnailUrl = null;
+
+      // Processar arquivos especiais
+      const isHeic = upload.file.type === 'image/heif' || upload.file.type === 'image/heic' || 
+                     upload.file.name.toLowerCase().endsWith('.heic') || upload.file.name.toLowerCase().endsWith('.heif');
+      
+      const isVideo = upload.type === 'video';
+
+      if (isHeic) {
+        try {
+          const { data: convertResult } = await supabase.functions.invoke('media-converter', {
+            body: {
+              action: 'convert-heic',
+              fileUrl: publicUrl,
+              fileName: upload.file.name,
+              modelId: modelId
+            }
+          });
+
+          if (convertResult?.success) {
+            finalUrl = convertResult.convertedUrl;
+            toast.success(`HEIC convertido: ${upload.file.name}`);
+          }
+        } catch (error) {
+          console.error('Error converting HEIC:', error);
+          toast.error(`Erro ao converter HEIC: ${upload.file.name}`);
+        }
+      }
+
+      if (isVideo) {
+        try {
+          const { data: thumbnailResult } = await supabase.functions.invoke('media-converter', {
+            body: {
+              action: 'generate-thumbnail',
+              fileUrl: publicUrl,
+              fileName: upload.file.name,
+              modelId: modelId
+            }
+          });
+
+          if (thumbnailResult?.success) {
+            thumbnailUrl = thumbnailResult.thumbnailUrl;
+          }
+        } catch (error) {
+          console.error('Error generating thumbnail:', error);
+          // Não bloqueamos o upload se a thumbnail falhar
+        }
+      }
+
+      // Atualizar progresso para 90%
+      setUploadQueue(prev => prev.map(item => 
+        item.id === upload.id 
+          ? { ...item, progress: 90 }
+          : item
+      ));
 
       const baseData = {
         model_id: modelId,
@@ -418,7 +482,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           .from('model_photos')
           .insert({
             ...baseData,
-            photo_url: publicUrl,
+            photo_url: finalUrl,
             is_primary: photos.length === 0
           });
         if (dbError) throw dbError;
@@ -428,7 +492,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           .from('model_videos')
           .insert({
             ...baseData,
-            video_url: publicUrl,
+            video_url: finalUrl,
+            thumbnail_url: thumbnailUrl,
             title: upload.file.name.split('.')[0]
           });
         if (dbError) throw dbError;
@@ -1031,7 +1096,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,image/heif,image/heic,video/*"
+            accept="image/*,image/heif,image/heic,video/*,.mov"
             onChange={handleFileUpload}
             className="hidden"
             multiple
@@ -1153,19 +1218,32 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                           alt="Foto"
                           className="w-full h-full object-cover"
                         />
-                      ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center">
-                          {item.thumbnail_url ? (
-                            <img
-                              src={item.thumbnail_url}
-                              alt="Thumbnail"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Video className="h-12 w-12 text-muted-foreground" />
-                          )}
-                        </div>
-                      )}
+                       ) : (
+                         <div className="w-full h-full bg-muted flex items-center justify-center relative">
+                           {item.thumbnail_url ? (
+                             <>
+                               <img
+                                 src={item.thumbnail_url}
+                                 alt="Thumbnail"
+                                 className="w-full h-full object-cover"
+                               />
+                               {/* Play icon overlay */}
+                               <div className="absolute inset-0 flex items-center justify-center">
+                                 <div className="bg-black/60 rounded-full p-3">
+                                   <Film className="h-8 w-8 text-white" />
+                                 </div>
+                               </div>
+                             </>
+                           ) : (
+                             <div className="flex flex-col items-center gap-2">
+                               <Video className="h-12 w-12 text-muted-foreground" />
+                               <span className="text-xs text-muted-foreground text-center px-2">
+                                 {item.video_url?.includes('.mov') ? 'MOV' : 'VIDEO'}
+                               </span>
+                             </div>
+                           )}
+                         </div>
+                       )}
                       
                       {/* Overlay com informações essenciais */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1199,18 +1277,31 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            {item.thumbnail_url ? (
-                              <img
-                                src={item.thumbnail_url}
-                                alt="Thumbnail"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Video className="h-8 w-8 text-muted-foreground" />
-                            )}
-                          </div>
-                        )}
+                           <div className="w-full h-full bg-muted flex items-center justify-center relative">
+                             {item.thumbnail_url ? (
+                               <>
+                                 <img
+                                   src={item.thumbnail_url}
+                                   alt="Thumbnail"
+                                   className="w-full h-full object-cover"
+                                 />
+                                 {/* Play icon overlay */}
+                                 <div className="absolute inset-0 flex items-center justify-center">
+                                   <div className="bg-black/60 rounded-full p-1">
+                                     <Film className="h-4 w-4 text-white" />
+                                   </div>
+                                 </div>
+                               </>
+                             ) : (
+                               <div className="flex flex-col items-center gap-1">
+                                 <Video className="h-6 w-6 text-muted-foreground" />
+                                 <span className="text-xs text-muted-foreground">
+                                   {item.video_url?.includes('.mov') ? 'MOV' : 'VIDEO'}
+                                 </span>
+                               </div>
+                             )}
+                           </div>
+                         )}
                         
                         {item.type === 'photo' && item.is_primary && (
                           <Badge className="absolute top-1 left-1 bg-yellow-600 text-white text-xs">
@@ -1280,18 +1371,48 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                       alt="Foto"
                       className="w-full h-full object-contain"
                     />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      {selectedItem.thumbnail_url ? (
-                        <img
-                          src={selectedItem.thumbnail_url}
-                          alt="Thumbnail"
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <Video className="h-24 w-24 text-muted-foreground" />
-                      )}
-                    </div>
+                   ) : (
+                     <div className="w-full h-full bg-muted flex items-center justify-center relative">
+                       {selectedItem.thumbnail_url ? (
+                         <>
+                           <img
+                             src={selectedItem.thumbnail_url}
+                             alt="Thumbnail"
+                             className="w-full h-full object-contain"
+                           />
+                           {/* Overlay com informações do vídeo */}
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                             <div className="absolute bottom-4 left-4 right-4">
+                               <div className="flex items-center justify-between text-white">
+                                 <span className="text-sm">{selectedItem.title || 'Vídeo'}</span>
+                                 <div className="flex items-center gap-2">
+                                   <Film className="h-4 w-4" />
+                                   {selectedItem.video_url?.includes('.mov') && (
+                                     <Badge variant="secondary" className="text-xs">MOV</Badge>
+                                   )}
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                           {/* Play button */}
+                           <div className="absolute inset-0 flex items-center justify-center">
+                             <div className="bg-black/60 rounded-full p-4 hover:bg-black/80 transition-colors cursor-pointer">
+                               <Film className="h-12 w-12 text-white" />
+                             </div>
+                           </div>
+                         </>
+                       ) : (
+                         <div className="flex flex-col items-center gap-4">
+                           <Video className="h-24 w-24 text-muted-foreground" />
+                           <div className="text-center">
+                             <p className="text-sm font-medium">{selectedItem.title || 'Vídeo'}</p>
+                             {selectedItem.video_url?.includes('.mov') && (
+                               <Badge variant="outline" className="mt-2">Formato MOV</Badge>
+                             )}
+                           </div>
+                         </div>
+                       )}
+                     </div>
                    )}
                    
                    {selectedItem.type === 'photo' && selectedItem.is_primary && (

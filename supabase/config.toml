@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.lunna-data-access]
 verify_jwt = false
+
+[functions.media-converter]
+verify_jwt = true
