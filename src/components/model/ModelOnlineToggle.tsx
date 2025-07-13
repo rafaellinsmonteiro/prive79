@@ -140,12 +140,12 @@ const ModelOnlineToggle = () => {
 
       <div className="flex items-center gap-2">
         <Badge variant={isOnline ? "default" : "secondary"}>
-          {isOnline ? 'Online' : 'Offline'}
+          {isOnline ? 'On' : 'Off'}
         </Badge>
         
         {manualOverride && (
           <Badge variant="outline" className="text-xs">
-            Manual
+            M
           </Badge>
         )}
       </div>
@@ -158,7 +158,7 @@ const ModelOnlineToggle = () => {
           disabled={loading}
           className="text-xs"
         >
-          Modo Automático
+          A
         </Button>
       )}
     </div>
