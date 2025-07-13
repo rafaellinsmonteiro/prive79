@@ -11,6 +11,7 @@ import { Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import V2Header from '@/components/V2Header';
 import ModelAppointmentsList from '@/components/model/ModelAppointmentsList';
+import ModelWorkingHours from '@/components/model/ModelWorkingHours';
 
 const ModelV2AppointmentsPage = () => {
   const isMobile = useIsMobile();
@@ -269,7 +270,10 @@ const ModelV2AppointmentsPage = () => {
 
         {/* Content Area - Appointments List */}
         <main className="p-4 lg:p-8 overflow-y-auto h-[calc(100vh-120px)]">
-          <ModelAppointmentsList />
+          <div className="space-y-6">
+            <ModelWorkingHours />
+            <ModelAppointmentsList />
+          </div>
         </main>
       </div>
     </div>
