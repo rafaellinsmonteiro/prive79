@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import defaultAvatar from '@/assets/default-avatar.png';
 
 export const useProfilePhoto = () => {
   const { user } = useAuth();
@@ -154,6 +155,6 @@ export const useProfilePhoto = () => {
     uploadProfilePhoto,
     deleteProfilePhoto,
     isUploading,
-    currentPhotoUrl: currentUser?.profile_photo_url || user?.user_metadata?.profile_photo_url
+    currentPhotoUrl: currentUser?.profile_photo_url || user?.user_metadata?.profile_photo_url || defaultAvatar
   };
 };
