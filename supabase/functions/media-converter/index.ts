@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createHmac } from "https://deno.land/std@0.168.0/node/crypto.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Credentials': 'true'
 }
 
 serve(async (req) => {
@@ -56,8 +59,18 @@ function parseCloudinaryUrl(cloudinaryUrl?: string) {
     throw new Error('CLOUDINARY_URL not configured')
   }
   
+  // Only accept cloudinary:// format
+  if (!cloudinaryUrl.startsWith('cloudinary://')) {
+    throw new Error('CLOUDINARY_URL must be in format: cloudinary://<api_key>:<api_secret>@<cloud_name>')
+  }
+  
   try {
     const url = new URL(cloudinaryUrl)
+    
+    if (!url.username || !url.password || !url.hostname) {
+      throw new Error('Missing credentials in CLOUDINARY_URL')
+    }
+    
     return {
       cloudName: url.hostname,
       apiKey: url.username,
@@ -81,33 +94,41 @@ async function convertHeicToJpeg(fileUrl: string, fileName: string, modelId: str
     const { cloudName, apiKey, apiSecret } = parseCloudinaryUrl(cloudinaryUrl)
     console.log('Using Cloudinary:', cloudName)
     
+    // Generate signature for authenticated upload
+    const timestamp = Math.round(Date.now() / 1000)
+    const folder = `models/${modelId}`
+    
+    // Parameters for signature (alphabetical order)
+    const params = {
+      folder: folder,
+      format: 'jpg',
+      resource_type: 'image',
+      timestamp: timestamp.toString()
+    }
+    
+    // Sort parameters alphabetically and create string to sign
+    const paramsToSign = Object.keys(params)
+      .sort()
+      .map(key => `${key}=${params[key as keyof typeof params]}`)
+      .join('&')
+    
+    console.log('HEIC String to sign:', paramsToSign)
+    
+    // Generate signature using Node Crypto
+    const signature = createHmac('sha1', apiSecret)
+      .update(paramsToSign)
+      .digest('hex')
+    
+    console.log('HEIC Generated signature:', signature)
+    
     // Upload to Cloudinary with auto format conversion
     const formData = new FormData()
     formData.append('file', fileUrl)
+    formData.append('folder', folder)
     formData.append('format', 'jpg')
     formData.append('resource_type', 'image')
-    formData.append('folder', `models/${modelId}`)
-    
-    // Generate signature for authenticated upload
-    const timestamp = Math.round(Date.now() / 1000)
-    const paramsToSign = `folder=models/${modelId}&format=jpg&resource_type=image&timestamp=${timestamp}`
-    
-    const signature = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(apiSecret),
-      { name: 'HMAC', hash: 'SHA-1' },
-      false,
-      ['sign']
-    ).then(key => 
-      crypto.subtle.sign('HMAC', key, new TextEncoder().encode(paramsToSign))
-    ).then(signature => 
-      Array.from(new Uint8Array(signature))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-    )
-    
-    formData.append('api_key', apiKey)
     formData.append('timestamp', timestamp.toString())
+    formData.append('api_key', apiKey)
     formData.append('signature', signature)
     
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
@@ -159,10 +180,10 @@ async function fallbackHeicConversion(fileUrl: string, fileName: string, modelId
     const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg')
     const uploadPath = `${modelId}/${Date.now()}-converted-${jpegFileName}`
     
-    // Upload the file as JPEG
+    // Upload the file as JPEG (convert ArrayBuffer to Uint8Array)
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('model-photos')
-      .upload(uploadPath, heicBuffer, {
+      .upload(uploadPath, new Uint8Array(heicBuffer), {
         contentType: 'image/jpeg'
       })
 
@@ -222,41 +243,37 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     
     const videoBlob = await videoResponse.blob()
     
-    // Use basic signed upload without folder first to test
+    // Generate signature for authenticated upload
     const timestamp = Math.round(Date.now() / 1000)
+    const folder = `models/${modelId}/videos`
     
-    // Minimal parameters for signature
-    const stringToSign = `timestamp=${timestamp}`
+    // Parameters for signature (alphabetical order)
+    const params = {
+      folder: folder,
+      timestamp: timestamp.toString()
+    }
     
-    console.log('String to sign:', stringToSign)
+    // Sort parameters alphabetically and create string to sign
+    const paramsToSign = Object.keys(params)
+      .sort()
+      .map(key => `${key}=${params[key as keyof typeof params]}`)
+      .join('&')
     
-    // Generate signature using SHA-1 HMAC
-    const encoder = new TextEncoder()
-    const key = await crypto.subtle.importKey(
-      'raw',
-      encoder.encode(apiSecret),
-      { name: 'HMAC', hash: 'SHA-1' },
-      false,
-      ['sign']
-    )
+    console.log('Video String to sign:', paramsToSign)
     
-    const signature = await crypto.subtle.sign(
-      'HMAC',
-      key,
-      encoder.encode(stringToSign)
-    )
+    // Generate signature using Node Crypto
+    const signature = createHmac('sha1', apiSecret)
+      .update(paramsToSign)
+      .digest('hex')
     
-    const signatureHex = Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
-    
-    console.log('Generated signature:', signatureHex)
+    console.log('Video Generated signature:', signature)
     
     const formData = new FormData()
     formData.append('file', videoBlob)
+    formData.append('folder', folder)
     formData.append('timestamp', timestamp.toString())
     formData.append('api_key', apiKey)
-    formData.append('signature', signatureHex)
+    formData.append('signature', signature)
     
     console.log('Uploading video to Cloudinary with minimal signature...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
