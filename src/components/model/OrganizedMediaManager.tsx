@@ -431,8 +431,10 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             }
           });
 
-          if (convertResult?.success) {
+          if (convertResult?.success && convertResult?.convertedUrl) {
             finalUrl = convertResult.convertedUrl;
+            // Forçar o tipo para photo quando é HEIC convertido
+            upload.type = 'photo';
             toast.success(`HEIC convertido: ${upload.file.name}`);
           }
         } catch (error) {
@@ -452,12 +454,14 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             }
           });
 
-          if (thumbnailResult?.success) {
+          if (thumbnailResult?.success && thumbnailResult?.thumbnailUrl) {
             thumbnailUrl = thumbnailResult.thumbnailUrl;
+            toast.success(`Thumbnail gerada para: ${upload.file.name}`);
           }
         } catch (error) {
           console.error('Error generating thumbnail:', error);
-          // Não bloqueamos o upload se a thumbnail falhar
+          console.log('Continuando sem thumbnail...');
+          // Não bloquear o upload se falhar a geração do thumbnail
         }
       }
 

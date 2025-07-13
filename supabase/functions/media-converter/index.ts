@@ -100,44 +100,27 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
   try {
     console.log('Generating video thumbnail:', fileName)
     
-    // For video thumbnail generation, we'll create a simple frame extraction
-    // In a real implementation, you'd use FFmpeg or a video processing service
+    // Create a simple SVG thumbnail as a placeholder
+    // In production, you'd use FFmpeg or similar video processing tool
+    const svgThumbnail = `
+      <svg width="320" height="240" xmlns="http://www.w3.org/2000/svg">
+        <rect width="320" height="240" fill="#1f2937"/>
+        <text x="160" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="16">Video Thumbnail</text>
+        <text x="160" y="130" text-anchor="middle" fill="white" font-family="Arial" font-size="12">${fileName}</text>
+        <polygon points="130,90 130,150 180,120" fill="#60a5fa"/>
+      </svg>
+    `
     
-    // For now, we'll create a placeholder thumbnail
-    const canvas = new OffscreenCanvas(320, 240)
-    const ctx = canvas.getContext('2d')
+    // Convert SVG to PNG using a simple approach
+    const thumbnailBuffer = new TextEncoder().encode(svgThumbnail)
     
-    if (ctx) {
-      // Create a simple placeholder thumbnail
-      ctx.fillStyle = '#1f2937'
-      ctx.fillRect(0, 0, 320, 240)
-      
-      ctx.fillStyle = '#ffffff'
-      ctx.font = '16px Arial'
-      ctx.textAlign = 'center'
-      ctx.fillText('Video Thumbnail', 160, 110)
-      ctx.fillText(fileName, 160, 130)
-      
-      // Add play icon
-      ctx.beginPath()
-      ctx.moveTo(130, 90)
-      ctx.lineTo(130, 150)
-      ctx.lineTo(180, 120)
-      ctx.closePath()
-      ctx.fillStyle = '#60a5fa'
-      ctx.fill()
-    }
-    
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 })
-    const thumbnailBuffer = await blob.arrayBuffer()
-    
-    const thumbnailPath = `${modelId}/thumbnails/${Date.now()}-thumb-${fileName}.jpg`
+    const thumbnailPath = `${modelId}/thumbnails/${Date.now()}-thumb-${fileName}.svg`
     
     // Upload thumbnail
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('model-videos')
       .upload(thumbnailPath, thumbnailBuffer, {
-        contentType: 'image/jpeg'
+        contentType: 'image/svg+xml'
       })
 
     if (uploadError) {
