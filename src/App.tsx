@@ -27,6 +27,7 @@ import ModelDashboard from "./pages/ModelDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import DesignTestPage from "./pages/DesignTestPage";
 import DesignTestModelsPage from "./pages/DesignTestModelsPage";
+import DesignTestChatPage from "./pages/DesignTestChatPage";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -155,7 +156,7 @@ const AppContent = () => {
           <Route path="/design-test/reviews" element={<DesignTestPage />} />
           <Route path="/design-test/gallery" element={<DesignTestPage />} />
           <Route path="/design-test/reels" element={<DesignTestPage />} />
-          <Route path="/design-test/chat" element={<DesignTestPage />} />
+          <Route path="/design-test/chat" element={<DesignTestChatPage />} />
           <Route path="/design-test/settings" element={<DesignTestPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
