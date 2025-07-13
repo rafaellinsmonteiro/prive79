@@ -202,9 +202,17 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     const { cloudName, apiKey, apiSecret } = parseCloudinaryUrl(cloudinaryUrl)
     console.log('Using Cloudinary for video thumbnail:', cloudName)
     
-    // Upload video to Cloudinary and generate thumbnail
+    // First, fetch the video file and upload to Cloudinary
+    const videoResponse = await fetch(fileUrl)
+    if (!videoResponse.ok) {
+      throw new Error('Failed to fetch video file')
+    }
+    
+    const videoBlob = await videoResponse.blob()
+    
+    // Upload video to Cloudinary
     const formData = new FormData()
-    formData.append('file', fileUrl)
+    formData.append('file', videoBlob)
     formData.append('resource_type', 'video')
     formData.append('folder', `models/${modelId}/videos`)
     
@@ -230,20 +238,24 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     formData.append('timestamp', timestamp.toString())
     formData.append('signature', signature)
     
+    console.log('Uploading video to Cloudinary...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
       method: 'POST',
       body: formData
     })
     
     if (!cloudinaryResponse.ok) {
-      console.error('Cloudinary video upload failed:', cloudinaryResponse.status, await cloudinaryResponse.text())
-      throw new Error('Cloudinary video upload failed')
+      const errorText = await cloudinaryResponse.text()
+      console.error('Cloudinary video upload failed:', cloudinaryResponse.status, errorText)
+      throw new Error(`Cloudinary video upload failed: ${cloudinaryResponse.status}`)
     }
     
     const cloudinaryData = await cloudinaryResponse.json()
+    console.log('Video uploaded to Cloudinary successfully:', cloudinaryData.public_id)
     
     // Generate thumbnail URL from video using Cloudinary transformations
-    const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/image/upload/c_scale,w_480,h_320,f_jpg,so_1/${cloudinaryData.public_id}.jpg`
+    // Extract frame at 1 second, resize to 480x320, format as JPEG
+    const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_1.0,w_480,h_320,c_fill,f_jpg/${cloudinaryData.public_id}.jpg`
     
     console.log('Video thumbnail generated via Cloudinary:', thumbnailUrl)
 
