@@ -32,6 +32,9 @@ import DesignTestAppointmentsPage from "./pages/DesignTestAppointmentsPage";
 import DesignTestClientsPage from "./pages/DesignTestClientsPage";
 import DesignTestServicesPage from "./pages/DesignTestServicesPage";
 import DesignTestUserProfile from "./pages/DesignTestUserProfile";
+import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
+import AdminDesignTestModels from "./pages/AdminDesignTestModels";
+import AdminDesignTestSettings from "./pages/AdminDesignTestSettings";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -51,7 +54,8 @@ const AppContent = () => {
   // Rotas onde o header deve ser ocultado
   const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute;
+  const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute;
 
   if (loading) {
     return (
@@ -162,6 +166,11 @@ const AppContent = () => {
           <Route path="/design-test/chat" element={<DesignTestChatPage />} />
           <Route path="/design-test/user-profile" element={<DesignTestUserProfile />} />
           <Route path="/design-test/settings" element={<DesignTestPage />} />
+          
+          {/* Admin Design Test Routes */}
+          <Route path="/admin-design-test/dashboard" element={<AdminDesignTestDashboard />} />
+          <Route path="/admin-design-test/models" element={<AdminDesignTestModels />} />
+          <Route path="/admin-design-test/settings" element={<AdminDesignTestSettings />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
