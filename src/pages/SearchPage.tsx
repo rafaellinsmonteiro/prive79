@@ -68,12 +68,12 @@ const SearchPage = () => {
 
   const renderListCard = (result: any) => {
     return (
-      <Card key={result.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer">
+      <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
         <CardContent className="p-6">
           <div className="flex gap-6">
             {/* Photo - Full square */}
             <div className="relative">
-              <div className="w-32 h-32 rounded-lg overflow-hidden bg-zinc-800">
+              <div className="w-32 h-32 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">
                 {result.image ? (
                   <img 
                     src={result.image} 
@@ -82,14 +82,14 @@ const SearchPage = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User className="h-16 w-16 text-zinc-500" />
+                    <User className="h-16 w-16 text-[hsl(var(--dark-muted))]" />
                   </div>
                 )}
               </div>
               {result.type === 'model' && (
                 <div className="absolute -bottom-1 -right-1">
-                  <div className={`w-6 h-6 rounded-full border-2 border-background ${
-                    result.is_online ? 'bg-green-500' : 'bg-muted-foreground'
+                  <div className={`w-6 h-6 rounded-full border-2 border-[hsl(var(--dark-card))] ${
+                    result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'
                   }`} />
                 </div>
               )}
@@ -99,23 +99,23 @@ const SearchPage = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-semibold text-xl truncate text-white">{result.title}</h3>
+                  <h3 className="font-semibold text-xl truncate text-[hsl(var(--gold-primary))]">{result.title}</h3>
                   {result.age && (
-                    <span className="text-zinc-400">{result.age} anos</span>
+                    <span className="text-[hsl(var(--dark-muted))]">{result.age} anos</span>
                   )}
                 </div>
                 {result.is_online && (
-                  <Badge variant="default" className="bg-green-900 text-green-200 border-green-800">
+                  <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
                     Online
                   </Badge>
                 )}
               </div>
               
               {result.description && (
-                <p className="text-zinc-400 mb-4 line-clamp-3">{result.description}</p>
+                <p className="text-[hsl(var(--dark-muted))] mb-4 line-clamp-3">{result.description}</p>
               )}
               
-              <div className="flex items-center gap-4 text-sm text-zinc-500">
+              <div className="flex items-center gap-4 text-sm text-[hsl(var(--dark-muted))]">
                 {result.location && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
@@ -124,7 +124,7 @@ const SearchPage = () => {
                 )}
                 {result.is_online !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-zinc-500 text-zinc-500'}`} />
+                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-[hsl(var(--dark-muted))] text-[hsl(var(--dark-muted))]'}`} />
                     <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
                   </div>
                 )}
@@ -133,10 +133,10 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+              <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -148,12 +148,12 @@ const SearchPage = () => {
 
   const renderGridCard = (result: any) => {
     return (
-      <Card key={result.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer">
+      <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
         <CardContent className="p-4">
           <div className="space-y-3">
             {/* Photo - Full square */}
             <div className="relative mx-auto w-fit">
-              <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-800 mx-auto">
+              <div className="w-24 h-24 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] mx-auto ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">
                 {result.image ? (
                   <img 
                     src={result.image} 
@@ -162,14 +162,14 @@ const SearchPage = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User className="h-12 w-12 text-zinc-500" />
+                    <User className="h-12 w-12 text-[hsl(var(--dark-muted))]" />
                   </div>
                 )}
               </div>
               {result.type === 'model' && (
                 <div className="absolute -bottom-1 -right-1">
-                  <div className={`w-5 h-5 rounded-full border-2 border-background ${
-                    result.is_online ? 'bg-green-500' : 'bg-muted-foreground'
+                  <div className={`w-5 h-5 rounded-full border-2 border-[hsl(var(--dark-card))] ${
+                    result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'
                   }`} />
                 </div>
               )}
@@ -178,18 +178,18 @@ const SearchPage = () => {
             {/* Content */}
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <h3 className="font-semibold truncate text-white">{result.title}</h3>
+                <h3 className="font-semibold truncate text-[hsl(var(--gold-primary))]">{result.title}</h3>
                 {result.is_online && (
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_4px_green_/_0.7]" />
                 )}
               </div>
               
               {result.age && (
-                <span className="text-sm text-zinc-400">{result.age} anos</span>
+                <span className="text-sm text-[hsl(var(--dark-muted))]">{result.age} anos</span>
               )}
               
               {result.location && (
-                <div className="flex items-center justify-center gap-1 text-xs text-zinc-500">
+                <div className="flex items-center justify-center gap-1 text-xs text-[hsl(var(--dark-muted))]">
                   <MapPin className="h-3 w-3" />
                   <span className="truncate">{result.location}</span>
                 </div>
@@ -198,10 +198,10 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button size="sm" className="flex-1 bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+              <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -212,12 +212,12 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-[hsl(var(--dark-primary))]">
       {/* Header */}
-      <div className="bg-zinc-900 border-b border-zinc-800">
+      <div className="bg-[hsl(var(--dark-card))] border-b border-[hsl(var(--gold-accent))]/20">
         <div className="container max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Buscar</h1>
-          <p className="text-zinc-400">Encontre perfis, serviços, produtos e muito mais</p>
+          <h1 className="text-3xl font-bold text-[hsl(var(--gold-primary))] mb-2">Buscar</h1>
+          <p className="text-[hsl(var(--dark-muted))]">Encontre perfis, serviços, produtos e muito mais</p>
         </div>
       </div>
 
@@ -225,9 +225,9 @@ const SearchPage = () => {
         <div className="flex gap-6">
           {/* Sidebar */}
           <div className="w-80 flex-shrink-0">
-            <Card className="bg-zinc-900 border-zinc-800 sticky top-6">
+            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 sticky top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 text-[hsl(var(--gold-primary))]">
                   <Search className="h-5 w-5" />
                   Filtros de Busca
                 </CardTitle>
@@ -235,24 +235,24 @@ const SearchPage = () => {
               <CardContent className="space-y-6">
                 {/* Search Input */}
                 <div className="space-y-2">
-                  <Label htmlFor="search" className="text-zinc-300">Buscar</Label>
+                  <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
                     <Input
                       id="search"
                       placeholder="Digite sua busca..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20"
                     />
                   </div>
                 </div>
 
-                <Separator className="bg-zinc-800" />
+                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
 
                 {/* Categories */}
                 <div className="space-y-3">
-                  <Label className="text-zinc-300">Categorias</Label>
+                  <Label className="text-[hsl(var(--dark-text))]">Categorias</Label>
                   <div className="space-y-2">
                     {categories.map((category) => (
                       <Button
@@ -260,7 +260,11 @@ const SearchPage = () => {
                         variant={activeCategory === category.key ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setActiveCategory(category.key)}
-                        className="w-full justify-start text-zinc-300 hover:text-white hover:bg-zinc-800 data-[state=open]:bg-zinc-800"
+                        className={`w-full justify-start transition-all duration-200 ${
+                          activeCategory === category.key
+                            ? "bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-l-2 border-[hsl(var(--gold-primary))] shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.2]"
+                            : "text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10"
+                        }`}
                       >
                         <category.icon className="h-4 w-4 mr-2" />
                         {category.label}
@@ -269,14 +273,14 @@ const SearchPage = () => {
                   </div>
                 </div>
 
-                <Separator className="bg-zinc-800" />
+                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
 
                 {/* Quick Filters */}
                 <div className="space-y-4">
-                  <Label className="text-zinc-300">Filtros Rápidos</Label>
+                  <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
                   
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-zinc-300">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                    <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))]">
                       <Circle className="h-4 w-4 fill-green-500 text-green-500" />
                       Online agora
                     </Label>
@@ -284,11 +288,12 @@ const SearchPage = () => {
                       id="online-only"
                       checked={onlineOnly}
                       onCheckedChange={setOnlineOnly}
+                      className="data-[state=checked]:bg-[hsl(var(--gold-primary))]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-zinc-300">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                    <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))]">
                       <Eye className="h-4 w-4" />
                       Mostra o rosto
                     </Label>
@@ -296,6 +301,7 @@ const SearchPage = () => {
                       id="shows-face"
                       checked={showsFace}
                       onCheckedChange={setShowsFace}
+                      className="data-[state=checked]:bg-[hsl(var(--gold-primary))]"
                     />
                   </div>
                 </div>
@@ -307,21 +313,21 @@ const SearchPage = () => {
           <div className="flex-1 space-y-6">
             {/* Quick Filter Badges */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-zinc-400">Filtros ativos:</span>
+              <span className="text-sm text-[hsl(var(--dark-muted))]">Filtros ativos:</span>
               {onlineOnly && (
-                <Badge variant="default" className="bg-green-900 text-green-200 border-green-800">
+                <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
                   <Circle className="h-3 w-3 mr-1 fill-current" />
                   Online agora
                 </Badge>
               )}
               {showsFace && (
-                <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-zinc-700">
+                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
                   <Eye className="h-3 w-3 mr-1" />
                   Mostra o rosto
                 </Badge>
               )}
               {activeCategory !== 'all' && (
-                <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+                <Badge variant="outline" className="border-[hsl(var(--gold-accent))]/40 text-[hsl(var(--dark-text))]">
                   {categories.find(c => c.key === activeCategory)?.label}
                 </Badge>
               )}
@@ -329,28 +335,34 @@ const SearchPage = () => {
 
             {/* Results Header */}
             <div className="flex items-center justify-between">
-              <div className="text-white">
-                <span className="font-semibold">{filteredResults.length}</span>
-                <span className="text-zinc-400 ml-2">
+              <div className="text-[hsl(var(--dark-text))]">
+                <span className="font-semibold text-[hsl(var(--gold-primary))]">{filteredResults.length}</span>
+                <span className="text-[hsl(var(--dark-muted))] ml-2">
                   resultado{filteredResults.length !== 1 ? 's' : ''} encontrado{filteredResults.length !== 1 ? 's' : ''}
                 </span>
               </div>
               
               {/* View Toggle */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-[hsl(var(--dark-card))] p-1 rounded-lg border border-[hsl(var(--gold-accent))]/20">
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? '' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white'}
+                  className={viewMode === 'list' 
+                    ? 'bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.3]' 
+                    : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10'
+                  }
                 >
                   <List className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className={viewMode === 'grid' ? '' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white'}
+                  className={viewMode === 'grid' 
+                    ? 'bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.3]' 
+                    : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10'
+                  }
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
@@ -359,10 +371,10 @@ const SearchPage = () => {
 
             {/* Results List */}
             {loading ? (
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
                 <CardContent className="p-12 text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-zinc-400">Buscando...</p>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--gold-primary))] mx-auto mb-4"></div>
+                  <p className="text-[hsl(var(--dark-muted))]">Buscando...</p>
                 </CardContent>
               </Card>
             ) : filteredResults.length > 0 ? (
@@ -376,11 +388,11 @@ const SearchPage = () => {
                 </div>
               )
             ) : (
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
                 <CardContent className="p-12 text-center">
-                  <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2 text-white">Nenhum resultado encontrado</h3>
-                  <p className="text-zinc-400">
+                  <Search className="h-12 w-12 text-[hsl(var(--dark-muted))] mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2 text-[hsl(var(--dark-text))]">Nenhum resultado encontrado</h3>
+                  <p className="text-[hsl(var(--dark-muted))]">
                     {searchTerm.trim() 
                       ? "Tente ajustar sua busca ou explore outras categorias" 
                       : "Digite algo para começar a busca"
