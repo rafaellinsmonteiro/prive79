@@ -28,6 +28,7 @@ import { useAppointments, Appointment } from '@/hooks/useAppointments';
 import { usePayments } from '@/hooks/usePayments';
 import { ModelAppointmentForm } from './ModelAppointmentForm';
 import ModelWorkingHours from './ModelWorkingHours';
+import ModelOnlineToggle from './ModelOnlineToggle';
 
 const ModelAppointmentsList = () => {
   const { appointments, isLoading, deleteAppointment } = useAppointments();
@@ -177,6 +178,9 @@ const ModelAppointmentsList = () => {
 
   return (
     <div className="space-y-6">
+      {/* Online Status Toggle */}
+      <ModelOnlineToggle />
+      
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-3">

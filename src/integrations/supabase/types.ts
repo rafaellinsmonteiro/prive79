@@ -1196,6 +1196,47 @@ export type Database = {
           },
         ]
       }
+      model_working_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          model_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          model_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          model_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_working_hours_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       models: {
         Row: {
           "1hora": number | null
@@ -1231,8 +1272,11 @@ export type Database = {
           hotel: boolean | null
           id: string
           is_active: boolean | null
+          is_online: boolean | null
           jantar: boolean | null
           languages: string | null
+          last_status_update: string | null
+          manual_status_override: boolean | null
           motel: boolean | null
           name: string
           neighborhood: string | null
@@ -1295,8 +1339,11 @@ export type Database = {
           hotel?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_online?: boolean | null
           jantar?: boolean | null
           languages?: string | null
+          last_status_update?: string | null
+          manual_status_override?: boolean | null
           motel?: boolean | null
           name: string
           neighborhood?: string | null
@@ -1359,8 +1406,11 @@ export type Database = {
           hotel?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_online?: boolean | null
           jantar?: boolean | null
           languages?: string | null
+          last_status_update?: string | null
+          manual_status_override?: boolean | null
           motel?: boolean | null
           name?: string
           neighborhood?: string | null
@@ -2069,6 +2119,10 @@ export type Database = {
         Args: { points: number }
         Returns: number
       }
+      check_model_should_be_online: {
+        Args: { model_id_param: string }
+        Returns: boolean
+      }
       cleanup_old_typing_indicators: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2092,6 +2146,10 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      update_model_online_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       user_has_plan_access: {
         Args: { _user_id: string; _allowed_plan_ids: string[] }
