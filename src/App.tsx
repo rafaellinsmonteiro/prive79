@@ -26,6 +26,16 @@ import DesignTestClientsPage from "./pages/DesignTestClientsPage";
 import DesignTestServicesPage from "./pages/DesignTestServicesPage";
 import DesignTestUserProfile from "./pages/DesignTestUserProfile";
 import DesignTestModelDashboard from "./pages/DesignTestModelDashboard";
+import ModelV2DashboardPage from "./pages/ModelV2DashboardPage";
+import ModelV2FeedPage from "./pages/ModelV2FeedPage";
+import ModelV2ChatPage from "./pages/ModelV2ChatPage";
+import ModelV2ProfilePage from "./pages/ModelV2ProfilePage";
+import ModelV2MediaPage from "./pages/ModelV2MediaPage";
+import ModelV2AppointmentsPage from "./pages/ModelV2AppointmentsPage";
+import ModelV2ServicesPage from "./pages/ModelV2ServicesPage";
+import ModelV2ClientsPage from "./pages/ModelV2ClientsPage";
+import ModelV2ReviewsPage from "./pages/ModelV2ReviewsPage";
+import ModelV2GoalsPage from "./pages/ModelV2GoalsPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -58,7 +68,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
   const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
@@ -92,6 +102,19 @@ const AppContent = () => {
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={user ? <AdminDesignTestDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/model-dashboard" element={user ? <DesignTestModelDashboard /> : <Navigate to="/login" replace />} />
+          
+          {/* Model V2 Routes */}
+          <Route path="/v2/dashboard" element={user ? <ModelV2DashboardPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/feed" element={user ? <ModelV2FeedPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/chat" element={user ? <ModelV2ChatPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/profile" element={user ? <ModelV2ProfilePage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/media" element={user ? <ModelV2MediaPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/appointments" element={user ? <ModelV2AppointmentsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/services" element={user ? <ModelV2ServicesPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/clients" element={user ? <ModelV2ClientsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/reviews" element={user ? <ModelV2ReviewsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
+          
           <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
           <Route path="/cidade/:cityId" element={<CityPage />} />
