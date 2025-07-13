@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,10 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCurrentModel } from '@/hooks/useCurrentModel';
 
 interface OrganizedMediaManagerProps {
-  modelId: string;
+  modelId?: string;
 }
 
 const MEDIA_STAGES = [
@@ -28,7 +29,8 @@ const MEDIA_STAGES = [
   'Publicadas'
 ];
 
-const OrganizedMediaManager = ({ modelId }: OrganizedMediaManagerProps) => {
+const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerProps) => {
+  const { data: currentModel, isLoading: modelLoading, error: modelError } = useCurrentModel();
   const [activeTab, setActiveTab] = useState('photos');
   const [uploading, setUploading] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
@@ -39,6 +41,30 @@ const OrganizedMediaManager = ({ modelId }: OrganizedMediaManagerProps) => {
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  // Usar o modelId da prop ou do hook
+  const modelId = propModelId || currentModel?.model_id;
+
+  console.log('🔍 OrganizedMediaManager - modelId:', modelId);
+  console.log('🔍 OrganizedMediaManager - currentModel:', currentModel);
+  console.log('🔍 OrganizedMediaManager - modelLoading:', modelLoading);
+
+  // Se está carregando o modelo ou se não tem modelId ainda
+  if (modelLoading || !modelId) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Carregando dados do modelo...</div>
+      </div>
+    );
+  }
+
+  if (modelError) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-red-500">Erro ao carregar dados do modelo</div>
+      </div>
+    );
+  }
 
   // Buscar pastas
   const { data: folders = [] } = useQuery({
@@ -122,15 +148,27 @@ const OrganizedMediaManager = ({ modelId }: OrganizedMediaManagerProps) => {
   // Criar pasta
   const createFolderMutation = useMutation({
     mutationFn: async (name: string) => {
+      const { data: user } = await supabase.auth.getUser();
+      console.log('📁 Criando pasta:', { name, modelId, userId: user.user?.id });
+      
+      const insertData = {
+        model_id: modelId,
+        name,
+        created_by_user_id: user.user?.id
+      };
+      
+      console.log('📁 Dados para inserir:', insertData);
+      
       const { error } = await supabase
         .from('model_media_folders')
-        .insert({
-          model_id: modelId,
-          name,
-          created_by_user_id: (await supabase.auth.getUser()).data.user?.id
-        });
+        .insert(insertData);
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao criar pasta:', error);
+        throw error;
+      }
+      
+      console.log('✅ Pasta criada com sucesso');
     },
     onSuccess: () => {
       toast.success('Pasta criada com sucesso!');

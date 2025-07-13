@@ -316,7 +316,7 @@ const ModelV2MediaPage = () => {
 
         {/* Content Area - Media Manager */}
         <main className="p-4 lg:p-8 overflow-y-auto h-[calc(100vh-120px)]">
-          <OrganizedMediaManager modelId="model-1" />
+          <OrganizedMediaManager />
         </main>
       </div>
     </div>
