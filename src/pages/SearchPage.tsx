@@ -68,17 +68,24 @@ const SearchPage = () => {
 
   const renderListCard = (result: any) => {
     return (
-      <Card key={result.id} className="bg-card border-border hover:border-muted-foreground/20 transition-colors cursor-pointer">
+      <Card key={result.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer">
         <CardContent className="p-6">
           <div className="flex gap-6">
-            {/* Avatar - Increased size */}
+            {/* Photo - Full square */}
             <div className="relative">
-              <Avatar className="w-32 h-32">
-                <AvatarImage src={result.image || undefined} alt={result.title} />
-                <AvatarFallback className="bg-muted text-muted-foreground">
-                  <User className="h-16 w-16" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-32 h-32 rounded-lg overflow-hidden bg-zinc-800">
+                {result.image ? (
+                  <img 
+                    src={result.image} 
+                    alt={result.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="h-16 w-16 text-zinc-500" />
+                  </div>
+                )}
+              </div>
               {result.type === 'model' && (
                 <div className="absolute -bottom-1 -right-1">
                   <div className={`w-6 h-6 rounded-full border-2 border-background ${
@@ -92,23 +99,23 @@ const SearchPage = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-semibold text-xl truncate">{result.title}</h3>
+                  <h3 className="font-semibold text-xl truncate text-white">{result.title}</h3>
                   {result.age && (
-                    <span className="text-muted-foreground">{result.age} anos</span>
+                    <span className="text-zinc-400">{result.age} anos</span>
                   )}
                 </div>
                 {result.is_online && (
-                  <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  <Badge variant="default" className="bg-green-900 text-green-200 border-green-800">
                     Online
                   </Badge>
                 )}
               </div>
               
               {result.description && (
-                <p className="text-muted-foreground mb-4 line-clamp-3">{result.description}</p>
+                <p className="text-zinc-400 mb-4 line-clamp-3">{result.description}</p>
               )}
               
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-zinc-500">
                 {result.location && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
@@ -117,7 +124,7 @@ const SearchPage = () => {
                 )}
                 {result.is_online !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
+                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-zinc-500 text-zinc-500'}`} />
                     <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
                   </div>
                 )}
@@ -126,10 +133,10 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <Button size="sm">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
+              <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -141,17 +148,24 @@ const SearchPage = () => {
 
   const renderGridCard = (result: any) => {
     return (
-      <Card key={result.id} className="bg-card border-border hover:border-muted-foreground/20 transition-colors cursor-pointer">
+      <Card key={result.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer">
         <CardContent className="p-4">
           <div className="space-y-3">
-            {/* Avatar */}
+            {/* Photo - Full square */}
             <div className="relative mx-auto w-fit">
-              <Avatar className="w-24 h-24 mx-auto">
-                <AvatarImage src={result.image || undefined} alt={result.title} />
-                <AvatarFallback className="bg-muted text-muted-foreground">
-                  <User className="h-12 w-12" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-800 mx-auto">
+                {result.image ? (
+                  <img 
+                    src={result.image} 
+                    alt={result.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="h-12 w-12 text-zinc-500" />
+                  </div>
+                )}
+              </div>
               {result.type === 'model' && (
                 <div className="absolute -bottom-1 -right-1">
                   <div className={`w-5 h-5 rounded-full border-2 border-background ${
@@ -164,18 +178,18 @@ const SearchPage = () => {
             {/* Content */}
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <h3 className="font-semibold truncate">{result.title}</h3>
+                <h3 className="font-semibold truncate text-white">{result.title}</h3>
                 {result.is_online && (
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                 )}
               </div>
               
               {result.age && (
-                <span className="text-sm text-muted-foreground">{result.age} anos</span>
+                <span className="text-sm text-zinc-400">{result.age} anos</span>
               )}
               
               {result.location && (
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                <div className="flex items-center justify-center gap-1 text-xs text-zinc-500">
                   <MapPin className="h-3 w-3" />
                   <span className="truncate">{result.location}</span>
                 </div>
@@ -184,10 +198,10 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button size="sm" className="flex-1">
+              <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
+              <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -198,12 +212,12 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-950">
       {/* Header */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-zinc-900 border-b border-zinc-800">
         <div className="container max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold mb-2">Buscar</h1>
-          <p className="text-muted-foreground">Encontre perfis, serviços, produtos e muito mais</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Buscar</h1>
+          <p className="text-zinc-400">Encontre perfis, serviços, produtos e muito mais</p>
         </div>
       </div>
 
@@ -211,9 +225,9 @@ const SearchPage = () => {
         <div className="flex gap-6">
           {/* Sidebar */}
           <div className="w-80 flex-shrink-0">
-            <Card className="bg-card border-border sticky top-6">
+            <Card className="bg-zinc-900 border-zinc-800 sticky top-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <Search className="h-5 w-5" />
                   Filtros de Busca
                 </CardTitle>
@@ -221,24 +235,24 @@ const SearchPage = () => {
               <CardContent className="space-y-6">
                 {/* Search Input */}
                 <div className="space-y-2">
-                  <Label htmlFor="search">Buscar</Label>
+                  <Label htmlFor="search" className="text-zinc-300">Buscar</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
                     <Input
                       id="search"
                       placeholder="Digite sua busca..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     />
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="bg-zinc-800" />
 
                 {/* Categories */}
                 <div className="space-y-3">
-                  <Label>Categorias</Label>
+                  <Label className="text-zinc-300">Categorias</Label>
                   <div className="space-y-2">
                     {categories.map((category) => (
                       <Button
@@ -246,7 +260,7 @@ const SearchPage = () => {
                         variant={activeCategory === category.key ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setActiveCategory(category.key)}
-                        className="w-full justify-start"
+                        className="w-full justify-start text-zinc-300 hover:text-white hover:bg-zinc-800 data-[state=open]:bg-zinc-800"
                       >
                         <category.icon className="h-4 w-4 mr-2" />
                         {category.label}
@@ -255,14 +269,14 @@ const SearchPage = () => {
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="bg-zinc-800" />
 
                 {/* Quick Filters */}
                 <div className="space-y-4">
-                  <Label>Filtros Rápidos</Label>
+                  <Label className="text-zinc-300">Filtros Rápidos</Label>
                   
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer">
+                    <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-zinc-300">
                       <Circle className="h-4 w-4 fill-green-500 text-green-500" />
                       Online agora
                     </Label>
@@ -274,7 +288,7 @@ const SearchPage = () => {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer">
+                    <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-zinc-300">
                       <Eye className="h-4 w-4" />
                       Mostra o rosto
                     </Label>
@@ -293,21 +307,21 @@ const SearchPage = () => {
           <div className="flex-1 space-y-6">
             {/* Quick Filter Badges */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+              <span className="text-sm text-zinc-400">Filtros ativos:</span>
               {onlineOnly && (
-                <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <Badge variant="default" className="bg-green-900 text-green-200 border-green-800">
                   <Circle className="h-3 w-3 mr-1 fill-current" />
                   Online agora
                 </Badge>
               )}
               {showsFace && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-zinc-700">
                   <Eye className="h-3 w-3 mr-1" />
                   Mostra o rosto
                 </Badge>
               )}
               {activeCategory !== 'all' && (
-                <Badge variant="outline">
+                <Badge variant="outline" className="border-zinc-700 text-zinc-300">
                   {categories.find(c => c.key === activeCategory)?.label}
                 </Badge>
               )}
@@ -315,9 +329,9 @@ const SearchPage = () => {
 
             {/* Results Header */}
             <div className="flex items-center justify-between">
-              <div>
+              <div className="text-white">
                 <span className="font-semibold">{filteredResults.length}</span>
-                <span className="text-muted-foreground ml-2">
+                <span className="text-zinc-400 ml-2">
                   resultado{filteredResults.length !== 1 ? 's' : ''} encontrado{filteredResults.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -328,6 +342,7 @@ const SearchPage = () => {
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
+                  className={viewMode === 'list' ? '' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white'}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -335,6 +350,7 @@ const SearchPage = () => {
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
+                  className={viewMode === 'grid' ? '' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white'}
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
@@ -343,10 +359,10 @@ const SearchPage = () => {
 
             {/* Results List */}
             {loading ? (
-              <Card className="bg-card border-border">
+              <Card className="bg-zinc-900 border-zinc-800">
                 <CardContent className="p-12 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Buscando...</p>
+                  <p className="text-zinc-400">Buscando...</p>
                 </CardContent>
               </Card>
             ) : filteredResults.length > 0 ? (
@@ -360,11 +376,11 @@ const SearchPage = () => {
                 </div>
               )
             ) : (
-              <Card className="bg-card border-border">
+              <Card className="bg-zinc-900 border-zinc-800">
                 <CardContent className="p-12 text-center">
-                  <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Nenhum resultado encontrado</h3>
-                  <p className="text-muted-foreground">
+                  <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2 text-white">Nenhum resultado encontrado</h3>
+                  <p className="text-zinc-400">
                     {searchTerm.trim() 
                       ? "Tente ajustar sua busca ou explore outras categorias" 
                       : "Digite algo para começar a busca"
