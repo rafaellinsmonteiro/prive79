@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, MessageSquare, Calendar, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, Star, Heart, BarChart3, PlusCircle, Filter, Download, Zap, Menu, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Calendar, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, Star, Heart, BarChart3, PlusCircle, Filter, Download, Zap, Menu, DollarSign, Clock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { PendingReviewsPanel } from '@/components/reviews/PendingReviewsPanel';
+import { PriveTrustPanel } from '@/components/reviews/PriveTrustPanel';
+import { useReviews } from '@/hooks/useReviews';
+import { usePriveTrust } from '@/hooks/usePriveTrust';
 
 const DesignTestPage = () => {
   const isMobile = useIsMobile();
@@ -16,6 +21,13 @@ const DesignTestPage = () => {
   const [isDark, setIsDark] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Reviews data
+  const { pendingReviews, myReviews } = useReviews();
+  const { getPriveTrustProgress, getLevelInfo } = usePriveTrust();
+
+  const priveTrustProgress = getPriveTrustProgress();
+  const levelInfo = getLevelInfo();
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -59,27 +71,39 @@ const DesignTestPage = () => {
     id: 'logout'
   }];
 
-  const stats = [{
-    label: 'Receita Total',
-    value: 'R$ 45.280',
-    change: '+12.5%',
-    icon: DollarSign
-  }, {
-    label: 'Novos Clientes',
-    value: '156',
-    change: '+8.2%',
-    icon: Users
-  }, {
-    label: 'Agendamentos',
-    value: '89',
-    change: '+15.3%',
-    icon: Calendar
-  }, {
-    label: 'Avaliação Média',
-    value: '4.8',
-    change: '+0.3',
-    icon: Star
-  }];
+  // Estatísticas de reviews
+  const stats = [
+    {
+      title: 'Avaliações Pendentes',
+      value: pendingReviews.length,
+      icon: Clock,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+    },
+    {
+      title: 'Avaliações Enviadas',
+      value: myReviews.length,
+      icon: Star,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+    },
+    {
+      title: 'Nível Atual',
+      value: levelInfo?.currentLevel || 1,
+      icon: TrendingUp,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100 dark:bg-green-900/20',
+    },
+    {
+      title: 'Status Prive Trust',
+      value: priveTrustProgress?.hasPriveTrust ? 'Conquistado' : 'Em Progresso',
+      icon: Shield,
+      color: priveTrustProgress?.hasPriveTrust ? 'text-green-600' : 'text-gray-600',
+      bgColor: priveTrustProgress?.hasPriveTrust ? 
+        'bg-green-100 dark:bg-green-900/20' : 
+        'bg-gray-100 dark:bg-gray-900/20',
+    },
+  ];
 
   return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
       {/* Mobile Overlay */}
@@ -241,10 +265,10 @@ const DesignTestPage = () => {
               
               <div>
                 <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
-                  Dashboard
+                  Reviews
                 </h1>
                 <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
-                  Bem-vindo de volta! Aqui está o resumo da sua plataforma.
+                  Gerencie suas avaliações e acompanhe seu progresso na comunidade Prive
                 </p>
               </div>
             </div>
@@ -276,96 +300,109 @@ const DesignTestPage = () => {
         <main className="p-4 lg:p-8 overflow-y-auto">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-            {stats.map((stat, index) => (
-              <Card key={index} className="bg-card border-border hover:shadow-lg transition-all duration-200 group">
-                <CardContent className="p-3 lg:p-6">
-                  <div className="flex items-center justify-between">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={stat.title} className="bg-card border-border hover:shadow-lg transition-all duration-200 group">
+                  <CardContent className="flex items-center p-3 lg:p-6">
+                    <div className={`rounded-full p-2 ${stat.bgColor} mr-2 lg:mr-4 group-hover:scale-110 transition-transform duration-200`}>
+                      <Icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs lg:text-sm text-muted-foreground mb-1 truncate">{stat.label}</p>
+                      <p className="text-xs lg:text-sm font-medium text-muted-foreground truncate">
+                        {stat.title}
+                      </p>
                       <p className="text-lg lg:text-2xl font-bold text-foreground truncate">{stat.value}</p>
-                      <p className="text-xs lg:text-sm text-primary font-medium">{stat.change}</p>
                     </div>
-                    <div className="p-2 lg:p-3 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl group-hover:scale-110 transition-transform duration-200 ml-2">
-                      <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-primary" />
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Reviews Content */}
+          <Tabs defaultValue="pending" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
+              <TabsTrigger value="pending" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">Pendentes</span>
+                <span className="sm:hidden">Pend</span>
+              </TabsTrigger>
+              <TabsTrigger value="prive-trust" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Prive Trust</span>
+                <span className="sm:hidden">Trust</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Star className="h-4 w-4" />
+                <span className="hidden sm:inline">Histórico</span>
+                <span className="sm:hidden">Hist</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pending">
+              <PendingReviewsPanel />
+            </TabsContent>
+
+            <TabsContent value="prive-trust">
+              <PriveTrustPanel />
+            </TabsContent>
+
+            <TabsContent value="history">
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground">Histórico de Avaliações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {myReviews.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="font-semibold text-lg mb-2 text-foreground">Nenhuma avaliação enviada</h3>
+                      <p className="text-muted-foreground">
+                        Suas avaliações aparecerão aqui após serem enviadas
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {myReviews.map((review) => (
+                        <Card key={review.id} className="border-l-4 border-l-primary bg-card">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex items-center">
+                                    {Array.from({ length: 5 }, (_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < review.overall_rating
+                                            ? 'text-yellow-400 fill-current'
+                                            : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">
+                                    {new Date(review.created_at).toLocaleDateString('pt-BR')}
+                                  </span>
+                                </div>
+                                <p className="text-sm line-clamp-2 text-foreground">{review.description}</p>
+                                {review.status === 'pending_publication' && (
+                                  <p className="text-xs text-orange-600">
+                                    ⏳ Será publicada em 24h
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
-
-          {/* Main Dashboard Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
-            {/* Chart Card */}
-            <Card className="lg:col-span-2 bg-card border-border">
-              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="text-foreground text-lg lg:text-xl">Análise de Performance</CardTitle>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="border-border flex-1 sm:flex-none">
-                    <Filter className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                    <span className="text-xs lg:text-sm">Filtro</span>
-                  </Button>
-                  <Button variant="outline" size="sm" className="border-border flex-1 sm:flex-none">
-                    <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                    <span className="text-xs lg:text-sm">Export</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-60 lg:h-80 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl flex items-center justify-center">
-                  <div className="text-center">
-                    <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-primary mx-auto mb-4" />
-                    <p className="text-sm lg:text-base text-muted-foreground">Gráfico de análise seria exibido aqui</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Activity Card */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2 text-lg lg:text-xl">
-                  <Star className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
-                  Atividade Recente
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[{
-                  user: 'Maria Silva',
-                  action: 'agendou um encontro',
-                  time: '2 min atrás'
-                }, {
-                  user: 'João Santos',
-                  action: 'enviou uma mensagem',
-                  time: '5 min atrás'
-                }, {
-                  user: 'Ana Costa',
-                  action: 'atualizou o perfil',
-                  time: '10 min atrás'
-                }, {
-                  user: 'Pedro Lima',
-                  action: 'fez um pagamento',
-                  time: '15 min atrás'
-                }].map((activity, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2 lg:p-3 rounded-lg hover:bg-accent transition-colors duration-200">
-                      <Avatar className="w-6 h-6 lg:w-8 lg:h-8">
-                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/30 text-xs">
-                          {activity.user.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs lg:text-sm text-foreground truncate">
-                          <span className="font-medium">{activity.user}</span> {activity.action}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>;

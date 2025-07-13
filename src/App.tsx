@@ -149,14 +149,12 @@ const AppContent = () => {
             } 
           />
           <Route path="/buscar" element={<SearchPage />} />
-        <Route path="/design-test" element={<DesignTestPage />} />
-        <Route path="/design-test/models" element={<DesignTestModelsPage />} />
-          
           {/* Design Test Pages */}
+          <Route path="/design-test" element={<DesignTestPage />} />
           <Route path="/design-test/dashboard" element={<DesignTestPage />} />
           <Route path="/design-test/models" element={<DesignTestModelsPage />} />
-              <Route path="/design-test/services" element={<DesignTestServicesPage />} />
-              <Route path="/design-test/clients" element={<DesignTestClientsPage />} />
+          <Route path="/design-test/services" element={<DesignTestServicesPage />} />
+          <Route path="/design-test/clients" element={<DesignTestClientsPage />} />
           <Route path="/design-test/appointments" element={<DesignTestAppointmentsPage />} />
           <Route path="/design-test/reviews" element={<DesignTestPage />} />
           <Route path="/design-test/gallery" element={<DesignTestPage />} />
