@@ -1036,6 +1036,31 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             </CardTitle>
             
             <div className="flex items-center gap-2">
+              {/* Botão Selecionar */}
+              <Button
+                variant={bulkActionMode ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setBulkActionMode(!bulkActionMode);
+                  if (bulkActionMode) {
+                    clearSelection();
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                {bulkActionMode ? (
+                  <>
+                    <X className="h-4 w-4" />
+                    Cancelar
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="h-4 w-4" />
+                    Selecionar
+                  </>
+                )}
+              </Button>
+
               {/* Toggle de visualização */}
               <div className="flex items-center border rounded-lg p-1">
                 <Button
