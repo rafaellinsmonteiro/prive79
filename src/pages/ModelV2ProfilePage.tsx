@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Camera, MessageSquare, User, Image, Calendar, Star, Users, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, PlusCircle, Menu } from 'lucide-react';
+import { LayoutDashboard, Camera, MessageSquare, User, Image, Calendar, Star, Users, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ModelProfileManager from '@/components/model/ModelProfileManager';
 import { useModelProfile } from '@/hooks/useModelProfile';
+import V2Header from '@/components/V2Header';
 
 const ModelV2ProfilePage = () => {
   const isMobile = useIsMobile();
@@ -267,53 +267,11 @@ const ModelV2ProfilePage = () => {
 
       {/* Main Content */}
       <div className={`flex-1 bg-background overflow-hidden ${isMobile ? 'w-full' : ''}`}>
-        {/* Header */}
-        <header className="bg-card border-b border-border px-4 lg:px-8 py-4 lg:py-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Mobile Menu Button */}
-              {isMobile && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 hover:bg-accent"
-                >
-                  <Menu className="w-5 h-5 text-muted-foreground" />
-                </Button>
-              )}
-              
-              <div>
-                <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
-                  Perfil
-                </h1>
-                <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
-                  Gerencie suas informações pessoais e profissionais.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 lg:gap-4">
-              <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent">
-                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
-              </Button>
-              
-              <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-border">
-                <Avatar className="w-8 h-8 lg:w-10 lg:h-10 ring-2 ring-primary/20">
-                  <AvatarImage src="/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs lg:text-sm">
-                    MG
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-xs lg:text-sm hidden sm:block">
-                  <div className="font-semibold text-foreground">Maria Garcia</div>
-                  <div className="text-muted-foreground">Modelo</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <V2Header 
+          title="Perfil"
+          subtitle="Gerencie suas informações pessoais e profissionais."
+          onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        />
 
         {/* Content Area - Profile Manager */}
         <main className="p-4 lg:p-8 overflow-y-auto h-[calc(100vh-120px)]">
