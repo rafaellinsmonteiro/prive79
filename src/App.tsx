@@ -36,6 +36,7 @@ import ModelV2ServicesPage from "./pages/ModelV2ServicesPage";
 import ModelV2ClientsPage from "./pages/ModelV2ClientsPage";
 import ModelV2ReviewsPage from "./pages/ModelV2ReviewsPage";
 import ModelV2GoalsPage from "./pages/ModelV2GoalsPage";
+import ComponentsDocumentationPage from "./pages/ComponentsDocumentationPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -118,6 +119,7 @@ const AppContent = () => {
           <Route path="/v2/clients" element={user ? <ModelV2ClientsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/reviews" element={user ? <ModelV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/components-documentation" element={user ? <ComponentsDocumentationPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
