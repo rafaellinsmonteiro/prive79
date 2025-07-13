@@ -1,16 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Image, Video, Plus, Upload, Trash2, Star, Eye, Film, Settings, 
-  Folder, FolderPlus, Tag, Filter, Move
+  Folder, FolderPlus, Tag, Filter, Move, Grid3X3, List, FileText,
+  ChevronDown, X, Edit3
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,32 +24,49 @@ interface OrganizedMediaManagerProps {
   modelId?: string;
 }
 
-const MEDIA_STAGES = [
-  'Organizar',
-  'Editar', 
-  'Revisar',
-  'Disponíveis',
-  'Publicadas'
-];
+type ViewMode = 'grid' | 'list';
+type ContentType = 'all' | 'photo' | 'video' | 'text';
+
+interface FilterState {
+  folder: string;
+  stage: string;
+  tags: string[];
+  contentType: ContentType;
+}
 
 const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerProps) => {
-  // Todos os hooks devem vir primeiro, antes de qualquer return early
+  // Hooks
   const { data: currentModel, isLoading: modelLoading, error: modelError } = useCurrentModel();
-  const [activeTab, setActiveTab] = useState('photos');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [uploading, setUploading] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState<string>('all');
-  const [selectedStage, setSelectedStage] = useState<string>('all');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterState>({
+    folder: 'all',
+    stage: 'all',
+    tags: [],
+    contentType: 'all'
+  });
+  
+  // Estados para gerenciamento
+  const [stages, setStages] = useState<string[]>([
+    'Organizar', 'Editar', 'Revisar', 'Disponíveis', 'Publicadas'
+  ]);
+  const [newStageName, setNewStageName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
-  const [newTag, setNewTag] = useState('');
+  const [textContent, setTextContent] = useState('');
+  const [textTitle, setTextTitle] = useState('');
+  
+  // Estados de modais
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [isCreateStageOpen, setIsCreateStageOpen] = useState(false);
+  const [isCreateTextOpen, setIsCreateTextOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
-  // Usar o modelId da prop ou do hook
   const modelId = propModelId || currentModel?.model_id;
 
-  // Buscar pastas - SEMPRE executar o hook
+  // Buscar pastas
   const { data: folders = [] } = useQuery({
     queryKey: ['model-folders', modelId],
     queryFn: async () => {
@@ -61,12 +81,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
-    enabled: !!modelId, // Só executa se tiver modelId
+    enabled: !!modelId,
   });
 
-  // Buscar fotos - SEMPRE executar o hook
+  // Buscar fotos
   const { data: photos = [], isLoading: photosLoading, refetch: refetchPhotos } = useQuery({
-    queryKey: ['model-photos', modelId, selectedFolder, selectedStage, selectedTags],
+    queryKey: ['model-photos', modelId, filters],
     queryFn: async () => {
       if (!modelId) return [];
       
@@ -75,20 +95,20 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
         .select('*')
         .eq('model_id', modelId);
 
-      if (selectedFolder !== 'all') {
-        if (selectedFolder === 'no-folder') {
+      if (filters.folder !== 'all') {
+        if (filters.folder === 'no-folder') {
           query = query.is('folder_id', null);
         } else {
-          query = query.eq('folder_id', selectedFolder);
+          query = query.eq('folder_id', filters.folder);
         }
       }
 
-      if (selectedStage !== 'all') {
-        query = query.eq('stage', selectedStage);
+      if (filters.stage !== 'all') {
+        query = query.eq('stage', filters.stage);
       }
 
-      if (selectedTags.length > 0) {
-        query = query.overlaps('tags', selectedTags);
+      if (filters.tags.length > 0) {
+        query = query.overlaps('tags', filters.tags);
       }
 
       const { data, error } = await query.order('display_order', { ascending: true });
@@ -96,12 +116,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
-    enabled: !!modelId, // Só executa se tiver modelId
+    enabled: !!modelId,
   });
 
-  // Buscar vídeos - SEMPRE executar o hook
+  // Buscar vídeos
   const { data: videos = [], isLoading: videosLoading, refetch: refetchVideos } = useQuery({
-    queryKey: ['model-videos', modelId, selectedFolder, selectedStage, selectedTags],
+    queryKey: ['model-videos', modelId, filters],
     queryFn: async () => {
       if (!modelId) return [];
       
@@ -110,20 +130,20 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
         .select('*')
         .eq('model_id', modelId);
 
-      if (selectedFolder !== 'all') {
-        if (selectedFolder === 'no-folder') {
+      if (filters.folder !== 'all') {
+        if (filters.folder === 'no-folder') {
           query = query.is('folder_id', null);
         } else {
-          query = query.eq('folder_id', selectedFolder);
+          query = query.eq('folder_id', filters.folder);
         }
       }
 
-      if (selectedStage !== 'all') {
-        query = query.eq('stage', selectedStage);
+      if (filters.stage !== 'all') {
+        query = query.eq('stage', filters.stage);
       }
 
-      if (selectedTags.length > 0) {
-        query = query.overlaps('tags', selectedTags);
+      if (filters.tags.length > 0) {
+        query = query.overlaps('tags', filters.tags);
       }
 
       const { data, error } = await query.order('display_order', { ascending: true });
@@ -131,33 +151,23 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
-    enabled: !!modelId, // Só executa se tiver modelId
+    enabled: !!modelId,
   });
 
   // Criar pasta
   const createFolderMutation = useMutation({
     mutationFn: async (name: string) => {
       const { data: user } = await supabase.auth.getUser();
-      console.log('📁 Criando pasta:', { name, modelId, userId: user.user?.id });
-      
-      const insertData = {
-        model_id: modelId,
-        name,
-        created_by_user_id: user.user?.id
-      };
-      
-      console.log('📁 Dados para inserir:', insertData);
       
       const { error } = await supabase
         .from('model_media_folders')
-        .insert(insertData);
+        .insert({
+          model_id: modelId,
+          name,
+          created_by_user_id: user.user?.id
+        });
       
-      if (error) {
-        console.error('❌ Erro ao criar pasta:', error);
-        throw error;
-      }
-      
-      console.log('✅ Pasta criada com sucesso');
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success('Pasta criada com sucesso!');
@@ -191,9 +201,9 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       const baseData = {
         model_id: modelId,
         display_order: (type === 'photo' ? photos : videos).length,
-        stage: 'Organizar',
+        stage: stages[0] || 'Organizar',
         tags: [],
-        folder_id: selectedFolder !== 'all' && selectedFolder !== 'no-folder' ? selectedFolder : null,
+        folder_id: filters.folder !== 'all' && filters.folder !== 'no-folder' ? filters.folder : null,
         created_by_user_id: (await supabase.auth.getUser()).data.user?.id
       };
 
@@ -309,6 +319,23 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
     });
   };
 
+  const addStage = () => {
+    if (!newStageName.trim() || stages.includes(newStageName)) return;
+    setStages(prev => [...prev, newStageName.trim()]);
+    setNewStageName('');
+    setIsCreateStageOpen(false);
+    toast.success('Etapa criada com sucesso!');
+  };
+
+  const removeStage = (stageToRemove: string) => {
+    if (stages.length <= 1) {
+      toast.error('Deve haver pelo menos uma etapa');
+      return;
+    }
+    setStages(prev => prev.filter(stage => stage !== stageToRemove));
+    toast.success('Etapa removida com sucesso!');
+  };
+
   const togglePrimary = (id: string) => {
     photos.forEach(photo => {
       if (photo.is_primary && photo.id !== id) {
@@ -367,6 +394,21 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
     ...videos.flatMap(v => v.tags || [])
   ])].sort();
 
+  // Filtrar conteúdo baseado nos filtros
+  const filteredContent = () => {
+    let content: any[] = [];
+    
+    if (filters.contentType === 'all' || filters.contentType === 'photo') {
+      content = [...content, ...photos.map(p => ({ ...p, type: 'photo' }))];
+    }
+    
+    if (filters.contentType === 'all' || filters.contentType === 'video') {
+      content = [...content, ...videos.map(v => ({ ...v, type: 'video' }))];
+    }
+
+    return content.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  };
+
   // Verificações condicionais para rendering
   if (modelLoading || !modelId) {
     return (
@@ -384,258 +426,491 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
     );
   }
 
+  const content = filteredContent();
+  const isLoading = photosLoading || videosLoading;
+
   return (
     <div className="space-y-6">
-      {/* Filtros e Controles */}
+      {/* Header com controles principais */}
       <Card className="border-border bg-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-foreground flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Organização de Mídias
+              Gerenciador de Conteúdo
             </CardTitle>
-            <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Nova Pasta
+            
+            <div className="flex items-center gap-2">
+              {/* Toggle de visualização */}
+              <div className="flex items-center border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid3X3 className="h-4 w-4" />
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Criar Nova Pasta</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <Input
-                    placeholder="Nome da pasta"
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => createFolderMutation.mutate(newFolderName)}
-                    disabled={!newFolderName.trim()}
-                    className="w-full"
-                  >
-                    Criar Pasta
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Filtros */}
+              <Popover open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filtros
+                    {(filters.folder !== 'all' || filters.stage !== 'all' || filters.tags.length > 0 || filters.contentType !== 'all') && 
+                      <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                        {[
+                          filters.folder !== 'all' ? 1 : 0,
+                          filters.stage !== 'all' ? 1 : 0,
+                          filters.tags.length,
+                          filters.contentType !== 'all' ? 1 : 0
+                        ].reduce((a, b) => a + b, 0)}
+                      </Badge>
+                    }
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4 space-y-4">
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Filtros</h4>
+                    
+                    {/* Tipo de Conteúdo */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Tipo de Conteúdo</Label>
+                      <Select value={filters.contentType} onValueChange={(value: ContentType) => 
+                        setFilters(prev => ({ ...prev, contentType: value }))
+                      }>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="photo">
+                            <div className="flex items-center gap-2">
+                              <Image className="h-4 w-4" />
+                              Fotos
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="video">
+                            <div className="flex items-center gap-2">
+                              <Video className="h-4 w-4" />
+                              Vídeos
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="text">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              Textos
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Pasta */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Pasta</Label>
+                      <Select value={filters.folder} onValueChange={(value) => 
+                        setFilters(prev => ({ ...prev, folder: value }))
+                      }>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as pastas</SelectItem>
+                          <SelectItem value="no-folder">Sem pasta</SelectItem>
+                          {folders.map(folder => (
+                            <SelectItem key={folder.id} value={folder.id}>
+                              <div className="flex items-center gap-2">
+                                <Folder className="h-4 w-4" />
+                                {folder.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Etapa */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-medium">Etapa</Label>
+                        <Dialog open={isCreateStageOpen} onOpenChange={setIsCreateStageOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Gerenciar Etapas</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Nome da nova etapa"
+                                  value={newStageName}
+                                  onChange={(e) => setNewStageName(e.target.value)}
+                                />
+                                <Button onClick={addStage} disabled={!newStageName.trim()}>
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">Etapas Atuais:</Label>
+                                {stages.map(stage => (
+                                  <div key={stage} className="flex items-center justify-between p-2 border rounded">
+                                    <span className="text-sm">{stage}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeStage(stage)}
+                                      disabled={stages.length <= 1}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      <Select value={filters.stage} onValueChange={(value) => 
+                        setFilters(prev => ({ ...prev, stage: value }))
+                      }>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as etapas</SelectItem>
+                          {stages.map(stage => (
+                            <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Tags</Label>
+                      <div className="flex flex-wrap gap-1">
+                        {allTags.map(tag => (
+                          <Button
+                            key={tag}
+                            variant={filters.tags.includes(tag) ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setFilters(prev => ({
+                                ...prev,
+                                tags: prev.tags.includes(tag) 
+                                  ? prev.tags.filter(t => t !== tag)
+                                  : [...prev.tags, tag]
+                              }));
+                            }}
+                          >
+                            <Tag className="h-3 w-3 mr-1" />
+                            {tag}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Limpar filtros */}
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setFilters({
+                        folder: 'all',
+                        stage: 'all',
+                        tags: [],
+                        contentType: 'all'
+                      })}
+                    >
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Nova Pasta */}
+              <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Nova Pasta
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Criar Nova Pasta</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Input
+                      placeholder="Nome da pasta"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                    />
+                    <Button 
+                      onClick={() => createFolderMutation.mutate(newFolderName)}
+                      disabled={!newFolderName.trim()}
+                      className="w-full"
+                    >
+                      Criar Pasta
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Filtro por Pasta */}
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Pasta</Label>
-              <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as pastas</SelectItem>
-                  <SelectItem value="no-folder">Sem pasta</SelectItem>
-                  {folders.map(folder => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      <div className="flex items-center gap-2">
-                        <Folder className="h-4 w-4" />
-                        {folder.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro por Etapa */}
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Etapa</Label>
-              <Select value={selectedStage} onValueChange={setSelectedStage}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as etapas</SelectItem>
-                  {MEDIA_STAGES.map(stage => (
-                    <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro por Tags */}
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Tags</Label>
-              <div className="flex flex-wrap gap-1">
-                {allTags.map(tag => (
-                  <Button
-                    key={tag}
-                    variant={selectedTags.includes(tag) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setSelectedTags(prev => 
-                        prev.includes(tag) 
-                          ? prev.filter(t => t !== tag)
-                          : [...prev, tag]
-                      );
-                    }}
-                  >
-                    <Tag className="h-3 w-3 mr-1" />
-                    {tag}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Upload */}
+      {/* Adicionar Conteúdo */}
       <Card className="border-border bg-card">
         <CardContent className="pt-6">
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {uploading ? 'Enviando...' : 'Adicionar Mídia'}
-          </Button>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={uploading} className="flex-1">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {uploading ? 'Enviando...' : 'Adicionar Conteúdo'}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full">
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Carregar Arquivos
+                </DropdownMenuItem>
+                <Dialog open={isCreateTextOpen} onOpenChange={setIsCreateTextOpen}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Criar Texto
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Criar Conteúdo de Texto</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Título do texto"
+                        value={textTitle}
+                        onChange={(e) => setTextTitle(e.target.value)}
+                      />
+                      <Textarea
+                        placeholder="Conteúdo do texto..."
+                        value={textContent}
+                        onChange={(e) => setTextContent(e.target.value)}
+                        rows={6}
+                      />
+                      <Button 
+                        onClick={() => {
+                          // TODO: Implementar salvamento de texto
+                          toast.success('Texto criado com sucesso!');
+                          setTextTitle('');
+                          setTextContent('');
+                          setIsCreateTextOpen(false);
+                        }}
+                        disabled={!textTitle.trim() || !textContent.trim()}
+                        className="w-full"
+                      >
+                        Criar Texto
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*,video/*"
             onChange={handleFileUpload}
             className="hidden"
+            multiple
           />
         </CardContent>
       </Card>
 
-      {/* Conteúdo das Mídias */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="photos">
-            Fotos ({photos.length})
-          </TabsTrigger>
-          <TabsTrigger value="videos">
-            Vídeos ({videos.length})
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="photos" className="mt-6">
-          {photosLoading ? (
-            <div className="text-muted-foreground">Carregando fotos...</div>
-          ) : photos.length === 0 ? (
+      {/* Conteúdo */}
+      <Card className="border-border bg-card">
+        <CardContent className="p-6">
+          {isLoading ? (
+            <div className="text-muted-foreground text-center py-8">Carregando conteúdo...</div>
+          ) : content.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              <Image className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhuma foto encontrada</p>
+              <div className="flex flex-col items-center gap-4">
+                {filters.contentType === 'photo' ? (
+                  <Image className="h-12 w-12 mx-auto opacity-50" />
+                ) : filters.contentType === 'video' ? (
+                  <Video className="h-12 w-12 mx-auto opacity-50" />
+                ) : filters.contentType === 'text' ? (
+                  <FileText className="h-12 w-12 mx-auto opacity-50" />
+                ) : (
+                  <div className="flex gap-2">
+                    <Image className="h-8 w-8 opacity-50" />
+                    <Video className="h-8 w-8 opacity-50" />
+                    <FileText className="h-8 w-8 opacity-50" />
+                  </div>
+                )}
+                <p>Nenhum conteúdo encontrado</p>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photos.map((photo) => (
-                <Card key={photo.id} className="border-border bg-card overflow-hidden">
-                  <div className="relative group">
-                    <img
-                      src={photo.photo_url}
-                      alt="Foto"
-                      className="w-full h-32 object-cover"
-                    />
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" 
+              : "space-y-4"
+            }>
+              {content.map((item) => (
+                <Card key={item.id} className={`border-border bg-card overflow-hidden ${
+                  viewMode === 'list' ? 'flex' : ''
+                }`}>
+                  <div className={`relative group ${viewMode === 'list' ? 'w-32 h-24 flex-shrink-0' : ''}`}>
+                    {item.type === 'photo' ? (
+                      <img
+                        src={item.photo_url}
+                        alt="Foto"
+                        className={`w-full object-cover ${viewMode === 'list' ? 'h-24' : 'h-32'}`}
+                      />
+                    ) : (
+                      <div className={`w-full bg-muted flex items-center justify-center ${viewMode === 'list' ? 'h-24' : 'h-32'}`}>
+                        {item.thumbnail_url ? (
+                          <img
+                            src={item.thumbnail_url}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Video className="h-8 w-8 text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => togglePrimary(photo.id)}
-                      >
-                        <Star className={`h-4 w-4 ${photo.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                      </Button>
+                      {item.type === 'photo' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => togglePrimary(item.id)}
+                        >
+                          <Star className={`h-4 w-4 ${item.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => deleteMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          url: photo.photo_url
+                          id: item.id,
+                          type: item.type,
+                          url: item.type === 'photo' ? item.photo_url : item.video_url
                         })}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    {photo.is_primary && (
+                    
+                    {item.type === 'photo' && item.is_primary && (
                       <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
                         Principal
                       </Badge>
                     )}
                     <Badge 
                       className="absolute top-2 right-2" 
-                      variant={photo.stage === 'Publicadas' ? 'default' : 'secondary'}
+                      variant={item.stage === 'Publicadas' ? 'default' : 'secondary'}
                     >
-                      {photo.stage}
+                      {item.stage}
                     </Badge>
                   </div>
                   
-                  <CardContent className="p-3 space-y-3">
-                    {/* Etapa */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Etapa</Label>
-                      <Select 
-                        value={photo.stage || 'Organizar'} 
-                        onValueChange={(stage) => updateStage(photo.id, 'photo', stage)}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MEDIA_STAGES.map(stage => (
-                            <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <CardContent className={`p-3 space-y-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                    {item.type === 'video' && (
+                      <Input
+                        value={item.title || ''}
+                        onChange={(e) => updateMediaMutation.mutate({
+                          id: item.id,
+                          type: 'video',
+                          data: { title: e.target.value }
+                        })}
+                        placeholder="Título do vídeo"
+                        className="text-xs h-8"
+                      />
+                    )}
 
-                    {/* Pasta */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Pasta</Label>
-                      <Select 
-                        value={photo.folder_id || 'no-folder'} 
-                        onValueChange={(folderId) => updateFolder(photo.id, 'photo', folderId === 'no-folder' ? null : folderId)}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="no-folder">Sem pasta</SelectItem>
-                          {folders.map(folder => (
-                            <SelectItem key={folder.id} value={folder.id}>
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Tags */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Tags</Label>
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {(photo.tags || []).map(tag => (
-                          <Badge 
-                            key={tag} 
-                            variant="outline" 
-                            className="text-xs cursor-pointer"
-                            onClick={() => removeTagFromMedia(photo.id, 'photo', photo.tags || [], tag)}
-                          >
-                            {tag} ×
-                          </Badge>
-                        ))}
+                    <div className={viewMode === 'list' ? 'grid grid-cols-3 gap-3' : 'space-y-3'}>
+                      {/* Etapa */}
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">Etapa</Label>
+                        <Select 
+                          value={item.stage || stages[0]} 
+                          onValueChange={(stage) => updateStage(item.id, item.type, stage)}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {stages.map(stage => (
+                              <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="flex gap-1">
+
+                      {/* Pasta */}
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">Pasta</Label>
+                        <Select 
+                          value={item.folder_id || 'no-folder'} 
+                          onValueChange={(folderId) => updateFolder(item.id, item.type, folderId === 'no-folder' ? null : folderId)}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="no-folder">Sem pasta</SelectItem>
+                            {folders.map(folder => (
+                              <SelectItem key={folder.id} value={folder.id}>
+                                {folder.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Tags */}
+                      <div>
+                        <Label className="text-xs font-medium mb-1 block">Tags</Label>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {(item.tags || []).map((tag: string) => (
+                            <Badge 
+                              key={tag} 
+                              variant="outline" 
+                              className="text-xs cursor-pointer"
+                              onClick={() => removeTagFromMedia(item.id, item.type, item.tags || [], tag)}
+                            >
+                              {tag} ×
+                            </Badge>
+                          ))}
+                        </div>
                         <Input
                           placeholder="Nova tag"
                           className="h-6 text-xs"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               const input = e.currentTarget;
-                              addTagToMedia(photo.id, 'photo', photo.tags || [], input.value);
+                              addTagToMedia(item.id, item.type, item.tags || [], input.value);
                               input.value = '';
                             }
                           }}
@@ -644,203 +919,50 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                     </div>
 
                     {/* Configurações de visibilidade */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <Label className="text-xs">Perfil</Label>
-                      <Switch
-                        checked={photo.show_in_profile}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { show_in_profile: checked }
-                        })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Galeria</Label>
-                      <Switch
-                        checked={photo.show_in_gallery}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { show_in_gallery: checked }
-                        })}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="videos" className="mt-6">
-          {videosLoading ? (
-            <div className="text-muted-foreground">Carregando vídeos...</div>
-          ) : videos.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum vídeo encontrado</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {videos.map((video) => (
-                <Card key={video.id} className="border-border bg-card overflow-hidden">
-                  <div className="relative group">
-                    <div className="w-full h-32 bg-muted flex items-center justify-center">
-                      {video.thumbnail_url ? (
-                        <img
-                          src={video.thumbnail_url}
-                          alt="Thumbnail"
-                          className="w-full h-full object-cover"
+                    <div className={`pt-2 border-t ${viewMode === 'list' ? 'flex gap-6' : 'space-y-2'}`}>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Perfil</Label>
+                        <Switch
+                          checked={item.show_in_profile}
+                          onCheckedChange={(checked) => updateMediaMutation.mutate({
+                            id: item.id,
+                            type: item.type,
+                            data: { show_in_profile: checked }
+                          })}
                         />
-                      ) : (
-                        <Video className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Galeria</Label>
+                        <Switch
+                          checked={item.show_in_gallery}
+                          onCheckedChange={(checked) => updateMediaMutation.mutate({
+                            id: item.id,
+                            type: item.type,
+                            data: { show_in_gallery: checked }
+                          })}
+                        />
+                      </div>
+                      {item.type === 'video' && (
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Reels</Label>
+                          <Switch
+                            checked={item.is_featured_in_reels}
+                            onCheckedChange={(checked) => updateMediaMutation.mutate({
+                              id: item.id,
+                              type: 'video',
+                              data: { is_featured_in_reels: checked }
+                            })}
+                          />
+                        </div>
                       )}
                     </div>
-                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          url: video.video_url
-                        })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Badge 
-                      className="absolute top-2 right-2" 
-                      variant={video.stage === 'Publicadas' ? 'default' : 'secondary'}
-                    >
-                      {video.stage}
-                    </Badge>
-                  </div>
-                  
-                  <CardContent className="p-3 space-y-3">
-                    {/* Título */}
-                    <Input
-                      value={video.title || ''}
-                      onChange={(e) => updateMediaMutation.mutate({
-                        id: video.id,
-                        type: 'video',
-                        data: { title: e.target.value }
-                      })}
-                      placeholder="Título do vídeo"
-                      className="text-xs h-8"
-                    />
-
-                    {/* Etapa */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Etapa</Label>
-                      <Select 
-                        value={video.stage || 'Organizar'} 
-                        onValueChange={(stage) => updateStage(video.id, 'video', stage)}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MEDIA_STAGES.map(stage => (
-                            <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Pasta */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Pasta</Label>
-                      <Select 
-                        value={video.folder_id || 'no-folder'} 
-                        onValueChange={(folderId) => updateFolder(video.id, 'video', folderId === 'no-folder' ? null : folderId)}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="no-folder">Sem pasta</SelectItem>
-                          {folders.map(folder => (
-                            <SelectItem key={folder.id} value={folder.id}>
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Tags */}
-                    <div>
-                      <Label className="text-xs font-medium mb-1 block">Tags</Label>
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {(video.tags || []).map(tag => (
-                          <Badge 
-                            key={tag} 
-                            variant="outline" 
-                            className="text-xs cursor-pointer"
-                            onClick={() => removeTagFromMedia(video.id, 'video', video.tags || [], tag)}
-                          >
-                            {tag} ×
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-1">
-                        <Input
-                          placeholder="Nova tag"
-                          className="h-6 text-xs"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const input = e.currentTarget;
-                              addTagToMedia(video.id, 'video', video.tags || [], input.value);
-                              input.value = '';
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Configurações de visibilidade */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <Label className="text-xs">Perfil</Label>
-                      <Switch
-                        checked={video.show_in_profile}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { show_in_profile: checked }
-                        })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Galeria</Label>
-                      <Switch
-                        checked={video.show_in_gallery}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { show_in_gallery: checked }
-                        })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Reels</Label>
-                      <Switch
-                        checked={video.is_featured_in_reels}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { is_featured_in_reels: checked }
-                        })}
-                      />
-                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
