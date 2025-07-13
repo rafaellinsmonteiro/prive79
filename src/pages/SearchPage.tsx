@@ -7,15 +7,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera, X } from 'lucide-react';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [showsFace, setShowsFace] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [selectedModel, setSelectedModel] = useState<any>(null);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const {
     results,
     loading,
@@ -62,6 +72,31 @@ const SearchPage = () => {
     };
     searchModels(filters);
   }, [debouncedSearchTerm, activeCategory, onlineOnly, showsFace]);
+
+  // Handler functions
+  const handleChat = (model: any) => {
+    navigate(`/chat?model=${model.id}`);
+  };
+
+  const handleViewMedia = (model: any) => {
+    setSelectedModel(model);
+    setShowMediaModal(true);
+  };
+
+  const handleToggleFavorite = (modelId: string) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(modelId) 
+        ? prev.filter(id => id !== modelId)
+        : [...prev, modelId];
+      
+      toast({
+        title: prev.includes(modelId) ? "Removido dos favoritos" : "Adicionado aos favoritos",
+        description: prev.includes(modelId) ? "Modelo removido da sua lista de favoritos" : "Modelo adicionado à sua lista de favoritos",
+      });
+      
+      return newFavorites;
+    });
+  };
 
   // Filter results based on category
   const filteredResults = useMemo(() => {
@@ -119,14 +154,32 @@ const SearchPage = () => {
                 Ver Perfil
               </Button>
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                  title="Enviar mensagem"
+                  onClick={() => handleChat(result)}
+                >
                   <MessageCircle className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                  title="Ver mídias"
+                  onClick={() => handleViewMedia(result)}
+                >
                   <Camera className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Favoritar">
-                  <Heart className="h-4 w-4" />
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className={`hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
+                  title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                  onClick={() => handleToggleFavorite(result.id)}
+                >
+                  <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
                 </Button>
               </div>
             </div>
@@ -171,14 +224,32 @@ const SearchPage = () => {
                 Ver Perfil
               </Button>
               <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                  title="Enviar mensagem"
+                  onClick={() => handleChat(result)}
+                >
                   <MessageCircle className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                  title="Ver mídias"
+                  onClick={() => handleViewMedia(result)}
+                >
                   <Camera className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Favoritar">
-                  <Heart className="h-4 w-4" />
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className={`flex-1 hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
+                  title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                  onClick={() => handleToggleFavorite(result.id)}
+                >
+                  <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
                 </Button>
               </div>
             </div>
@@ -186,10 +257,8 @@ const SearchPage = () => {
         </CardContent>
       </Card>;
   };
-  return <div className="min-h-screen bg-[hsl(var(--dark-primary))]">
-      {/* Header */}
-      
-
+  return (
+    <div className="min-h-screen bg-[hsl(var(--dark-primary))]">
       <div className="container max-w-7xl mx-auto px-4 py-6">
         <div className="flex gap-6">
           {/* Sidebar */}
@@ -310,6 +379,48 @@ const SearchPage = () => {
           </div>
         </div>
       </div>
-    </div>;
+
+      {/* Media Modal */}
+      <Dialog open={showMediaModal} onOpenChange={setShowMediaModal}>
+        <DialogContent className="max-w-4xl bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(var(--gold-primary))] flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Mídias - {selectedModel?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-y-auto">
+            {selectedModel ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
+                {/* Simulated media gallery */}
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div 
+                    key={index} 
+                    className="aspect-square rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group"
+                  >
+                    {selectedModel.image ? (
+                      <img 
+                        src={selectedModel.image} 
+                        alt={`Media ${index + 1}`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Image className="h-8 w-8 text-[hsl(var(--dark-muted))]" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-[hsl(var(--dark-muted))]">
+                Nenhuma mídia disponível
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };
 export default SearchPage;
