@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import ModelsListContainer from '@/components/admin/ModelsListContainer';
 
 const AdminDesignTestModels = () => {
   const isMobile = useIsMobile();
@@ -92,55 +93,6 @@ const AdminDesignTestModels = () => {
     },
   ];
 
-  // Dados mockados dos modelos
-  const models = [
-    {
-      id: 1,
-      name: 'Ana Silva',
-      email: 'ana@example.com',
-      status: 'ativo',
-      city: 'São Paulo',
-      rating: 4.8,
-      reviews: 23,
-      joinDate: '2024-01-15',
-      avatar: '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'
-    },
-    {
-      id: 2,
-      name: 'Maria Santos',
-      email: 'maria@example.com',
-      status: 'pendente',
-      city: 'Rio de Janeiro',
-      rating: 0,
-      reviews: 0,
-      joinDate: '2024-01-20',
-      avatar: '/lovable-uploads/aa64fd07-f6e9-44dc-9884-31df43791242.png'
-    },
-    {
-      id: 3,
-      name: 'Julia Costa',
-      email: 'julia@example.com',
-      status: 'ativo',
-      city: 'Belo Horizonte',
-      rating: 4.9,
-      reviews: 45,
-      joinDate: '2024-01-10',
-      avatar: '/lovable-uploads/b79999d0-f8f1-48f6-aa79-16285eb7104d.png'
-    }
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">Ativo</Badge>;
-      case 'pendente':
-        return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">Pendente</Badge>;
-      case 'suspenso':
-        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">Suspenso</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
 
   return (
     <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
@@ -365,71 +317,7 @@ const AdminDesignTestModels = () => {
           </div>
 
           {/* Models List */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="text-foreground">Lista de Modelos</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtros
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {models.map((model) => (
-                  <div key={model.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12 ring-2 ring-primary/20">
-                        <AvatarImage src={model.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
-                          {model.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{model.name}</h3>
-                        <p className="text-sm text-muted-foreground">{model.email}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-muted-foreground">{model.city}</span>
-                          {model.rating > 0 && (
-                            <>
-                              <span className="text-muted-foreground">•</span>
-                              <div className="flex items-center gap-1">
-                                <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                                <span className="text-sm font-medium">{model.rating}</span>
-                                <span className="text-sm text-muted-foreground">({model.reviews})</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      {getStatusBadge(model.status)}
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" className="p-2 hover:bg-accent">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="p-2 hover:bg-accent">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="p-2 hover:bg-destructive hover:text-destructive-foreground">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ModelsListContainer onOpenForm={true} />
         </main>
       </div>
     </div>
