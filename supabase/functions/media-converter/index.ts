@@ -235,7 +235,7 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     const { cloudName, apiKey, apiSecret } = parseCloudinaryUrl(cloudinaryUrl)
     console.log('Using Cloudinary for video thumbnail:', cloudName)
     
-    // First, fetch the video file and upload to Cloudinary
+    // First, fetch the video file
     const videoResponse = await fetch(fileUrl)
     if (!videoResponse.ok) {
       throw new Error('Failed to fetch video file')
@@ -247,27 +247,22 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     const timestamp = Math.round(Date.now() / 1000)
     const folder = `models/${modelId}/videos`
     
-    // Parameters for signature (alphabetical order)
-    const params = {
-      folder: folder,
-      timestamp: timestamp.toString()
-    }
+    // Prepare parameters for signature - EXACT match with FormData
+    const paramsToSign = [
+      `folder=${folder}`,
+      `timestamp=${timestamp}`
+    ].join('&')
     
-    // Sort parameters alphabetically and create string to sign
-    const paramsToSign = Object.keys(params)
-      .sort()
-      .map(key => `${key}=${params[key as keyof typeof params]}`)
-      .join('&')
-    
-    console.log('Video String to sign:', paramsToSign)
+    console.log('String to sign:', paramsToSign)
     
     // Generate signature using Node Crypto
     const signature = createHmac('sha1', apiSecret)
       .update(paramsToSign)
       .digest('hex')
     
-    console.log('Video Generated signature:', signature)
+    console.log('Signature gerada:', signature)
     
+    // Create FormData with EXACT same fields as signature
     const formData = new FormData()
     formData.append('file', videoBlob)
     formData.append('folder', folder)
@@ -275,7 +270,7 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     formData.append('api_key', apiKey)
     formData.append('signature', signature)
     
-    console.log('Uploading video to Cloudinary with minimal signature...')
+    console.log('Uploading video to Cloudinary...')
     const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
       method: 'POST',
       body: formData
@@ -284,7 +279,7 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     if (!cloudinaryResponse.ok) {
       const errorText = await cloudinaryResponse.text()
       console.error('Cloudinary video upload failed:', cloudinaryResponse.status, errorText)
-      throw new Error(`Cloudinary video upload failed: ${cloudinaryResponse.status}`)
+      throw new Error(`Cloudinary video upload failed: ${cloudinaryResponse.status} ${errorText}`)
     }
     
     const cloudinaryData = await cloudinaryResponse.json()
