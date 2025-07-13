@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List } from 'lucide-react';
+import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera } from 'lucide-react';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
 const SearchPage = () => {
@@ -118,9 +118,17 @@ const SearchPage = () => {
               <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10">
-                <Heart className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem">
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias">
+                  <Camera className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Favoritar">
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -158,13 +166,21 @@ const SearchPage = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1 bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
+            <div className="space-y-2">
+              <Button size="sm" className="w-full bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
                 Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10">
-                <Heart className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem">
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias">
+                  <Camera className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Favoritar">
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
