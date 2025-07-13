@@ -192,15 +192,20 @@ async function fallbackHeicConversion(fileUrl: string, fileName: string, modelId
 
 async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId: string, supabase: any, cloudinaryUrl?: string) {
   try {
-    console.log('Generating video thumbnail for:', fileName)
-    console.log('Cloudinary URL provided:', !!cloudinaryUrl)
-    console.log('Cloudinary URL value:', cloudinaryUrl ? 'CONFIGURED' : 'NOT_CONFIGURED')
+    console.log('=== GENERATING VIDEO THUMBNAIL ===')
+    console.log('File Name:', fileName)
+    console.log('Model ID:', modelId)
+    console.log('File URL:', fileUrl)
+    console.log('Cloudinary URL exists:', !!cloudinaryUrl)
+    console.log('Cloudinary URL value:', cloudinaryUrl || 'NOT_SET')
     
     // Check if Cloudinary is configured
     if (!cloudinaryUrl) {
-      console.log('Cloudinary not configured, using fallback thumbnail generation')
+      console.log('❌ CLOUDINARY NOT CONFIGURED - Using fallback')
       return await fallbackVideoThumbnail(fileUrl, fileName, modelId, supabase)
     }
+    
+    console.log('✅ CLOUDINARY CONFIGURED - Proceeding with real thumbnail generation')
     
     const { cloudName, apiKey, apiSecret } = parseCloudinaryUrl(cloudinaryUrl)
     console.log('Using Cloudinary for video thumbnail:', cloudName)
