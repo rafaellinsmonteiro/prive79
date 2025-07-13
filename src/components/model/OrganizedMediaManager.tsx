@@ -60,6 +60,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
   const [isCreateStageOpen, setIsCreateStageOpen] = useState(false);
   const [isCreateTextOpen, setIsCreateTextOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -771,198 +773,387 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             </div>
           ) : (
             <div className={viewMode === 'grid' 
-              ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" 
+              ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" 
               : "space-y-4"
             }>
               {content.map((item) => (
-                <Card key={item.id} className={`border-border bg-card overflow-hidden ${
+                <Card key={item.id} className={`border-border bg-card overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all ${
                   viewMode === 'list' ? 'flex' : ''
-                }`}>
-                  <div className={`relative group ${viewMode === 'list' ? 'w-32 h-24 flex-shrink-0' : ''}`}>
-                    {item.type === 'photo' ? (
-                      <img
-                        src={item.photo_url}
-                        alt="Foto"
-                        className={`w-full object-cover ${viewMode === 'list' ? 'h-24' : 'h-32'}`}
-                      />
-                    ) : (
-                      <div className={`w-full bg-muted flex items-center justify-center ${viewMode === 'list' ? 'h-24' : 'h-32'}`}>
-                        {item.thumbnail_url ? (
+                }`} onClick={() => {
+                  setSelectedItem(item);
+                  setIsDetailsOpen(true);
+                }}>
+                  {viewMode === 'grid' ? (
+                    // Visualização em Grade - Foco na imagem/thumbnail
+                    <div className="aspect-square relative group">
+                      {item.type === 'photo' ? (
+                        <img
+                          src={item.photo_url}
+                          alt="Foto"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          {item.thumbnail_url ? (
+                            <img
+                              src={item.thumbnail_url}
+                              alt="Thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Video className="h-12 w-12 text-muted-foreground" />
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Overlay com informações essenciais */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              {item.type === 'photo' && item.is_primary && (
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              )}
+                              <Badge variant="secondary" className="text-xs">
+                                {item.stage}
+                              </Badge>
+                            </div>
+                            {item.type === 'photo' ? (
+                              <Image className="h-4 w-4 text-white" />
+                            ) : (
+                              <Video className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Visualização em Lista - Layout horizontal
+                    <>
+                      <div className="w-32 h-24 flex-shrink-0 relative">
+                        {item.type === 'photo' ? (
                           <img
-                            src={item.thumbnail_url}
-                            alt="Thumbnail"
+                            src={item.photo_url}
+                            alt="Foto"
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Video className="h-8 w-8 text-muted-foreground" />
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            {item.thumbnail_url ? (
+                              <img
+                                src={item.thumbnail_url}
+                                alt="Thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Video className="h-8 w-8 text-muted-foreground" />
+                            )}
+                          </div>
+                        )}
+                        
+                        {item.type === 'photo' && item.is_primary && (
+                          <Badge className="absolute top-1 left-1 bg-yellow-600 text-white text-xs">
+                            Principal
+                          </Badge>
                         )}
                       </div>
-                    )}
-                    
-                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      {item.type === 'photo' && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => togglePrimary(item.id)}
-                        >
-                          <Star className={`h-4 w-4 ${item.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteMutation.mutate({
-                          id: item.id,
-                          type: item.type,
-                          url: item.type === 'photo' ? item.photo_url : item.video_url
-                        })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    {item.type === 'photo' && item.is_primary && (
-                      <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
-                        Principal
-                      </Badge>
-                    )}
-                    <Badge 
-                      className="absolute top-2 right-2" 
-                      variant={item.stage === 'Publicadas' ? 'default' : 'secondary'}
-                    >
-                      {item.stage}
-                    </Badge>
-                  </div>
-                  
-                  <CardContent className={`p-3 space-y-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                    {item.type === 'video' && (
-                      <Input
-                        value={item.title || ''}
-                        onChange={(e) => updateMediaMutation.mutate({
-                          id: item.id,
-                          type: 'video',
-                          data: { title: e.target.value }
-                        })}
-                        placeholder="Título do vídeo"
-                        className="text-xs h-8"
-                      />
-                    )}
-
-                    <div className={viewMode === 'list' ? 'grid grid-cols-3 gap-3' : 'space-y-3'}>
-                      {/* Etapa */}
-                      <div>
-                        <Label className="text-xs font-medium mb-1 block">Etapa</Label>
-                        <Select 
-                          value={item.stage || stages[0]} 
-                          onValueChange={(stage) => updateStage(item.id, item.type, stage)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {stages.map(stage => (
-                              <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Pasta */}
-                      <div>
-                        <Label className="text-xs font-medium mb-1 block">Pasta</Label>
-                        <Select 
-                          value={item.folder_id || 'no-folder'} 
-                          onValueChange={(folderId) => updateFolder(item.id, item.type, folderId === 'no-folder' ? null : folderId)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="no-folder">Sem pasta</SelectItem>
-                            {folders.map(folder => (
-                              <SelectItem key={folder.id} value={folder.id}>
-                                {folder.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Tags */}
-                      <div>
-                        <Label className="text-xs font-medium mb-1 block">Tags</Label>
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {(item.tags || []).map((tag: string) => (
-                            <Badge 
-                              key={tag} 
-                              variant="outline" 
-                              className="text-xs cursor-pointer"
-                              onClick={() => removeTagFromMedia(item.id, item.type, item.tags || [], tag)}
-                            >
-                              {tag} ×
-                            </Badge>
-                          ))}
+                      
+                      <CardContent className="p-3 flex-1 flex items-center justify-between">
+                        <div className="flex flex-col gap-2">
+                          <div>
+                            <h3 className="font-medium text-sm">
+                              {item.type === 'video' ? (item.title || 'Vídeo sem título') : 'Foto'}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-xs">
+                                {item.stage}
+                              </Badge>
+                              {item.tags && item.tags.length > 0 && (
+                                <div className="flex gap-1">
+                                  {item.tags.slice(0, 2).map(tag => (
+                                    <Badge key={tag} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {item.tags.length > 2 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{item.tags.length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>Clique para editar</span>
+                            <Edit3 className="h-3 w-3" />
+                          </div>
                         </div>
-                        <Input
-                          placeholder="Nova tag"
-                          className="h-6 text-xs"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const input = e.currentTarget;
-                              addTagToMedia(item.id, item.type, item.tags || [], input.value);
-                              input.value = '';
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Configurações de visibilidade */}
-                    <div className={`pt-2 border-t ${viewMode === 'list' ? 'flex gap-6' : 'space-y-2'}`}>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Perfil</Label>
-                        <Switch
-                          checked={item.show_in_profile}
-                          onCheckedChange={(checked) => updateMediaMutation.mutate({
-                            id: item.id,
-                            type: item.type,
-                            data: { show_in_profile: checked }
-                          })}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Galeria</Label>
-                        <Switch
-                          checked={item.show_in_gallery}
-                          onCheckedChange={(checked) => updateMediaMutation.mutate({
-                            id: item.id,
-                            type: item.type,
-                            data: { show_in_gallery: checked }
-                          })}
-                        />
-                      </div>
-                      {item.type === 'video' && (
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs">Reels</Label>
-                          <Switch
-                            checked={item.is_featured_in_reels}
-                            onCheckedChange={(checked) => updateMediaMutation.mutate({
-                              id: item.id,
-                              type: 'video',
-                              data: { is_featured_in_reels: checked }
-                            })}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
+                      </CardContent>
+                    </>
+                  )}
                 </Card>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+      
+      {/* Modal de Detalhes do Item */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedItem && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Preview do conteúdo */}
+              <div className="space-y-4">
+                <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
+                  {selectedItem.type === 'photo' ? (
+                    <img
+                      src={selectedItem.photo_url}
+                      alt="Foto"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      {selectedItem.thumbnail_url ? (
+                        <img
+                          src={selectedItem.thumbnail_url}
+                          alt="Thumbnail"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <Video className="h-24 w-24 text-muted-foreground" />
+                      )}
+                    </div>
+                  )}
+                  
+                  {selectedItem.type === 'photo' && selectedItem.is_primary && (
+                    <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
+                      Principal
+                    </Badge>
+                  )}
+                </div>
+                
+                {selectedItem.type === 'photo' && (
+                  <div className="flex justify-center">
+                    <Button
+                      variant={selectedItem.is_primary ? "default" : "outline"}
+                      onClick={() => togglePrimary(selectedItem.id)}
+                    >
+                      <Star className={`h-4 w-4 mr-2 ${selectedItem.is_primary ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                      {selectedItem.is_primary ? 'Foto Principal' : 'Definir como Principal'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Configurações e ajustes */}
+              <div className="space-y-6">
+                {selectedItem.type === 'video' && (
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Título do Vídeo</Label>
+                    <Input
+                      value={selectedItem.title || ''}
+                      onChange={(e) => {
+                        updateMediaMutation.mutate({
+                          id: selectedItem.id,
+                          type: 'video',
+                          data: { title: e.target.value }
+                        });
+                        setSelectedItem({...selectedItem, title: e.target.value});
+                      }}
+                      placeholder="Título do vídeo"
+                    />
+                  </div>
+                )}
+
+                {/* Etapa */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Etapa</Label>
+                  <Select 
+                    value={selectedItem.stage || stages[0]} 
+                    onValueChange={(stage) => {
+                      updateStage(selectedItem.id, selectedItem.type, stage);
+                      setSelectedItem({...selectedItem, stage});
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map(stage => (
+                        <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Pasta */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Pasta</Label>
+                  <Select 
+                    value={selectedItem.folder_id || 'no-folder'} 
+                    onValueChange={(folderId) => {
+                      const newFolderId = folderId === 'no-folder' ? null : folderId;
+                      updateFolder(selectedItem.id, selectedItem.type, newFolderId);
+                      setSelectedItem({...selectedItem, folder_id: newFolderId});
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-folder">Sem pasta</SelectItem>
+                      {folders.map(folder => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Tags</Label>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {(selectedItem.tags || []).map(tag => (
+                      <Badge key={tag} variant="outline" className="flex items-center gap-1">
+                        {tag}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0"
+                          onClick={() => {
+                            removeTagFromMedia(selectedItem.id, selectedItem.type, selectedItem.tags || [], tag);
+                            setSelectedItem({
+                              ...selectedItem, 
+                              tags: (selectedItem.tags || []).filter(t => t !== tag)
+                            });
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Nova tag"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          const newTag = input.value.trim();
+                          if (newTag && !(selectedItem.tags || []).includes(newTag)) {
+                            addTagToMedia(selectedItem.id, selectedItem.type, selectedItem.tags || [], newTag);
+                            setSelectedItem({
+                              ...selectedItem, 
+                              tags: [...(selectedItem.tags || []), newTag]
+                            });
+                            input.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement;
+                        const newTag = input?.value.trim();
+                        if (newTag && !(selectedItem.tags || []).includes(newTag)) {
+                          addTagToMedia(selectedItem.id, selectedItem.type, selectedItem.tags || [], newTag);
+                          setSelectedItem({
+                            ...selectedItem, 
+                            tags: [...(selectedItem.tags || []), newTag]
+                          });
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      <Tag className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Opções de Visibilidade */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Visibilidade</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Eye className="h-4 w-4" />
+                        <Label className="text-sm">Mostrar no Perfil</Label>
+                      </div>
+                      <Switch
+                        checked={selectedItem.show_in_profile}
+                        onCheckedChange={(checked) => {
+                          updateMediaMutation.mutate({
+                            id: selectedItem.id,
+                            type: selectedItem.type,
+                            data: { show_in_profile: checked }
+                          });
+                          setSelectedItem({...selectedItem, show_in_profile: checked});
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Image className="h-4 w-4" />
+                        <Label className="text-sm">Mostrar na Galeria</Label>
+                      </div>
+                      <Switch
+                        checked={selectedItem.show_in_gallery}
+                        onCheckedChange={(checked) => {
+                          updateMediaMutation.mutate({
+                            id: selectedItem.id,
+                            type: selectedItem.type,
+                            data: { show_in_gallery: checked }
+                          });
+                          setSelectedItem({...selectedItem, show_in_gallery: checked});
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ações */}
+                <div className="pt-4 border-t flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      deleteMutation.mutate({
+                        id: selectedItem.id,
+                        type: selectedItem.type,
+                        url: selectedItem.type === 'photo' ? selectedItem.photo_url : selectedItem.video_url
+                      });
+                      setIsDetailsOpen(false);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Deletar
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDetailsOpen(false)}
+                    className="ml-auto"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
