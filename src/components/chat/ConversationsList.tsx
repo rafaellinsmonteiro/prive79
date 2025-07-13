@@ -35,28 +35,30 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
   };
 
   return (
-    <Card className="bg-zinc-900 border-zinc-700 h-[600px] flex flex-col">
-      <CardHeader className="border-b border-zinc-800 pb-4">
+    <Card className="bg-card border-border h-[600px] flex flex-col shadow-lg">
+      <CardHeader className="border-b border-border pb-4 bg-gradient-to-r from-accent/5 to-accent/10">
         <div className="flex items-center justify-between mb-4">
-          <CardTitle className="text-white flex items-center gap-3">
-            <MessageCircle className="h-6 w-6 text-blue-500" />
+          <CardTitle className="text-foreground flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-[0_4px_20px_hsl(var(--primary))_/_0.3]">
+              <MessageCircle className="h-4 w-4 text-primary-foreground" />
+            </div>
             Conversas
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl">
               <Search className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800 rounded-full">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
         </div>
         
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar conversas..."
-            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 pl-10 rounded-full h-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="bg-accent/50 border-border text-foreground placeholder:text-muted-foreground pl-10 rounded-xl h-10 focus:border-primary transition-all duration-200"
           />
         </div>
       </CardHeader>
@@ -64,16 +66,16 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
       <CardContent className="p-0 flex-1 overflow-hidden">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6">
-            <div className="bg-zinc-800 rounded-full p-6 mb-4">
-              <MessageCircle className="h-12 w-12 text-zinc-600" />
+            <div className="bg-gradient-to-br from-accent to-accent/60 rounded-2xl p-6 mb-4 shadow-lg">
+              <MessageCircle className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Nenhuma conversa</h3>
-            <p className="text-zinc-400 text-center mb-6 text-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma conversa</h3>
+            <p className="text-muted-foreground text-center mb-6 text-sm">
               Comece uma nova conversa com suas modelos favoritas
             </p>
             <Button
               onClick={() => handleCreateConversation('')}
-              className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 py-2"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] rounded-xl px-6 py-2 transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nova Conversa
@@ -81,40 +83,40 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
           </div>
         ) : (
           <div className="overflow-y-auto h-full">
-            <div className="divide-y divide-zinc-800">
+            <div className="divide-y divide-border">
               {conversations.map((conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
-                  className={`w-full p-4 flex items-center space-x-3 hover:bg-zinc-800 transition-all duration-200 ${
-                    selectedConversationId === conversation.id ? 'bg-zinc-800 border-r-2 border-blue-500' : ''
+                  className={`w-full p-4 flex items-center space-x-3 hover:bg-accent/50 transition-all duration-200 group ${
+                    selectedConversationId === conversation.id ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-r-2 border-primary shadow-lg' : ''
                   }`}
                 >
                   <div className="relative flex-shrink-0">
                     <img
                       src={getConversationDisplayPhoto(conversation, isModel)}
                       alt={getConversationDisplayName(conversation, isModel)}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-zinc-600 shadow-md"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-border shadow-md group-hover:border-primary/50 transition-colors"
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder.svg';
                       }}
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-card shadow-sm"></div>
                   </div>
                   
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-white font-semibold truncate">
+                      <h4 className="text-foreground font-semibold truncate group-hover:text-primary transition-colors">
                         {getConversationDisplayName(conversation, isModel)}
                       </h4>
-                      <span className="text-xs text-zinc-500 ml-2 flex-shrink-0">
+                      <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
                         {conversation.last_message_at &&
                           format(new Date(conversation.last_message_at), 'HH:mm', {
                             locale: ptBR,
                           })}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-400 truncate">
+                    <p className="text-sm text-muted-foreground truncate">
                       {getLastMessageDisplay(conversation)}
                     </p>
                   </div>
