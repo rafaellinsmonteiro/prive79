@@ -38,8 +38,8 @@ const Login = () => {
           console.log('🔄 Login: Redirecting admin to /admin');
           navigate('/admin', { replace: true });
         } else if (modelProfile) {
-          console.log('🔄 Login: Redirecting model to /model-dashboard');
-          navigate('/model-dashboard', { replace: true });
+          console.log('🔄 Login: Redirecting model to /v2/dashboard');
+          navigate('/v2/dashboard', { replace: true });
         } else {
           console.log('🔄 Login: Redirecting user to home page');
           navigate('/', { replace: true });
@@ -54,7 +54,7 @@ const Login = () => {
   useEffect(() => {
     if (authComplete && user && !authLoading && !isAdmin && modelProfile && !profileLoading) {
       console.log('🔄 Login: Model profile detected after auth, redirecting to dashboard');
-      navigate('/model-dashboard', { replace: true });
+      navigate('/v2/dashboard', { replace: true });
     }
   }, [authComplete, user, authLoading, isAdmin, modelProfile, profileLoading, navigate]);
 

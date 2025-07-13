@@ -60,6 +60,7 @@ import ReviewsPage from "./pages/ReviewsPage";
 import SearchPage from "./pages/SearchPage";
 import LunnaPage from "./pages/LunnaPage";
 import Header from "@/components/Header";
+import { AuthRedirectHandler } from "@/components/AuthRedirectHandler";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,9 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Auth redirect handler */}
+      <AuthRedirectHandler />
+      
       {/* Main content without sidebar */}
       <div>
         {/* Conditionally show header */}
