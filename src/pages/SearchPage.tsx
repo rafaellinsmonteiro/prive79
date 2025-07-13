@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Search, 
   User, 
@@ -13,13 +14,19 @@ import {
   Star,
   Filter,
   MapPin,
-  Heart
+  Heart,
+  Circle
 } from 'lucide-react';
+import { useSearch } from '@/hooks/useSearch';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  
+  const { results, loading, searchModels } = useSearch();
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const categories = [
     { key: 'all', label: 'Todos', icon: Search },
@@ -31,84 +38,73 @@ const SearchPage = () => {
     { key: 'reviews', label: 'Avaliações', icon: Star },
   ];
 
-  const mockResults = [
-    {
-      id: '1',
-      type: 'profile',
-      title: 'Maria Silva',
-      description: 'Modelo profissional especializada em fashion e lifestyle',
-      image: '/placeholder.svg',
-      location: 'São Paulo, SP',
-      rating: 4.8,
-      category: 'profiles'
-    },
-    {
-      id: '2',
-      type: 'service',
-      title: 'Ensaio Fotográfico Profissional',
-      description: 'Sessão completa de fotos com edição profissional incluída',
-      price: 'R$ 350',
-      rating: 4.9,
-      category: 'services'
-    },
-    {
-      id: '3',
-      type: 'event',
-      title: 'Workshop de Modelagem',
-      description: 'Aprenda técnicas profissionais de postura e expressão',
-      date: '15 Dez 2024',
-      location: 'Centro de Convenções - SP',
-      category: 'events'
-    }
-  ];
+  // Trigger search when term or category changes
+  useEffect(() => {
+    searchModels(debouncedSearchTerm, activeCategory);
+  }, [debouncedSearchTerm, activeCategory]);
 
-  const filteredResults = mockResults.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Filter results based on category
+  const filteredResults = useMemo(() => {
+    if (activeCategory === 'all' || activeCategory === 'profiles') {
+      return results;
+    }
+    // For other categories, return empty array since we only have models for now
+    return [];
+  }, [results, activeCategory]);
 
   const renderResultCard = (result: any) => {
     return (
-      <Card key={result.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer">
+      <Card key={result.id} className="bg-card border-border hover:border-muted-foreground/20 transition-colors cursor-pointer">
         <CardContent className="p-6">
           <div className="flex gap-4">
-            {/* Image/Avatar */}
-            <div className="w-16 h-16 bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
-              {result.type === 'profile' && <User className="h-8 w-8 text-zinc-400" />}
-              {result.type === 'service' && <Briefcase className="h-8 w-8 text-zinc-400" />}
-              {result.type === 'event' && <Calendar className="h-8 w-8 text-zinc-400" />}
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={result.image || undefined} alt={result.title} />
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  <User className="h-8 w-8" />
+                </AvatarFallback>
+              </Avatar>
+              {result.type === 'model' && (
+                <div className="absolute -bottom-1 -right-1">
+                  <div className={`w-4 h-4 rounded-full border-2 border-background ${
+                    result.is_online ? 'bg-green-500' : 'bg-muted-foreground'
+                  }`} />
+                </div>
+              )}
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-2">
-                <h3 className="text-white font-semibold text-lg truncate">{result.title}</h3>
-                {result.price && (
-                  <span className="text-primary font-bold text-lg">{result.price}</span>
+                <div>
+                  <h3 className="font-semibold text-lg truncate">{result.title}</h3>
+                  {result.age && (
+                    <span className="text-sm text-muted-foreground">{result.age} anos</span>
+                  )}
+                </div>
+                {result.is_online && (
+                  <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Online
+                  </Badge>
                 )}
               </div>
               
-              <p className="text-zinc-400 text-sm mb-3 line-clamp-2">{result.description}</p>
+              {result.description && (
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{result.description}</p>
+              )}
               
-              <div className="flex items-center gap-4 text-xs text-zinc-500">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 {result.location && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     <span>{result.location}</span>
                   </div>
                 )}
-                {result.date && (
+                {result.is_online !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{result.date}</span>
-                  </div>
-                )}
-                {result.rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                    <span>{result.rating}</span>
+                    <Circle className={`h-3 w-3 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
+                    <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
                   </div>
                 )}
               </div>
@@ -116,10 +112,10 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Ver Detalhes
+              <Button size="sm">
+                Ver Perfil
               </Button>
-              <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white">
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -201,17 +197,27 @@ const SearchPage = () => {
           </div>
 
           {/* Results List */}
-          {filteredResults.length > 0 ? (
+          {loading ? (
+            <Card className="bg-card border-border">
+              <CardContent className="p-12 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Buscando...</p>
+              </CardContent>
+            </Card>
+          ) : filteredResults.length > 0 ? (
             <div className="space-y-4">
               {filteredResults.map(renderResultCard)}
             </div>
           ) : (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-border">
               <CardContent className="p-12 text-center">
-                <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                <h3 className="text-white font-semibold mb-2">Nenhum resultado encontrado</h3>
-                <p className="text-zinc-400">
-                  Tente ajustar sua busca ou explore outras categorias
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Nenhum resultado encontrado</h3>
+                <p className="text-muted-foreground">
+                  {searchTerm.trim() 
+                    ? "Tente ajustar sua busca ou explore outras categorias" 
+                    : "Digite algo para começar a busca"
+                  }
                 </p>
               </CardContent>
             </Card>
