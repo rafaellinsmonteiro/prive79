@@ -10,7 +10,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useProfilePhoto } from "@/hooks/useProfilePhoto";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AdminAppointmentForm } from "@/components/admin/AdminAppointmentForm";
+import { ModelAppointmentForm } from "@/components/model/ModelAppointmentForm";
 import { ClientForm } from "@/components/admin/ClientForm";
 import OrganizedMediaManager from "@/components/model/OrganizedMediaManager";
 import { ServiceForm } from "@/components/admin/ServiceForm";
@@ -167,8 +167,8 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
       {/* Modals */}
       {showAppointmentModal && (
         <Dialog open={showAppointmentModal} onOpenChange={setShowAppointmentModal}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
-            <AdminAppointmentForm onClose={() => setShowAppointmentModal(false)} />
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-0">
+            <ModelAppointmentForm onClose={() => setShowAppointmentModal(false)} />
           </DialogContent>
         </Dialog>
       )}
