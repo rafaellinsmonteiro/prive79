@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, MessageSquare, Calendar, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, PlusCircle, Menu, UserCheck, Phone } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Calendar, TrendingUp, Settings, LogOut, Sun, Moon, ChevronLeft, Search, Bell, PlusCircle, Menu, UserCheck, Phone, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -8,66 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Zap } from 'lucide-react';
-
-// Simulando dados de clientes para exibição
-const mockClients = [
-  {
-    id: '1',
-    name: 'Ana Silva',
-    phone: '+55 11 99999-9999',
-    email: 'ana.silva@email.com',
-    address: 'São Paulo, SP',
-    notes: 'Cliente VIP, prefere atendimento personalizado',
-    is_active: true,
-    created_at: '2024-01-15T10:00:00Z',
-    last_contact: '2024-01-20T14:30:00Z',
-    total_appointments: 12,
-    total_spent: 2400,
-    rating: 5
-  },
-  {
-    id: '2',
-    name: 'Carlos Santos',
-    phone: '+55 11 88888-8888',
-    email: 'carlos.santos@email.com',
-    address: 'Rio de Janeiro, RJ',
-    notes: 'Cliente regular, sempre pontual',
-    is_active: true,
-    created_at: '2024-01-10T15:00:00Z',
-    last_contact: '2024-01-18T16:45:00Z',
-    total_appointments: 8,
-    total_spent: 1600,
-    rating: 4
-  },
-  {
-    id: '3',
-    name: 'Maria Oliveira',
-    phone: '+55 11 77777-7777',
-    email: 'maria.oliveira@email.com',
-    address: 'Belo Horizonte, MG',
-    notes: 'Nova cliente, muito comunicativa',
-    is_active: true,
-    created_at: '2024-01-25T09:00:00Z',
-    last_contact: '2024-01-25T09:30:00Z',
-    total_appointments: 2,
-    total_spent: 400,
-    rating: 5
-  },
-  {
-    id: '4',
-    name: 'João Pereira',
-    phone: '+55 11 66666-6666',
-    email: 'joao.pereira@email.com',
-    address: 'Porto Alegre, RS',
-    notes: 'Cliente inativo por período',
-    is_active: false,
-    created_at: '2023-12-01T12:00:00Z',
-    last_contact: '2023-12-20T11:00:00Z',
-    total_appointments: 5,
-    total_spent: 1000,
-    rating: 3
-  }
-];
+import { useClients, Client } from '@/hooks/useClients';
+import { ClientForm } from '@/components/admin/ClientForm';
 
 const DesignTestClientsPage = () => {
   const isMobile = useIsMobile();
@@ -77,6 +19,10 @@ const DesignTestClientsPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | undefined>();
+
+  const { clients, isLoading, deleteClient } = useClients();
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -124,30 +70,34 @@ const DesignTestClientsPage = () => {
     id: 'logout'
   }];
 
-  const filteredClients = mockClients.filter(client => {
+  const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.phone.includes(searchTerm);
+                         (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (client.phone && client.phone.includes(searchTerm));
     const matchesFilter = filterStatus === 'all' || 
       (filterStatus === 'active' && client.is_active) ||
       (filterStatus === 'inactive' && !client.is_active);
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusColor = (isActive: boolean) => {
-    return isActive ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+  const handleCreateClient = () => {
+    setEditingClient(undefined);
+    setIsFormOpen(true);
   };
 
-  const formatLastContact = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Ontem';
-    if (diffDays < 7) return `${diffDays} dias atrás`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} semanas atrás`;
-    return `${Math.ceil(diffDays / 30)} meses atrás`;
+  const handleEditClient = (client: Client) => {
+    setEditingClient(client);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteClient = async (clientId: string) => {
+    if (confirm('Tem certeza que deseja remover este cliente?')) {
+      await deleteClient.mutateAsync(clientId);
+    }
+  };
+
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-gray-500/10 text-gray-500 border-gray-500/20';
   };
 
   return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
@@ -309,7 +259,10 @@ const DesignTestClientsPage = () => {
                 <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
               </Button>
               
-              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4">
+              <Button 
+                onClick={handleCreateClient}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4"
+              >
                 <PlusCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                 <span className="hidden sm:inline">Novo Cliente</span>
                 <span className="sm:hidden">+</span>
@@ -377,7 +330,7 @@ const DesignTestClientsPage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total</p>
-                      <p className="text-2xl font-bold text-foreground">{mockClients.length}</p>
+                      <p className="text-2xl font-bold text-foreground">{clients.length}</p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
                       <Users className="h-5 w-5 text-blue-500" />
@@ -391,7 +344,7 @@ const DesignTestClientsPage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Ativos</p>
-                      <p className="text-2xl font-bold text-foreground">{mockClients.filter(c => c.is_active).length}</p>
+                      <p className="text-2xl font-bold text-foreground">{clients.filter(c => c.is_active).length}</p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center">
                       <UserCheck className="h-5 w-5 text-green-500" />
@@ -405,7 +358,13 @@ const DesignTestClientsPage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Este Mês</p>
-                      <p className="text-2xl font-bold text-foreground">8</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {clients.filter(c => {
+                          const created = new Date(c.created_at);
+                          const now = new Date();
+                          return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+                        }).length}
+                      </p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-purple-500" />
@@ -418,120 +377,125 @@ const DesignTestClientsPage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Receita Total</p>
-                      <p className="text-2xl font-bold text-foreground">R$ {mockClients.reduce((sum, client) => sum + client.total_spent, 0).toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">Inativos</p>
+                      <p className="text-2xl font-bold text-foreground">{clients.filter(c => !c.is_active).length}</p>
                     </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-yellow-500/10 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-yellow-500" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Clients List */}
-            <div className="grid gap-4">
-              {filteredClients.map((client) => (
-                <Card key={client.id} className="bg-card border-border hover:bg-accent/50 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md">
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                      {/* Cliente Info */}
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="w-12 h-12 ring-2 ring-primary/20">
-                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
-                            {client.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {client.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">{client.email}</p>
-                          <Badge variant="outline" className={getStatusColor(client.is_active)}>
-                            {client.is_active ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {/* Contact Info */}
-                      <div className="space-y-2">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Phone className="h-4 w-4 mr-2" />
-                          {client.phone}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {formatLastContact(client.last_contact)}
-                        </div>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="space-y-2">
-                        <div className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center mr-2">
-                            <Calendar className="h-3 w-3 text-blue-500" />
-                          </div>
-                          <span className="text-foreground">{client.total_appointments} agendamentos</span>
-                        </div>
-                        <div className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center mr-2">
-                            <TrendingUp className="h-3 w-3 text-green-500" />
-                          </div>
-                          <span className="text-foreground">R$ {client.total_spent.toLocaleString()}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
+            {/* Lista de clientes */}
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-muted-foreground">Carregando clientes...</div>
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground mb-4">
+                  {searchTerm || filterStatus !== 'all' 
+                    ? 'Nenhum cliente encontrado com os filtros aplicados.' 
+                    : 'Nenhum cliente cadastrado ainda.'}
+                </div>
+                {!searchTerm && filterStatus === 'all' && (
+                  <Button onClick={handleCreateClient}>
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Cadastrar Primeiro Cliente
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {filteredClients.map((client) => (
+                  <Card key={client.id} className="bg-card border-border shadow-sm hover:shadow-md transition-all duration-200">
+                    <CardContent className="p-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <svg
-                              key={i}
-                              className={`w-4 h-4 ${i < client.rating ? 'text-yellow-500' : 'text-muted-foreground'}`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                              {client.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-foreground">{client.name}</h3>
+                              <Badge className={getStatusColor(client.is_active)}>
+                                {client.is_active ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                              {client.phone && (
+                                <div className="flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{client.phone}</span>
+                                </div>
+                              )}
+                              {client.email && (
+                                <div className="flex items-center gap-1">
+                                  <span>📧</span>
+                                  <span>{client.email}</span>
+                                </div>
+                              )}
+                              {client.address && (
+                                <div className="flex items-center gap-1">
+                                  <span>📍</span>
+                                  <span>{client.address}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="text-right text-sm">
+                            <div className="text-muted-foreground mb-1">
+                              Criado em {new Date(client.created_at).toLocaleDateString('pt-BR')}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditClient(client)}
+                              className="hover:bg-primary/10 hover:text-primary"
                             >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Phone className="h-4 w-4" />
-                          </Button>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClient(client.id)}
+                              className="hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {client.notes && (
-                      <div className="mt-4 pt-4 border-t border-border">
-                        <p className="text-sm text-muted-foreground bg-accent/30 rounded-lg p-3">
-                          <strong className="text-foreground">Observações:</strong> {client.notes}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-
-              {filteredClients.length === 0 && (
-                <Card className="bg-card border-border">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/60 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <UserCheck className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium text-foreground mb-2">Nenhum cliente encontrado</h3>
-                    <p className="text-muted-foreground">
-                      {searchTerm ? 'Tente alterar os filtros de busca.' : 'Adicione seu primeiro cliente para começar.'}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                      
+                      {client.notes && (
+                        <div className="mt-4 p-3 bg-accent/50 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Observações:</strong> {client.notes}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Client Form Modal */}
+          <ClientForm 
+            open={isFormOpen} 
+            onOpenChange={setIsFormOpen}
+            client={editingClient}
+          />
         </main>
       </div>
     </div>;
