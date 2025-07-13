@@ -21,9 +21,14 @@ serve(async (req) => {
 
     const { action, fileUrl, fileName, modelId } = await req.json()
     
-    console.log('Media converter request:', { action, fileName, modelId })
-    console.log('Cloudinary URL exists:', !!cloudinaryUrl)
-    console.log('Cloudinary URL value:', cloudinaryUrl || 'NOT_SET')
+    console.log('=== MEDIA CONVERTER DEBUG ===')
+    console.log('Action:', action)
+    console.log('File Name:', fileName)
+    console.log('Model ID:', modelId)
+    console.log('File URL:', fileUrl)
+    console.log('CLOUDINARY_URL configured:', !!cloudinaryUrl)
+    console.log('CLOUDINARY_URL value:', cloudinaryUrl?.substring(0, 20) + '...' || 'NOT_SET')
+    console.log('=== END DEBUG ===')
 
     if (action === 'convert-heic') {
       return await convertHeicToJpeg(fileUrl, fileName, modelId, supabase, cloudinaryUrl)
