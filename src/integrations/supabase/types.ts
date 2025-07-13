@@ -955,41 +955,86 @@ export type Database = {
           },
         ]
       }
+      model_media_folders: {
+        Row: {
+          created_at: string | null
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          model_id: string
+          name: string
+          parent_folder_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          model_id: string
+          name: string
+          parent_folder_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          model_id?: string
+          name?: string
+          parent_folder_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       model_photos: {
         Row: {
           allowed_plan_ids: string[] | null
           created_at: string
+          created_by_user_id: string | null
           display_order: number | null
+          folder_id: string | null
           id: string
           is_primary: boolean | null
           model_id: string
           photo_url: string
           show_in_gallery: boolean | null
           show_in_profile: boolean | null
+          stage: string | null
+          tags: string[] | null
           visibility_type: string | null
         }
         Insert: {
           allowed_plan_ids?: string[] | null
           created_at?: string
+          created_by_user_id?: string | null
           display_order?: number | null
+          folder_id?: string | null
           id?: string
           is_primary?: boolean | null
           model_id: string
           photo_url: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          stage?: string | null
+          tags?: string[] | null
           visibility_type?: string | null
         }
         Update: {
           allowed_plan_ids?: string[] | null
           created_at?: string
+          created_by_user_id?: string | null
           display_order?: number | null
+          folder_id?: string | null
           id?: string
           is_primary?: boolean | null
           model_id?: string
           photo_url?: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          stage?: string | null
+          tags?: string[] | null
           visibility_type?: string | null
         }
         Relationships: [
@@ -1081,14 +1126,18 @@ export type Database = {
         Row: {
           allowed_plan_ids: string[] | null
           created_at: string
+          created_by_user_id: string | null
           display_order: number | null
           duration: number | null
+          folder_id: string | null
           id: string
           is_active: boolean | null
           is_featured_in_reels: boolean | null
           model_id: string
           show_in_gallery: boolean | null
           show_in_profile: boolean | null
+          stage: string | null
+          tags: string[] | null
           thumbnail_url: string | null
           title: string | null
           updated_at: string
@@ -1098,14 +1147,18 @@ export type Database = {
         Insert: {
           allowed_plan_ids?: string[] | null
           created_at?: string
+          created_by_user_id?: string | null
           display_order?: number | null
           duration?: number | null
+          folder_id?: string | null
           id?: string
           is_active?: boolean | null
           is_featured_in_reels?: boolean | null
           model_id: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          stage?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string
@@ -1115,14 +1168,18 @@ export type Database = {
         Update: {
           allowed_plan_ids?: string[] | null
           created_at?: string
+          created_by_user_id?: string | null
           display_order?: number | null
           duration?: number | null
+          folder_id?: string | null
           id?: string
           is_active?: boolean | null
           is_featured_in_reels?: boolean | null
           model_id?: string
           show_in_gallery?: boolean | null
           show_in_profile?: boolean | null
+          stage?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string

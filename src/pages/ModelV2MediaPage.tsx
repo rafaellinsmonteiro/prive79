@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import EnhancedModelMediaManager from '@/components/model/EnhancedModelMediaManager';
+import OrganizedMediaManager from '@/components/model/OrganizedMediaManager';
 
 const ModelV2MediaPage = () => {
   const isMobile = useIsMobile();
@@ -316,7 +316,7 @@ const ModelV2MediaPage = () => {
 
         {/* Content Area - Media Manager */}
         <main className="p-4 lg:p-8 overflow-y-auto h-[calc(100vh-120px)]">
-          <EnhancedModelMediaManager modelId="model-1" />
+          <OrganizedMediaManager modelId="model-1" />
         </main>
       </div>
     </div>
