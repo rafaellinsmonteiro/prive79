@@ -1036,32 +1036,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             </CardTitle>
             
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* Botão Selecionar - PRIMEIRO */}
-              <Button
-                variant={bulkActionMode ? 'destructive' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setBulkActionMode(!bulkActionMode);
-                  if (bulkActionMode) {
-                    clearSelection();
-                  }
-                }}
-                className="flex items-center gap-2 flex-shrink-0"
-              >
-                {bulkActionMode ? (
-                  <>
-                    <X className="h-4 w-4" />
-                    <span className="hidden xs:inline">Cancelar</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckSquare className="h-4 w-4" />
-                    <span className="hidden xs:inline">Selecionar</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Adicionar Conteúdo - SEGUNDO */}
+              {/* Adicionar Conteúdo - PRIMEIRO */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button disabled={uploading} size="sm" className="flex-shrink-0">
@@ -1116,6 +1091,31 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                   </Dialog>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* Botão Selecionar - SEGUNDO */}
+              <Button
+                variant={bulkActionMode ? 'destructive' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setBulkActionMode(!bulkActionMode);
+                  if (bulkActionMode) {
+                    clearSelection();
+                  }
+                }}
+                className="flex items-center gap-2 flex-shrink-0"
+              >
+                {bulkActionMode ? (
+                  <>
+                    <X className="h-4 w-4" />
+                    <span className="hidden xs:inline">Cancelar</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="h-4 w-4" />
+                    <span className="hidden xs:inline">Selecionar</span>
+                  </>
+                )}
+              </Button>
 
               {/* Toggle de visualização */}
               <div className="flex items-center border rounded-lg p-1 flex-shrink-0">
