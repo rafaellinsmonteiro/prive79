@@ -167,7 +167,7 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
       {/* Modals */}
       {showAppointmentModal && (
         <Dialog open={showAppointmentModal} onOpenChange={setShowAppointmentModal}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
             <AdminAppointmentForm onClose={() => setShowAppointmentModal(false)} />
           </DialogContent>
         </Dialog>
@@ -185,7 +185,7 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
 
       {showMediaModal && (
         <Dialog open={showMediaModal} onOpenChange={setShowMediaModal}>
-          <DialogContent className="max-w-6xl h-[80vh]">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-2 sm:p-6">
             <OrganizedMediaManager />
           </DialogContent>
         </Dialog>
