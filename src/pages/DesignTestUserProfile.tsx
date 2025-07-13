@@ -342,25 +342,26 @@ const DesignTestUserProfile = () => {
             {/* Balance Display */}
             {(isExpanded || isMobileMenuOpen) && balanceData && (
               <div className="mb-4 px-3">
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-3 space-y-2">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Saldos
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">R$</span>
-                      <span className="font-semibold text-sm text-foreground">
-                        {new Intl.NumberFormat('pt-BR', { 
-                          style: 'currency', 
-                          currency: 'BRL' 
-                        }).format(Number(balanceData.balance_brl) || 0)}
-                      </span>
+                <div className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
+                  Saldos
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {/* R$ Card */}
+                  <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-3 border border-green-500/20">
+                    <div className="text-xs text-green-600 font-medium mb-1">R$</div>
+                    <div className="font-bold text-sm text-foreground">
+                      {new Intl.NumberFormat('pt-BR', { 
+                        style: 'currency', 
+                        currency: 'BRL' 
+                      }).format(Number(balanceData.balance_brl) || 0)}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">P$</span>
-                      <span className="font-semibold text-sm text-primary">
-                        {new Intl.NumberFormat('pt-BR').format(Number(balanceData.balance) || 0)}
-                      </span>
+                  </div>
+                  
+                  {/* P$ Card */}
+                  <div className="bg-gradient-to-br from-primary/10 to-primary/20 rounded-lg p-3 border border-primary/20">
+                    <div className="text-xs text-primary font-medium mb-1">P$</div>
+                    <div className="font-bold text-sm text-primary">
+                      {new Intl.NumberFormat('pt-BR').format(Number(balanceData.balance) || 0)}
                     </div>
                   </div>
                 </div>
