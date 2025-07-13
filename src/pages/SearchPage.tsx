@@ -18,6 +18,8 @@ const SearchPage = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [showsFace, setShowsFace] = useState(false);
+  const [myLocation, setMyLocation] = useState(false);
+  const [videoCall, setVideoCall] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
@@ -68,10 +70,12 @@ const SearchPage = () => {
       searchTerm: debouncedSearchTerm,
       category: activeCategory,
       onlineOnly,
-      showsFace
+      showsFace,
+      myLocation,
+      videoCall
     };
     searchModels(filters);
-  }, [debouncedSearchTerm, activeCategory, onlineOnly, showsFace]);
+  }, [debouncedSearchTerm, activeCategory, onlineOnly, showsFace, myLocation, videoCall]);
 
   // Handler functions
   const handleChat = (model: any) => {
@@ -121,21 +125,21 @@ const SearchPage = () => {
         <CardContent className="p-6">
           <div className="flex gap-6">
             {/* Images Gallery */}
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               {mockImages.map((image, index) => (
                 <div key={index} className="relative">
-                  <div className={`${index === 0 ? 'w-32 h-32' : 'w-20 h-20'} rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300`}>
+                  <div className="w-24 h-24 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">
                     {image ? (
                       <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <User className={`${index === 0 ? 'h-16 w-16' : 'h-8 w-8'} text-[hsl(var(--dark-muted))]`} />
+                        <User className="h-8 w-8 text-[hsl(var(--dark-muted))]" />
                       </div>
                     )}
                   </div>
                   {result.type === 'model' && index === 0 && (
                     <div className="absolute -bottom-1 -right-1">
-                      <div className={`w-6 h-6 rounded-full border-2 border-[hsl(var(--dark-card))] ${result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'}`} />
+                      <div className={`w-5 h-5 rounded-full border-2 border-[hsl(var(--dark-card))] ${result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'}`} />
                     </div>
                   )}
                 </div>
@@ -302,48 +306,59 @@ const SearchPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Quick Filters */}
+                <div className="space-y-4">
+                  <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                      <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                        <Circle className="h-3 w-3 fill-green-500 text-green-500" />
+                        Online
+                      </Label>
+                      <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                      <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                        <Eye className="h-3 w-3" />
+                        Rosto
+                      </Label>
+                      <Switch id="shows-face" checked={showsFace} onCheckedChange={setShowsFace} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                      <Label htmlFor="my-location" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                        <MapPin className="h-3 w-3" />
+                        Meu local
+                      </Label>
+                      <Switch id="my-location" checked={myLocation} onCheckedChange={setMyLocation} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                      <Label htmlFor="video-call" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                        <Camera className="h-3 w-3" />
+                        Videochamada
+                      </Label>
+                      <Switch id="video-call" checked={videoCall} onCheckedChange={setVideoCall} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
+
                 {/* Search Input */}
                 <div className="space-y-2">
                   <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
-                    <Input id="search" placeholder="Digite sua busca..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" />
-                  </div>
-                </div>
-
-                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
-
-                {/* Categories */}
-                <div className="space-y-3">
-                  <Label className="text-[hsl(var(--dark-text))]">Categorias</Label>
-                  <div className="space-y-2">
-                    {categories.map(category => <Button key={category.key} variant={activeCategory === category.key ? "default" : "ghost"} size="sm" onClick={() => setActiveCategory(category.key)} className={`w-full justify-start transition-all duration-200 ${activeCategory === category.key ? "bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-l-2 border-[hsl(var(--gold-primary))] shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.2]" : "text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10"}`}>
-                        <category.icon className="h-4 w-4 mr-2" />
-                        {category.label}
-                      </Button>)}
-                  </div>
-                </div>
-
-                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
-
-                {/* Quick Filters */}
-                <div className="space-y-4">
-                  <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
-                  
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                    <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))]">
-                      <Circle className="h-4 w-4 fill-green-500 text-green-500" />
-                      Online agora
-                    </Label>
-                    <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} className="data-[state=checked]:bg-[hsl(var(--gold-primary))]" />
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                    <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))]">
-                      <Eye className="h-4 w-4" />
-                      Mostra o rosto
-                    </Label>
-                    <Switch id="shows-face" checked={showsFace} onCheckedChange={setShowsFace} className="data-[state=checked]:bg-[hsl(var(--gold-primary))]" />
+                    <Input 
+                      id="search" 
+                      placeholder="Digite sua busca..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                      className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" 
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -353,19 +368,37 @@ const SearchPage = () => {
           {/* Main Content */}
           <div className="flex-1 space-y-6">
             {/* Quick Filter Badges */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-[hsl(var(--dark-muted))]">Filtros ativos:</span>
-              {onlineOnly && <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
+              {onlineOnly && (
+                <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
                   <Circle className="h-3 w-3 mr-1 fill-current" />
                   Online agora
-                </Badge>}
-              {showsFace && <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                </Badge>
+              )}
+              {showsFace && (
+                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
                   <Eye className="h-3 w-3 mr-1" />
                   Mostra o rosto
-                </Badge>}
-              {activeCategory !== 'all' && <Badge variant="outline" className="border-[hsl(var(--gold-accent))]/40 text-[hsl(var(--dark-text))]">
+                </Badge>
+              )}
+              {myLocation && (
+                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                  <MapPin className="h-3 w-3 mr-1" />
+                  Meu local
+                </Badge>
+              )}
+              {videoCall && (
+                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                  <Camera className="h-3 w-3 mr-1" />
+                  Videochamada
+                </Badge>
+              )}
+              {activeCategory !== 'all' && (
+                <Badge variant="outline" className="border-[hsl(var(--gold-accent))]/40 text-[hsl(var(--dark-text))]">
                   {categories.find(c => c.key === activeCategory)?.label}
-                </Badge>}
+                </Badge>
+              )}
             </div>
 
             {/* Results Header */}

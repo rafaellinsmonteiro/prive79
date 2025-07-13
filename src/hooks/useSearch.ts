@@ -21,6 +21,8 @@ export interface SearchFilters {
   category: string;
   onlineOnly: boolean;
   showsFace: boolean;
+  myLocation?: boolean;
+  videoCall?: boolean;
 }
 
 export const useSearch = () => {
