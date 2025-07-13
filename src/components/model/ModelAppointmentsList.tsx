@@ -189,14 +189,14 @@ const ModelAppointmentsList = () => {
             className="bg-primary hover:bg-primary/90"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
+            Novo
           </Button>
           
           <ModelWorkingHours 
             trigger={
               <Button variant="outline" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Horários de Atendimento
+                Horários
               </Button>
             }
           />
