@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Image, Video, Plus, Upload, Trash2, Star, Eye, Film, Settings, 
   Folder, FolderPlus, Tag, Filter, Move, Grid3X3, List, FileText,
-  ChevronDown, X, Edit3, RotateCw, FlipHorizontal, FlipVertical, Save
+  ChevronDown, X, Edit3, RotateCw, FlipHorizontal, FlipVertical, Save,
+  CheckSquare, Square, MoreHorizontal
 } from 'lucide-react';
 import ReactCrop, { type Crop as ReactCropType, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -86,6 +88,11 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
     status: 'pending' | 'uploading' | 'completed' | 'error';
     error?: string;
   }>>([]);
+
+  // Estados para seleção múltipla
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [bulkActionMode, setBulkActionMode] = useState(false);
+  const [isBulkActionsOpen, setIsBulkActionsOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -338,6 +345,213 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       toast.error('Erro ao deletar arquivo');
     }
   });
+
+  // Mutation para ações em massa
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ items, updates }: { items: Array<{id: string, type: 'photo' | 'video'}>, updates: any }) => {
+      const photoUpdates = items.filter(item => item.type === 'photo');
+      const videoUpdates = items.filter(item => item.type === 'video');
+
+      if (photoUpdates.length > 0) {
+        const { error: photoError } = await supabase
+          .from('model_photos')
+          .update(updates)
+          .in('id', photoUpdates.map(item => item.id));
+        if (photoError) throw photoError;
+      }
+
+      if (videoUpdates.length > 0) {
+        const { error: videoError } = await supabase
+          .from('model_videos')
+          .update(updates)
+          .in('id', videoUpdates.map(item => item.id));
+        if (videoError) throw videoError;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Itens atualizados com sucesso!');
+      refetchPhotos();
+      refetchVideos();
+      setSelectedItems(new Set());
+      setBulkActionMode(false);
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar itens');
+    }
+  });
+
+  // Mutation para deletar em massa
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async ({ items }: { items: Array<{id: string, type: 'photo' | 'video', url: string}> }) => {
+      for (const item of items) {
+        const urlParts = item.url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `${modelId}/${fileName}`;
+        
+        const bucketName = item.type === 'photo' ? 'model-photos' : 'model-videos';
+        await supabase.storage
+          .from(bucketName)
+          .remove([filePath]);
+
+        const tableName = item.type === 'photo' ? 'model_photos' : 'model_videos';
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('id', item.id);
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`${variables.items.length} ${variables.items.length === 1 ? 'item deletado' : 'itens deletados'} com sucesso!`);
+      refetchPhotos();
+      refetchVideos();
+      setSelectedItems(new Set());
+      setBulkActionMode(false);
+    },
+    onError: () => {
+      toast.error('Erro ao deletar itens');
+    }
+  });
+
+  // Funções para seleção múltipla
+  const toggleItemSelection = (itemId: string) => {
+    const newSelection = new Set(selectedItems);
+    if (newSelection.has(itemId)) {
+      newSelection.delete(itemId);
+    } else {
+      newSelection.add(itemId);
+    }
+    setSelectedItems(newSelection);
+  };
+
+  const selectAllVisibleItems = () => {
+    const allItems = [...photos.map(p => `photo-${p.id}`), ...videos.map(v => `video-${v.id}`)];
+    setSelectedItems(new Set(allItems));
+  };
+
+  const clearSelection = () => {
+    setSelectedItems(new Set());
+    setBulkActionMode(false);
+  };
+
+  const getSelectedItemsData = () => {
+    const items: Array<{id: string, type: 'photo' | 'video', url: string}> = [];
+    
+    selectedItems.forEach(itemId => {
+      if (itemId.startsWith('photo-')) {
+        const photoId = itemId.replace('photo-', '');
+        const photo = photos.find(p => p.id === photoId);
+        if (photo) {
+          items.push({
+            id: photo.id,
+            type: 'photo',
+            url: photo.photo_url
+          });
+        }
+      } else if (itemId.startsWith('video-')) {
+        const videoId = itemId.replace('video-', '');
+        const video = videos.find(v => v.id === videoId);
+        if (video) {
+          items.push({
+            id: video.id,
+            type: 'video',
+            url: video.video_url
+          });
+        }
+      }
+    });
+    
+    return items;
+  };
+
+  const handleBulkAction = (action: string, value?: string) => {
+    const items = getSelectedItemsData();
+    if (items.length === 0) return;
+
+    switch (action) {
+      case 'delete':
+        if (confirm(`Tem certeza que deseja deletar ${items.length} ${items.length === 1 ? 'item' : 'itens'}?`)) {
+          bulkDeleteMutation.mutate({ items });
+        }
+        break;
+      case 'stage':
+        if (value) {
+          bulkUpdateMutation.mutate({
+            items: items.map(item => ({ id: item.id, type: item.type })),
+            updates: { stage: value }
+          });
+        }
+        break;
+      case 'folder':
+        bulkUpdateMutation.mutate({
+          items: items.map(item => ({ id: item.id, type: item.type })),
+          updates: { folder_id: value === 'no-folder' ? null : value }
+        });
+        break;
+      case 'addTag':
+        if (value && value.trim()) {
+          // Buscar itens atuais para obter suas tags
+          const photosToUpdate = items.filter(item => item.type === 'photo').map(item => item.id);
+          const videosToUpdate = items.filter(item => item.type === 'video').map(item => item.id);
+          
+          Promise.all([
+            ...(photosToUpdate.length > 0 ? [
+              supabase.from('model_photos')
+                .select('id, tags')
+                .in('id', photosToUpdate)
+                .then(({ data }) => data?.map(photo => ({
+                  id: photo.id,
+                  type: 'photo' as const,
+                  newTags: [...(photo.tags || []), value].filter((tag, index, arr) => arr.indexOf(tag) === index)
+                })) || [])
+            ] : []),
+            ...(videosToUpdate.length > 0 ? [
+              supabase.from('model_videos')
+                .select('id, tags')
+                .in('id', videosToUpdate)
+                .then(({ data }) => data?.map(video => ({
+                  id: video.id,
+                  type: 'video' as const,
+                  newTags: [...(video.tags || []), value].filter((tag, index, arr) => arr.indexOf(tag) === index)
+                })) || [])
+            ] : [])
+          ]).then(async (results) => {
+            const allUpdates = results.flat();
+            
+            // Atualizar fotos
+            const photoUpdates = allUpdates.filter(item => item.type === 'photo');
+            if (photoUpdates.length > 0) {
+              for (const update of photoUpdates) {
+                await supabase.from('model_photos')
+                  .update({ tags: update.newTags })
+                  .eq('id', update.id);
+              }
+            }
+            
+            // Atualizar vídeos
+            const videoUpdates = allUpdates.filter(item => item.type === 'video');
+            if (videoUpdates.length > 0) {
+              for (const update of videoUpdates) {
+                await supabase.from('model_videos')
+                  .update({ tags: update.newTags })
+                  .eq('id', update.id);
+              }
+            }
+            
+            toast.success(`Tag "${value}" adicionada aos itens selecionados!`);
+            refetchPhotos();
+            refetchVideos();
+            setSelectedItems(new Set());
+            setBulkActionMode(false);
+          }).catch(() => {
+            toast.error('Erro ao adicionar tag');
+          });
+        }
+        break;
+    }
+    setIsBulkActionsOpen(false);
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -1195,6 +1409,86 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
         </Card>
       )}
 
+      {/* Barra de Ações em Massa */}
+      {selectedItems.size > 0 && (
+        <Card className="border-primary bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium">
+                  {selectedItems.size} {selectedItems.size === 1 ? 'item selecionado' : 'itens selecionados'}
+                </span>
+                <Button variant="ghost" size="sm" onClick={clearSelection}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <DropdownMenu open={isBulkActionsOpen} onOpenChange={setIsBulkActionsOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreHorizontal className="h-4 w-4 mr-2" />
+                      Ações
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {/* Alterar Etapa */}
+                    <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Etapa</div>
+                    {stages.map(stage => (
+                      <DropdownMenuItem key={stage} onClick={() => handleBulkAction('stage', stage)}>
+                        <Move className="h-4 w-4 mr-2" />
+                        {stage}
+                      </DropdownMenuItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Alterar Pasta */}
+                    <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Pasta</div>
+                    <DropdownMenuItem onClick={() => handleBulkAction('folder', 'no-folder')}>
+                      <Folder className="h-4 w-4 mr-2" />
+                      Sem pasta
+                    </DropdownMenuItem>
+                    {folders.map(folder => (
+                      <DropdownMenuItem key={folder.id} onClick={() => handleBulkAction('folder', folder.id)}>
+                        <Folder className="h-4 w-4 mr-2" />
+                        {folder.name}
+                      </DropdownMenuItem>
+                    ))}
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Adicionar Tag */}
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        const tag = prompt('Digite a tag para adicionar:');
+                        if (tag) handleBulkAction('addTag', tag);
+                      }}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      Adicionar Tag
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Excluir */}
+                    <DropdownMenuItem 
+                      onClick={() => handleBulkAction('delete')}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir Selecionados
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Conteúdo */}
       <Card className="border-border bg-card">
         <CardContent className="p-6">
@@ -1224,13 +1518,37 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" 
               : "space-y-4"
             }>
-              {content.map((item) => (
-                <Card key={item.id} className={`border-border bg-card overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all ${
+              {content.map((item) => {
+                const itemKey = `${item.type}-${item.id}`;
+                const isSelected = selectedItems.has(itemKey);
+                
+                return (
+                <Card key={item.id} className={`border-border bg-card overflow-hidden transition-all relative ${
                   viewMode === 'list' ? 'flex' : ''
-                }`} onClick={() => {
-                  setSelectedItem(item);
-                  setIsDetailsOpen(true);
-                }}>
+                } ${isSelected ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-primary/20 cursor-pointer'}`}>
+                  
+                  {/* Checkbox para seleção múltipla */}
+                  {bulkActionMode && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleItemSelection(itemKey)}
+                        className="bg-background border-2"
+                      />
+                    </div>
+                  )}
+                  
+                  <div 
+                    onClick={() => {
+                      if (bulkActionMode) {
+                        toggleItemSelection(itemKey);
+                      } else {
+                        setSelectedItem(item);
+                        setIsDetailsOpen(true);
+                      }
+                    }}
+                    className="w-full h-full cursor-pointer"
+                  >
                   {viewMode === 'grid' ? (
                     // Visualização em Grade - Foco na imagem/thumbnail
                     <div className="aspect-square relative group">
@@ -1363,11 +1681,13 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                             <Edit3 className="h-3 w-3" />
                           </div>
                         </div>
-                      </CardContent>
-                    </>
-                  )}
-                </Card>
-              ))}
+                       </CardContent>
+                     </>
+                   )}
+                   </div>
+                 </Card>
+                 );
+               })}
             </div>
           )}
         </CardContent>
