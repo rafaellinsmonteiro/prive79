@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, 
   Users, 
@@ -12,10 +13,14 @@ import {
   MessageCircle, 
   Settings,
   Menu,
-  X
+  X,
+  LogOut,
+  User
 } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const menuItems = [
   { title: 'Dashboard', url: '/design-test/dashboard', icon: LayoutDashboard },
@@ -37,6 +42,19 @@ interface DesignTestLayoutProps {
 function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { data: currentUser } = useCurrentUser();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const getUserInitials = (name?: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
 
   return (
     <Sidebar className={cn(
@@ -95,6 +113,62 @@ function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Conta Section */}
+        <div className="mt-auto">
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[hsl(var(--gold-accent))]/80 text-xs uppercase tracking-wider px-6 py-3">
+              Conta
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="px-3">
+                {/* User Profile */}
+                <SidebarMenuItem>
+                  <div className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                    open ? "justify-start" : "justify-center"
+                  )}>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="" alt={currentUser?.name || 'Usuário'} />
+                      <AvatarFallback className="bg-gradient-to-br from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] text-sm font-bold">
+                        {getUserInitials(currentUser?.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {open && (
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[hsl(var(--gold-primary))] font-medium text-sm truncate">
+                          {currentUser?.name || 'Usuário'}
+                        </p>
+                        <p className="text-[hsl(var(--dark-muted))] text-xs truncate">
+                          {currentUser?.email}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </SidebarMenuItem>
+
+                {/* Sign Out Button */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <button
+                      onClick={handleSignOut}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full",
+                        "hover:bg-[hsl(var(--gold-accent))]/10 hover:text-[hsl(var(--gold-primary))]",
+                        "text-[hsl(var(--dark-muted))]"
+                      )}
+                    >
+                      <LogOut className="h-5 w-5" />
+                      {open && (
+                        <span className="font-medium">Sair</span>
+                      )}
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
@@ -179,14 +253,10 @@ export default function DesignTestLayout({ children, title }: DesignTestLayoutPr
         
         <div className="flex-1 flex flex-col">
           {/* Desktop Header */}
-          <header className="h-16 border-b border-[hsl(var(--gold-accent))]/20 bg-[hsl(var(--dark-card))] flex items-center justify-between px-6">
+          <header className="h-16 border-b border-[hsl(var(--gold-accent))]/20 bg-[hsl(var(--dark-card))] flex items-center px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]" />
               <h1 className="text-2xl font-bold text-[hsl(var(--gold-primary))]">{title}</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))]"></div>
             </div>
           </header>
 
