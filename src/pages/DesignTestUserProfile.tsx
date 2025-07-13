@@ -14,13 +14,24 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserBalance } from '@/hooks/useUserBalance';
 import { supabase } from '@/integrations/supabase/client';
 import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
-
 const DesignTestUserProfile = () => {
   const isMobile = useIsMobile();
-  const { user, signOut, isAdmin } = useAuth();
-  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useCurrentUser();
-  const { data: balanceData } = useUserBalance();
-  const { toast } = useToast();
+  const {
+    user,
+    signOut,
+    isAdmin
+  } = useAuth();
+  const {
+    data: currentUser,
+    isLoading: currentUserLoading,
+    error: currentUserError
+  } = useCurrentUser();
+  const {
+    data: balanceData
+  } = useUserBalance();
+  const {
+    toast
+  } = useToast();
   const [isExpanded, setIsExpanded] = useState(!isMobile);
   const [isDark, setIsDark] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -34,7 +45,7 @@ const DesignTestUserProfile = () => {
     name: '',
     whatsapp: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
 
   // Auto-collapse sidebar on mobile
@@ -51,18 +62,16 @@ const DesignTestUserProfile = () => {
         setLoading(false);
         return;
       }
-
       try {
         const basicInfo = {
           email: user.email || '',
           name: user.user_metadata?.name || '',
           whatsapp: user.user_metadata?.whatsapp || '',
           password: '',
-          confirmPassword: '',
+          confirmPassword: ''
         };
-
         setUserInfo(basicInfo);
-        
+
         // Carregar foto de perfil
         if (currentUser?.profile_photo_url) {
           setProfilePhotoUrl(currentUser.profile_photo_url);
@@ -80,10 +89,8 @@ const DesignTestUserProfile = () => {
         setLoading(false);
       }
     };
-
     loadUserData();
   }, [user, currentUser, toast]);
-
   const navigationItems = [{
     icon: LayoutDashboard,
     label: 'Dashboard',
@@ -108,7 +115,6 @@ const DesignTestUserProfile = () => {
     label: 'Analytics',
     id: 'analytics'
   }];
-
   const accountItems = [{
     icon: Settings,
     label: 'Configurações',
@@ -118,9 +124,10 @@ const DesignTestUserProfile = () => {
     label: 'Sair',
     id: 'logout'
   }];
-
   const handleSignOut = async () => {
-    const { error } = await signOut();
+    const {
+      error
+    } = await signOut();
     if (error) {
       toast({
         title: "Erro ao sair",
@@ -134,7 +141,6 @@ const DesignTestUserProfile = () => {
       });
     }
   };
-
   const handleSave = async () => {
     try {
       // Validações básicas
@@ -146,7 +152,6 @@ const DesignTestUserProfile = () => {
         });
         return;
       }
-
       if (userInfo.password && userInfo.password.length < 6) {
         toast({
           title: "Erro",
@@ -160,7 +165,7 @@ const DesignTestUserProfile = () => {
       const updateData: any = {
         data: {
           name: userInfo.name,
-          whatsapp: userInfo.whatsapp,
+          whatsapp: userInfo.whatsapp
         }
       };
 
@@ -173,9 +178,9 @@ const DesignTestUserProfile = () => {
       if (userInfo.password) {
         updateData.password = userInfo.password;
       }
-
-      const { error } = await supabase.auth.updateUser(updateData);
-
+      const {
+        error
+      } = await supabase.auth.updateUser(updateData);
       if (error) {
         toast({
           title: "Erro ao atualizar",
@@ -184,7 +189,6 @@ const DesignTestUserProfile = () => {
         });
         return;
       }
-
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram atualizadas com sucesso"
@@ -196,7 +200,6 @@ const DesignTestUserProfile = () => {
         password: '',
         confirmPassword: ''
       }));
-
       setIsEditing(false);
     } catch (error) {
       console.error('Erro ao salvar:', error);
@@ -207,7 +210,6 @@ const DesignTestUserProfile = () => {
       });
     }
   };
-
   const handleCancel = () => {
     // Restaurar dados originais
     setUserInfo({
@@ -215,11 +217,10 @@ const DesignTestUserProfile = () => {
       name: user?.user_metadata?.name || '',
       whatsapp: user?.user_metadata?.whatsapp || '',
       password: '',
-      confirmPassword: '',
+      confirmPassword: ''
     });
     setIsEditing(false);
   };
-
   const handlePhotoUpdate = (photoUrl: string) => {
     setProfilePhotoUrl(photoUrl);
     toast({
@@ -227,15 +228,9 @@ const DesignTestUserProfile = () => {
       description: "Foto de perfil atualizada!"
     });
   };
-
   return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
       {/* Mobile Overlay */}
-      {isMobile && isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      {isMobile && isMobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
 
       {/* Sidebar */}
       <div className={`
@@ -244,10 +239,7 @@ const DesignTestUserProfile = () => {
           transition-all duration-300 ease-in-out
           flex flex-col
           shadow-xl
-          ${isMobile ? 
-            `fixed left-0 top-0 h-full z-50 ${isMobileMenuOpen ? 'w-72' : 'w-0 overflow-hidden'}` : 
-            `relative ${isExpanded ? 'w-72' : 'w-20'}`
-          }
+          ${isMobile ? `fixed left-0 top-0 h-full z-50 ${isMobileMenuOpen ? 'w-72' : 'w-0 overflow-hidden'}` : `relative ${isExpanded ? 'w-72' : 'w-20'}`}
         `}>
         {/* Logo Section */}
         <div className="p-6 border-b border-border">
@@ -263,11 +255,9 @@ const DesignTestUserProfile = () => {
                   </div>
                 </div>}
             </div>
-            {!isMobile && (
-              <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-muted-foreground hover:text-foreground hover:bg-accent p-2 rounded-lg">
+            {!isMobile && <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="text-muted-foreground hover:text-foreground hover:bg-accent p-2 rounded-lg">
                 <ChevronLeft className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? '' : 'rotate-180'}`} />
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
 
@@ -275,11 +265,9 @@ const DesignTestUserProfile = () => {
         <div className="flex-1 px-4 py-6 space-y-8">
           {/* Main Navigation */}
           <div>
-            {(isExpanded || isMobileMenuOpen) && (
-              <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
+            {(isExpanded || isMobileMenuOpen) && <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
                 Principal
-              </div>
-            )}
+              </div>}
             <nav className="space-y-2">
               {navigationItems.map(item => <div key={item.id} className="relative group" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
                   <Button variant="ghost" className={`
@@ -287,73 +275,60 @@ const DesignTestUserProfile = () => {
                       ${item.active ? 'bg-gradient-to-r from-primary/20 to-primary/30 text-primary shadow-lg border border-primary/20' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
                     `}>
                     <item.icon className="w-5 h-5 shrink-0" />
-                    {(isExpanded || isMobileMenuOpen) && (
-                      <>
+                    {(isExpanded || isMobileMenuOpen) && <>
                         <span className="ml-3 font-medium">{item.label}</span>
-                        {item.badge && (
-                          <Badge variant="secondary" className="ml-auto bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-sm">
+                        {item.badge && <Badge variant="secondary" className="ml-auto bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-sm">
                             {item.badge}
-                          </Badge>
-                        )}
-                      </>
-                    )}
+                          </Badge>}
+                      </>}
                   </Button>
                   
-                  {!isMobile && !isExpanded && hoveredItem === item.id && (
-                    <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
+                  {!isMobile && !isExpanded && hoveredItem === item.id && <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
                       {item.label}
                       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-                    </div>
-                  )}
+                    </div>}
                 </div>)}
             </nav>
           </div>
 
           {/* User Profile Section */}
           <div className="border-t border-border pt-6">
-            {(isExpanded || isMobileMenuOpen) && (
-              <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
+            {(isExpanded || isMobileMenuOpen) && <div className="text-xs font-semibold mb-4 px-3 text-muted-foreground uppercase tracking-wider">
                 Conta
-              </div>
-            )}
+              </div>}
             
             {/* User Profile */}
               <div className="mb-4 px-3">
-                <div className={`flex items-center gap-3 p-3 rounded-xl bg-accent/50 ${(isExpanded || isMobileMenuOpen) ? '' : 'justify-center'}`}>
+                <div className={`flex items-center gap-3 p-3 rounded-xl bg-accent/50 ${isExpanded || isMobileMenuOpen ? '' : 'justify-center'}`}>
                   <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
                     <AvatarImage src={profilePhotoUrl || currentUser?.profile_photo_url || '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
                       {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
                     </AvatarFallback>
                   </Avatar>
-                {(isExpanded || isMobileMenuOpen) && (
-                  <div className="flex-1 min-w-0">
+                {(isExpanded || isMobileMenuOpen) && <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground text-sm truncate">
                       {currentUser?.name || 'Usuário'}
                     </div>
                     <div className="text-xs text-muted-foreground capitalize">
                       {currentUser?.user_role || 'Cliente'}
                     </div>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
 
             {/* Balance Display */}
-            {(isExpanded || isMobileMenuOpen) && balanceData && (
-              <div className="mb-4 px-3">
-                <div className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
-                  Saldos
-                </div>
+            {(isExpanded || isMobileMenuOpen) && balanceData && <div className="mb-4 px-3">
+                
                 <div className="grid grid-cols-2 gap-2">
                   {/* R$ Card */}
                   <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-3 border border-green-500/20">
                     <div className="text-xs text-green-600 font-medium mb-1">R$</div>
                     <div className="font-bold text-sm text-foreground">
-                      {new Intl.NumberFormat('pt-BR', { 
-                        style: 'currency', 
-                        currency: 'BRL' 
-                      }).format(Number(balanceData.balance_brl) || 0)}
+                      {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(Number(balanceData.balance_brl) || 0)}
                     </div>
                   </div>
                   
@@ -365,8 +340,7 @@ const DesignTestUserProfile = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
 
             <nav className="space-y-2">
               {accountItems.map(item => <div key={item.id} className="relative" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
@@ -375,12 +349,10 @@ const DesignTestUserProfile = () => {
                     {(isExpanded || isMobileMenuOpen) && <span className="ml-3 font-medium">{item.label}</span>}
                   </Button>
                   
-                  {!isMobile && !isExpanded && hoveredItem === item.id && (
-                    <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
+                  {!isMobile && !isExpanded && hoveredItem === item.id && <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
                       {item.label}
                       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-                    </div>
-                  )}
+                    </div>}
                 </div>)}
             </nav>
           </div>
@@ -403,16 +375,9 @@ const DesignTestUserProfile = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Mobile Menu Button */}
-              {isMobile && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 hover:bg-accent"
-                >
+              {isMobile && <Button variant="ghost" size="sm" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-accent">
                   <Menu className="w-5 h-5 text-muted-foreground" />
-                </Button>
-              )}
+                </Button>}
               
               <div>
                 <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
@@ -426,12 +391,10 @@ const DesignTestUserProfile = () => {
             
             <div className="flex items-center gap-2 lg:gap-4">
               {/* Search - Hidden on small mobile */}
-              {!isMobile && (
-                <div className="relative hidden md:block">
+              {!isMobile && <div className="relative hidden md:block">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input placeholder="Buscar..." className="pl-10 w-60 lg:w-80 bg-accent border-border focus:border-primary" />
-                </div>
-              )}
+                </div>}
               
               <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent">
                 <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
@@ -459,44 +422,34 @@ const DesignTestUserProfile = () => {
                       <ProfilePhotoUpload size="lg" />
                     </div>
                     <CardTitle className="text-foreground text-2xl">Informações Pessoais</CardTitle>
-                    {isAdmin && (
-                      <div className="inline-block bg-primary px-3 py-1 rounded-full text-sm text-primary-foreground">
+                    {isAdmin && <div className="inline-block bg-primary px-3 py-1 rounded-full text-sm text-primary-foreground">
                         Administrador
-                      </div>
-                    )}
+                      </div>}
                   </CardHeader>
                   <CardContent>
-                    <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-6">
+                    <form onSubmit={e => {
+                    e.preventDefault();
+                    handleSave();
+                  }} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="name" className="text-foreground font-medium">
                             Nome Completo
                           </Label>
-                          <Input
-                            id="name"
-                            type="text"
-                            value={userInfo.name}
-                            onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-                            disabled={!isEditing}
-                            placeholder="Digite seu nome completo"
-                            className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60"
-                            autoComplete="name"
-                          />
+                          <Input id="name" type="text" value={userInfo.name} onChange={e => setUserInfo({
+                          ...userInfo,
+                          name: e.target.value
+                        })} disabled={!isEditing} placeholder="Digite seu nome completo" className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60" autoComplete="name" />
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="email" className="text-foreground font-medium">
                             Email
                           </Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={userInfo.email}
-                            onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-                            disabled={!isEditing}
-                            className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60"
-                            autoComplete="email"
-                          />
+                          <Input id="email" type="email" value={userInfo.email} onChange={e => setUserInfo({
+                          ...userInfo,
+                          email: e.target.value
+                        })} disabled={!isEditing} className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60" autoComplete="email" />
                         </div>
                       </div>
 
@@ -504,46 +457,24 @@ const DesignTestUserProfile = () => {
                         <Label htmlFor="whatsapp" className="text-foreground font-medium">
                           WhatsApp
                         </Label>
-                        <Input
-                          id="whatsapp"
-                          type="tel"
-                          value={userInfo.whatsapp}
-                          onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
-                          disabled={!isEditing}
-                          placeholder="(11) 99999-9999"
-                          className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60"
-                          autoComplete="tel"
-                        />
+                        <Input id="whatsapp" type="tel" value={userInfo.whatsapp} onChange={e => setUserInfo({
+                        ...userInfo,
+                        whatsapp: e.target.value
+                      })} disabled={!isEditing} placeholder="(11) 99999-9999" className="bg-background border-border text-foreground placeholder:text-muted-foreground disabled:opacity-60" autoComplete="tel" />
                       </div>
 
-                      {isEditing && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {isEditing && <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
                             <Label htmlFor="password" className="text-foreground font-medium">
                               Nova Senha (opcional)
                             </Label>
                             <div className="relative">
-                              <Input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                value={userInfo.password}
-                                onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
-                                placeholder="Digite uma nova senha"
-                                className="bg-background border-border text-foreground placeholder:text-muted-foreground pr-10"
-                                autoComplete="new-password"
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                  <Eye className="h-4 w-4 text-muted-foreground" />
-                                )}
+                              <Input id="password" type={showPassword ? "text" : "password"} value={userInfo.password} onChange={e => setUserInfo({
+                            ...userInfo,
+                            password: e.target.value
+                          })} placeholder="Digite uma nova senha" className="bg-background border-border text-foreground placeholder:text-muted-foreground pr-10" autoComplete="new-password" />
+                              <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
+                                {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                               </Button>
                             </div>
                           </div>
@@ -552,60 +483,33 @@ const DesignTestUserProfile = () => {
                             <Label htmlFor="confirmPassword" className="text-foreground font-medium">
                               Confirmar Nova Senha
                             </Label>
-                            <Input
-                              id="confirmPassword"
-                              type="password"
-                              value={userInfo.confirmPassword}
-                              onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
-                              placeholder="Confirme a nova senha"
-                              className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                              autoComplete="new-password"
-                            />
+                            <Input id="confirmPassword" type="password" value={userInfo.confirmPassword} onChange={e => setUserInfo({
+                          ...userInfo,
+                          confirmPassword: e.target.value
+                        })} placeholder="Confirme a nova senha" className="bg-background border-border text-foreground placeholder:text-muted-foreground" autoComplete="new-password" />
                           </div>
-                        </div>
-                      )}
+                        </div>}
 
                       <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                        {!isEditing ? (
-                          <>
-                            <Button
-                              type="button"
-                              onClick={() => setIsEditing(true)}
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                            >
+                        {!isEditing ? <>
+                            <Button type="button" onClick={() => setIsEditing(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                               <Edit2 className="h-4 w-4 mr-2" />
                               Editar Informações
                             </Button>
-                            <Button
-                              type="button"
-                              onClick={handleSignOut}
-                              variant="destructive"
-                              className="bg-red-600 hover:bg-red-700"
-                            >
+                            <Button type="button" onClick={handleSignOut} variant="destructive" className="bg-red-600 hover:bg-red-700">
                               <LogOut className="h-4 w-4 mr-2" />
                               Sair da Conta
                             </Button>
-                          </>
-                        ) : (
-                          <div className="flex gap-4">
-                            <Button
-                              type="submit"
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                            >
+                          </> : <div className="flex gap-4">
+                            <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                               <Save className="h-4 w-4 mr-2" />
                               Salvar Alterações
                             </Button>
-                            <Button
-                              type="button"
-                              onClick={handleCancel}
-                              variant="outline"
-                              className="border-border bg-background text-foreground hover:bg-accent"
-                            >
+                            <Button type="button" onClick={handleCancel} variant="outline" className="border-border bg-background text-foreground hover:bg-accent">
                               <X className="h-4 w-4 mr-2" />
                               Cancelar
                             </Button>
-                          </div>
-                        )}
+                          </div>}
                       </div>
                     </form>
                   </CardContent>
@@ -624,10 +528,7 @@ const DesignTestUserProfile = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center">
-                      {currentUserError ? (
-                        <div className="text-red-400">Erro ao carregar plano</div>
-                      ) : currentUser?.plan ? (
-                        <div>
+                      {currentUserError ? <div className="text-red-400">Erro ao carregar plano</div> : currentUser?.plan ? <div>
                           <div className="text-lg font-semibold text-primary mb-1">
                             {currentUser.plan.name}
                           </div>
@@ -637,12 +538,7 @@ const DesignTestUserProfile = () => {
                           <div className="text-sm text-muted-foreground">
                             {currentUser.plan.description || 'Plano ativo'}
                           </div>
-                        </div>
-                      ) : currentUser ? (
-                        <div className="text-yellow-400">Nenhum plano ativo</div>
-                      ) : (
-                        <div className="text-muted-foreground">Carregando...</div>
-                      )}
+                        </div> : currentUser ? <div className="text-yellow-400">Nenhum plano ativo</div> : <div className="text-muted-foreground">Carregando...</div>}
                     </div>
                   </CardContent>
                 </Card>
@@ -680,5 +576,4 @@ const DesignTestUserProfile = () => {
       </div>
     </div>;
 };
-
 export default DesignTestUserProfile;
