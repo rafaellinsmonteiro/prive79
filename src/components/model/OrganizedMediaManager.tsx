@@ -1036,19 +1036,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             </CardTitle>
             
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* Botão Selecionar Todos - PRIMEIRO */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={selectAllVisibleItems}
-                disabled={content.length === 0}
-                className="flex items-center gap-2 flex-shrink-0"
-              >
-                <CheckSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Todos</span>
-              </Button>
-
-              {/* Botão Selecionar - SEGUNDO */}
+              {/* Botão Selecionar - PRIMEIRO */}
               <Button
                 variant={bulkActionMode ? 'destructive' : 'outline'}
                 size="sm"
@@ -1073,12 +1061,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                 )}
               </Button>
 
-              {/* Adicionar Conteúdo - TERCEIRO */}
+              {/* Adicionar Conteúdo - SEGUNDO */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button disabled={uploading} size="sm" className="flex-shrink-0">
-                    <Plus className="h-4 w-4" />
-                    <span className="hidden sm:inline ml-2">{uploading ? 'Enviando...' : 'Adicionar Conteúdo'}</span>
+                    <Plus className="h-4 w-4 mr-2" />
+                    <span className="hidden xs:inline">{uploading ? 'Enviando...' : 'Adicionar'}</span>
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
