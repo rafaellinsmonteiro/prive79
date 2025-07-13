@@ -42,8 +42,11 @@ import SearchPage from "./pages/SearchPage";
 import LunnaPage from "./pages/LunnaPage";
 import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
 import AdminDesignTestModels from "./pages/AdminDesignTestModels";
-import AdminDesignTestSettings from "./pages/AdminDesignTestSettings";
+import AdminDesignTestUsers from "./pages/AdminDesignTestUsers";
 import AdminDesignTestFields from "./pages/AdminDesignTestFields";
+import AdminDesignTestChat from "./pages/AdminDesignTestChat";
+import AdminDesignTestAppointments from "./pages/AdminDesignTestAppointments";
+import AdminDesignTestSettings from "./pages/AdminDesignTestSettings";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -169,9 +172,13 @@ const AppContent = () => {
           <Route path="/design-test/settings" element={<DesignTestPage />} />
           
           {/* Admin Design Test Pages */}
+          <Route path="/admin-design-test" element={<AdminDesignTestDashboard />} />
           <Route path="/admin-design-test/dashboard" element={<AdminDesignTestDashboard />} />
           <Route path="/admin-design-test/models" element={<AdminDesignTestModels />} />
+          <Route path="/admin-design-test/users" element={<AdminDesignTestUsers />} />
           <Route path="/admin-design-test/fields" element={<AdminDesignTestFields />} />
+          <Route path="/admin-design-test/chat" element={<AdminDesignTestChat />} />
+          <Route path="/admin-design-test/appointments" element={<AdminDesignTestAppointments />} />
           <Route path="/admin-design-test/settings" element={<AdminDesignTestSettings />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

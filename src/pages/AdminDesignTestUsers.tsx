@@ -4,9 +4,9 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bell, Search, Settings, Menu, Sun, Moon, User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import UsersManager from '@/components/admin/UsersManager';
 
-const AdminDesignTestSettings = () => {
+const AdminDesignTestUsers = () => {
   const isMobile = useIsMobile();
   const { data: user } = useCurrentUser();
   const [sidebarExpanded, setSidebarExpanded] = useState(!isMobile);
@@ -20,11 +20,11 @@ const AdminDesignTestSettings = () => {
   const navigationItems = [
     { name: 'Dashboard', href: '/admin-design-test', icon: '📊', active: false },
     { name: 'Modelos', href: '/admin-design-test/models', icon: '👥', active: false },
-    { name: 'Usuários', href: '/admin-design-test/users', icon: '👤', active: false },
+    { name: 'Usuários', href: '/admin-design-test/users', icon: '👤', active: true },
     { name: 'Campos', href: '/admin-design-test/fields', icon: '📝', active: false },
     { name: 'Chat', href: '/admin-design-test/chat', icon: '💬', active: false },
     { name: 'Agendamentos', href: '/admin-design-test/appointments', icon: '📅', active: false },
-    { name: 'Configurações', href: '/admin-design-test/settings', icon: '⚙️', active: true },
+    { name: 'Configurações', href: '/admin-design-test/settings', icon: '⚙️', active: false },
   ];
 
   const accountItems = [
@@ -34,37 +34,11 @@ const AdminDesignTestSettings = () => {
     { name: 'Sair', icon: '🚪' },
   ];
 
-  const settingsSections = [
-    {
-      title: 'Configurações Gerais',
-      description: 'Configurações básicas do sistema',
-      items: [
-        { name: 'Nome do Sistema', value: 'Admin Panel', type: 'text' },
-        { name: 'Email de Contato', value: 'admin@example.com', type: 'email' },
-        { name: 'Fuso Horário', value: 'America/Sao_Paulo', type: 'select' },
-        { name: 'Idioma Padrão', value: 'Português', type: 'select' },
-      ]
-    },
-    {
-      title: 'Notificações',
-      description: 'Configure as notificações do sistema',
-      items: [
-        { name: 'Email de Notificações', value: true, type: 'toggle' },
-        { name: 'SMS de Emergência', value: false, type: 'toggle' },
-        { name: 'Push Notifications', value: true, type: 'toggle' },
-        { name: 'Relatórios Semanais', value: true, type: 'toggle' },
-      ]
-    },
-    {
-      title: 'Segurança',
-      description: 'Configurações de segurança e acesso',
-      items: [
-        { name: 'Autenticação 2FA', value: true, type: 'toggle' },
-        { name: 'Sessão Automática (min)', value: '30', type: 'number' },
-        { name: 'Tentativas de Login', value: '5', type: 'number' },
-        { name: 'Backup Automático', value: true, type: 'toggle' },
-      ]
-    },
+  const stats = [
+    { title: 'Total de Usuários', value: '2,847', change: '+12%', positive: true },
+    { title: 'Usuários Ativos', value: '1,429', change: '+8%', positive: true },
+    { title: 'Novos Registros', value: '164', change: '+23%', positive: true },
+    { title: 'Taxa de Conversão', value: '12.5%', change: '-2%', positive: false },
   ];
 
   return (
@@ -160,7 +134,7 @@ const AdminDesignTestSettings = () => {
                 >
                   <Menu className="w-4 h-4" />
                 </Button>
-                <h1 className="text-xl font-semibold">Configurações</h1>
+                <h1 className="text-xl font-semibold">Gestão de Usuários</h1>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -183,51 +157,29 @@ const AdminDesignTestSettings = () => {
 
           {/* Page Content */}
           <main className="flex-1 overflow-auto p-6">
-            <div className="max-w-4xl mx-auto space-y-6">
-              {settingsSections.map((section, sectionIndex) => (
-                <Card key={sectionIndex}>
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold">{section.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {section.items.map((item, itemIndex) => (
-                      <div key={itemIndex} className="flex items-center justify-between py-2">
-                        <div className="flex-1">
-                          <p className="font-medium">{item.name}</p>
-                        </div>
-                        <div className="w-48">
-                          {item.type === 'text' || item.type === 'email' || item.type === 'number' ? (
-                            <Input 
-                              type={item.type}
-                              defaultValue={item.value as string}
-                              className="w-full"
-                            />
-                          ) : item.type === 'select' ? (
-                            <select className="w-full px-3 py-2 border border-border rounded-md bg-background">
-                              <option value={item.value as string}>{item.value as string}</option>
-                            </select>
-                          ) : item.type === 'toggle' ? (
-                            <div className="flex items-center">
-                              <input 
-                                type="checkbox" 
-                                defaultChecked={item.value as boolean}
-                                className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
-                              />
-                            </div>
-                          ) : null}
-                        </div>
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, index) => (
+                  <div key={index} className="bg-card rounded-lg border border-border p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                        <p className="text-2xl font-bold">{stat.value}</p>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className={`text-sm font-medium ${
+                        stat.positive ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {stat.change}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              {/* Save Button */}
-              <div className="flex justify-end">
-                <Button className="px-8">
-                  Salvar Configurações
-                </Button>
+              {/* Users Manager Component */}
+              <div className="bg-card rounded-lg border border-border p-6">
+                <UsersManager />
               </div>
             </div>
           </main>
@@ -237,4 +189,4 @@ const AdminDesignTestSettings = () => {
   );
 };
 
-export default AdminDesignTestSettings;
+export default AdminDesignTestUsers;
