@@ -19,7 +19,9 @@ import {
   Heart,
   Circle,
   Eye,
-  Users
+  Users,
+  Grid3X3,
+  List
 } from 'lucide-react';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -29,6 +31,7 @@ const SearchPage = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [showsFace, setShowsFace] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   
   const { results, loading, searchModels } = useSearch();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -63,22 +66,22 @@ const SearchPage = () => {
     return [];
   }, [results, activeCategory]);
 
-  const renderResultCard = (result: any) => {
+  const renderListCard = (result: any) => {
     return (
       <Card key={result.id} className="bg-card border-border hover:border-muted-foreground/20 transition-colors cursor-pointer">
         <CardContent className="p-6">
-          <div className="flex gap-4">
-            {/* Avatar */}
+          <div className="flex gap-6">
+            {/* Avatar - Increased size */}
             <div className="relative">
-              <Avatar className="w-16 h-16">
+              <Avatar className="w-32 h-32">
                 <AvatarImage src={result.image || undefined} alt={result.title} />
                 <AvatarFallback className="bg-muted text-muted-foreground">
-                  <User className="h-8 w-8" />
+                  <User className="h-16 w-16" />
                 </AvatarFallback>
               </Avatar>
               {result.type === 'model' && (
                 <div className="absolute -bottom-1 -right-1">
-                  <div className={`w-4 h-4 rounded-full border-2 border-background ${
+                  <div className={`w-6 h-6 rounded-full border-2 border-background ${
                     result.is_online ? 'bg-green-500' : 'bg-muted-foreground'
                   }`} />
                 </div>
@@ -87,11 +90,11 @@ const SearchPage = () => {
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-semibold text-lg truncate">{result.title}</h3>
+                  <h3 className="font-semibold text-xl truncate">{result.title}</h3>
                   {result.age && (
-                    <span className="text-sm text-muted-foreground">{result.age} anos</span>
+                    <span className="text-muted-foreground">{result.age} anos</span>
                   )}
                 </div>
                 {result.is_online && (
@@ -102,19 +105,19 @@ const SearchPage = () => {
               </div>
               
               {result.description && (
-                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{result.description}</p>
+                <p className="text-muted-foreground mb-4 line-clamp-3">{result.description}</p>
               )}
               
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 {result.location && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
+                    <MapPin className="h-4 w-4" />
                     <span>{result.location}</span>
                   </div>
                 )}
                 {result.is_online !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Circle className={`h-3 w-3 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
+                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
                     <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
                   </div>
                 )}
@@ -124,6 +127,64 @@ const SearchPage = () => {
             {/* Actions */}
             <div className="flex flex-col gap-2">
               <Button size="sm">
+                Ver Perfil
+              </Button>
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
+                <Heart className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderGridCard = (result: any) => {
+    return (
+      <Card key={result.id} className="bg-card border-border hover:border-muted-foreground/20 transition-colors cursor-pointer">
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            {/* Avatar */}
+            <div className="relative mx-auto w-fit">
+              <Avatar className="w-24 h-24 mx-auto">
+                <AvatarImage src={result.image || undefined} alt={result.title} />
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  <User className="h-12 w-12" />
+                </AvatarFallback>
+              </Avatar>
+              {result.type === 'model' && (
+                <div className="absolute -bottom-1 -right-1">
+                  <div className={`w-5 h-5 rounded-full border-2 border-background ${
+                    result.is_online ? 'bg-green-500' : 'bg-muted-foreground'
+                  }`} />
+                </div>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <h3 className="font-semibold truncate">{result.title}</h3>
+                {result.is_online && (
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                )}
+              </div>
+              
+              {result.age && (
+                <span className="text-sm text-muted-foreground">{result.age} anos</span>
+              )}
+              
+              {result.location && (
+                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate">{result.location}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Button size="sm" className="flex-1">
                 Ver Perfil
               </Button>
               <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
@@ -260,6 +321,24 @@ const SearchPage = () => {
                   resultado{filteredResults.length !== 1 ? 's' : ''} encontrado{filteredResults.length !== 1 ? 's' : ''}
                 </span>
               </div>
+              
+              {/* View Toggle */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Results List */}
@@ -271,9 +350,15 @@ const SearchPage = () => {
                 </CardContent>
               </Card>
             ) : filteredResults.length > 0 ? (
-              <div className="space-y-4">
-                {filteredResults.map(renderResultCard)}
-              </div>
+              viewMode === 'list' ? (
+                <div className="space-y-4">
+                  {filteredResults.map(renderListCard)}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredResults.map(renderGridCard)}
+                </div>
+              )
             ) : (
               <Card className="bg-card border-border">
                 <CardContent className="p-12 text-center">
