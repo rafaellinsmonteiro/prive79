@@ -1029,16 +1029,16 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       {/* Header com controles principais */}
       <Card className="border-border bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <CardTitle className="text-foreground flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Mídias
             </CardTitle>
             
-            <div className="flex items-center gap-2">
-              {/* Botão Selecionar */}
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              {/* Botão Selecionar - PRIMEIRO */}
               <Button
-                variant={bulkActionMode ? 'secondary' : 'outline'}
+                variant={bulkActionMode ? 'destructive' : 'outline'}
                 size="sm"
                 onClick={() => {
                   setBulkActionMode(!bulkActionMode);
@@ -1046,27 +1046,27 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                     clearSelection();
                   }
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 flex-shrink-0"
               >
                 {bulkActionMode ? (
                   <>
                     <X className="h-4 w-4" />
-                    Cancelar
+                    <span className="hidden xs:inline">Cancelar</span>
                   </>
                 ) : (
                   <>
                     <CheckSquare className="h-4 w-4" />
-                    Selecionar
+                    <span className="hidden xs:inline">Selecionar</span>
                   </>
                 )}
               </Button>
 
-              {/* Adicionar Conteúdo */}
+              {/* Adicionar Conteúdo - SEGUNDO */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button disabled={uploading} size="sm">
+                  <Button disabled={uploading} size="sm" className="flex-shrink-0">
                     <Plus className="h-4 w-4 mr-2" />
-                    {uploading ? 'Enviando...' : 'Adicionar'}
+                    <span className="hidden xs:inline">{uploading ? 'Enviando...' : 'Adicionar'}</span>
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -1118,11 +1118,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               </DropdownMenu>
 
               {/* Toggle de visualização */}
-              <div className="flex items-center border rounded-lg p-1">
+              <div className="flex items-center border rounded-lg p-1 flex-shrink-0">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
+                  className="px-2"
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
@@ -1130,6 +1131,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
+                  className="px-2"
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -1138,9 +1140,9 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               {/* Filtros */}
               <Popover open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="flex-shrink-0">
                     <Filter className="h-4 w-4 mr-2" />
-                    Filtros
+                    <span className="hidden sm:inline">Filtros</span>
                     {(filters.folder !== 'all' || filters.stage !== 'all' || filters.tags.length > 0 || filters.contentType !== 'all') && 
                       <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
                         {[
@@ -1320,9 +1322,9 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               {/* Nova Pasta */}
               <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="flex-shrink-0">
                     <FolderPlus className="h-4 w-4 mr-2" />
-                    Nova Pasta
+                    <span className="hidden sm:inline">Nova Pasta</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1431,24 +1433,24 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       {/* Barra de Ações em Massa */}
       {selectedItems.size > 0 && (
         <Card className="border-primary bg-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 <span className="text-sm font-medium">
                   {selectedItems.size} {selectedItems.size === 1 ? 'item selecionado' : 'itens selecionados'}
                 </span>
-                <Button variant="ghost" size="sm" onClick={clearSelection}>
+                <Button variant="ghost" size="sm" onClick={clearSelection} className="flex-shrink-0">
                   <X className="h-4 w-4 mr-2" />
-                  Cancelar
+                  <span className="hidden xs:inline">Cancelar</span>
                 </Button>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <DropdownMenu open={isBulkActionsOpen} onOpenChange={setIsBulkActionsOpen}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="flex-shrink-0">
                       <MoreHorizontal className="h-4 w-4 mr-2" />
-                      Ações
+                      <span className="hidden xs:inline">Ações</span>
                       <ChevronDown className="h-4 w-4 ml-2" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -1534,8 +1536,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
             </div>
           ) : (
             <div className={viewMode === 'grid' 
-              ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" 
-              : "space-y-4"
+              ? "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4" 
+              : "space-y-3 sm:space-y-4"
             }>
               {content.map((item) => {
                 const itemKey = `${item.type}-${item.id}`;
