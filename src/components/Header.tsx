@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import defaultAvatar from "@/assets/default-avatar.png";
 const Header = () => {
   const {
     user,
@@ -139,7 +140,7 @@ const Header = () => {
                 <Button variant="ghost" className="relative h-10 w-auto px-3 rounded-full text-white hover:bg-white/10">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="" alt={currentUser?.name || 'User'} />
+                      <AvatarImage src={currentUser?.profile_photo_url || defaultAvatar} alt={currentUser?.name || 'User'} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {getUserInitials(currentUser?.name)}
                       </AvatarFallback>
@@ -154,7 +155,7 @@ const Header = () => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="" alt={currentUser?.name || 'User'} />
+                    <AvatarImage src={currentUser?.profile_photo_url || defaultAvatar} alt={currentUser?.name || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                       {getUserInitials(currentUser?.name)}
                     </AvatarFallback>
@@ -169,13 +170,8 @@ const Header = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate('/perfil')}>
                   <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Editar Perfil</span>
+                  <span>Editar perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>
