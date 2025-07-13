@@ -326,8 +326,8 @@ const DesignTestUserProfile = () => {
                     <div className="text-xs text-green-600 font-medium mb-1">R$</div>
                     <div className="font-bold text-sm text-foreground">
                       {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
                   }).format(Number(balanceData.balance_brl) || 0)}
                     </div>
                   </div>
