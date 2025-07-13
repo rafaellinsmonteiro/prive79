@@ -231,6 +231,7 @@ async function generateVideoThumbnail(fileUrl: string, fileName: string, modelId
     
     // Generate signature
     const timestamp = Math.round(Date.now() / 1000)
+    // Parameters must be sorted alphabetically for Cloudinary signature
     const paramsToSign = `folder=models/${modelId}/videos&resource_type=video&timestamp=${timestamp}`
     
     console.log('Params to sign:', paramsToSign)
