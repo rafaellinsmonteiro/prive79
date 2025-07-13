@@ -8,11 +8,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera, X } from 'lucide-react';
+import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera, X, LogOut } from 'lucide-react';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -27,6 +29,8 @@ const SearchPage = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signOut } = useAuth();
+  const { data: currentUser } = useCurrentUser();
 
   const {
     results,
@@ -102,6 +106,21 @@ const SearchPage = () => {
     });
   };
 
+  const handleSignOut = async () => {
+    const loadingToast = toast({
+      title: "Fazendo logout...",
+      description: "Aguarde...",
+    });
+    
+    try {
+      await signOut();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      navigate('/login', { replace: true });
+    }
+  };
+
   // Filter results based on category
   const filteredResults = useMemo(() => {
     if (activeCategory === 'all' || activeCategory === 'profiles') {
@@ -123,12 +142,12 @@ const SearchPage = () => {
     return (
       <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
         <CardContent className="p-6">
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">{/* ... keep existing code */}
             {/* Images Gallery */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2">{/* ... keep existing code */}
               {mockImages.map((image, index) => (
                 <div key={index} className="relative">
-                  <div className="w-24 h-24 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">{/* ... keep existing code */}
                     {image ? (
                       <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover" />
                     ) : (
@@ -293,12 +312,31 @@ const SearchPage = () => {
       </Card>;
   };
   return (
-    <div className="min-h-screen bg-[hsl(var(--dark-primary))]">
+    <div className="min-h-screen bg-[hsl(var(--dark-primary))] relative">
+      {/* Floating User Icon */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          onClick={handleSignOut}
+          size="icon"
+          className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-100 rounded-full w-12 h-12 shadow-lg"
+        >
+          {currentUser?.profile_photo_url ? (
+            <img 
+              src={currentUser.profile_photo_url} 
+              alt="User" 
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <User className="w-5 h-5" />
+          )}
+        </Button>
+      </div>
+
       <div className="container max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <div className="w-80 flex-shrink-0">
-            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 sticky top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
+          <div className="w-full lg:w-80 lg:flex-shrink-0">{/* ... keep existing code */}
+            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 lg:sticky lg:top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">{/* ... keep existing code */}
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[hsl(var(--gold-primary))]">
                   <Search className="h-5 w-5" />
@@ -310,7 +348,7 @@ const SearchPage = () => {
                 <div className="space-y-4">
                   <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{/* ... keep existing code */}
                     <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
                       <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
                         <Circle className="h-3 w-3 fill-green-500 text-green-500" />
@@ -350,7 +388,7 @@ const SearchPage = () => {
                 {/* Search Input */}
                 <div className="space-y-2">
                   <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">{/* ... keep existing code */}
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
                     <Input 
                       id="search" 
@@ -423,8 +461,8 @@ const SearchPage = () => {
 
             {/* Results List */}
             {loading ? <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
-                <CardContent className="p-12 text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--gold-primary))] mx-auto mb-4"></div>
+                <CardContent className="p-6 sm:p-12 text-center">
+                  <div className="animate-spin rounded-full h-8 sm:h-12 w-8 sm:w-12 border-b-2 border-[hsl(var(--gold-primary))] mx-auto mb-4"></div>
                   <p className="text-[hsl(var(--dark-muted))]">Buscando...</p>
                 </CardContent>
               </Card> : filteredResults.length > 0 ? viewMode === 'list' ? <div className="space-y-4">
@@ -432,10 +470,10 @@ const SearchPage = () => {
                 </div> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {filteredResults.map(renderGridCard)}
                 </div> : <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20">
-                <CardContent className="p-12 text-center">
-                  <Search className="h-12 w-12 text-[hsl(var(--dark-muted))] mx-auto mb-4" />
+                <CardContent className="p-6 sm:p-12 text-center">
+                  <Search className="h-8 sm:h-12 w-8 sm:w-12 text-[hsl(var(--dark-muted))] mx-auto mb-4" />
                   <h3 className="font-semibold mb-2 text-[hsl(var(--dark-text))]">Nenhum resultado encontrado</h3>
-                  <p className="text-[hsl(var(--dark-muted))]">
+                  <p className="text-[hsl(var(--dark-muted))] text-sm sm:text-base">{/* ... keep existing code */}
                     {searchTerm.trim() ? "Tente ajustar sua busca ou explore outras categorias" : "Digite algo para começar a busca"}
                   </p>
                 </CardContent>
