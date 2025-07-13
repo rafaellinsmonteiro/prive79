@@ -179,28 +179,47 @@ const CustomFieldsManager = () => {
     .map(s => s.name);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Gestão de Campos Personalizados</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={refreshCache}>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
+            Gestão de Campos Personalizados
+          </h2>
+          <p className="text-muted-foreground">
+            Configure e gerencie campos customizados para o sistema
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            onClick={refreshCache}
+            className="hover-scale"
+          >
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar Cache
           </Button>
-          <Button variant="destructive" onClick={() => setShowClearAllDialog(true)}>
+          
+          <Button 
+            variant="destructive" 
+            onClick={() => setShowClearAllDialog(true)}
+            className="hover-scale"
+          >
             <Trash2 className="h-4 w-4 mr-2" />
-            Limpar Campos Personalizados
+            Limpar Campos
           </Button>
+          
           <Dialog open={isSectionFormOpen} onOpenChange={setIsSectionFormOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="hover-scale">
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Seção
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle>
+                <DialogTitle className="text-foreground">
                   {editingSectionId ? 'Editar Seção' : 'Nova Seção'}
                 </DialogTitle>
               </DialogHeader>
@@ -211,16 +230,17 @@ const CustomFieldsManager = () => {
               />
             </DialogContent>
           </Dialog>
+          
           <Dialog open={isFieldFormOpen} onOpenChange={setIsFieldFormOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] hover-scale">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Campo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl bg-card border-border">
               <DialogHeader>
-                <DialogTitle>
+                <DialogTitle className="text-foreground">
                   {editingFieldId ? 'Editar Campo' : 'Novo Campo'}
                 </DialogTitle>
               </DialogHeader>
@@ -236,35 +256,49 @@ const CustomFieldsManager = () => {
         </div>
       </div>
 
-      {/* Aviso sobre campos protegidos */}
-      <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
-        <p className="text-yellow-200 text-sm">
-          <strong>Campos Protegidos:</strong> Os campos Nome, Idade e Cidade são essenciais para o sistema e não podem ser editados ou excluídos.
-        </p>
+      {/* Warning Card */}
+      <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-xl p-4 lg:p-6 animate-scale-in">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center shrink-0 mt-1">
+            <RefreshCw className="w-4 h-4 text-yellow-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground mb-1">Campos Protegidos</h3>
+            <p className="text-muted-foreground text-sm">
+              Os campos <strong>Nome</strong>, <strong>Idade</strong> e <strong>Cidade</strong> são essenciais para o sistema e não podem ser editados ou excluídos.
+            </p>
+          </div>
+        </div>
       </div>
 
-      <DraggableCustomFieldsList
-        fields={customFields}
-        sections={customSections}
-        loading={isLoadingFields || isLoadingSections}
-        onEdit={handleEditField}
-        onEditSection={handleEditSection}
-      />
+      {/* Fields List */}
+      <div className="bg-card border border-border rounded-xl p-6 shadow-lg animate-fade-in">
+        <DraggableCustomFieldsList
+          fields={customFields}
+          sections={customSections}
+          loading={isLoadingFields || isLoadingSections}
+          onEdit={handleEditField}
+          onEditSection={handleEditSection}
+        />
+      </div>
 
       {/* Clear All Confirmation Dialog */}
       <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Limpeza</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">Confirmar Limpeza</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Esta ação removerá APENAS os campos e seções personalizados que você criou. 
               Os campos essenciais (Nome, Idade, Cidade) serão preservados.
               Esta ação não pode ser desfeita. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearAll} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="hover-scale">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleClearAll} 
+              className="bg-red-600 hover:bg-red-700 text-white hover-scale"
+            >
               Confirmar Limpeza
             </AlertDialogAction>
           </AlertDialogFooter>

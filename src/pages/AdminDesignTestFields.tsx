@@ -261,11 +261,9 @@ const AdminDesignTestFields = () => {
           </div>
         </header>
 
-        {/* Content Area - Área azul onde vai o componente CustomFieldsManager */}
-        <main className="p-4 lg:p-8 overflow-y-auto bg-gradient-to-br from-blue-600 to-blue-800 min-h-[calc(100vh-140px)]">
-          <div className="bg-card rounded-lg p-6 shadow-lg">
-            <CustomFieldsManager />
-          </div>
+        {/* Content Area */}
+        <main className="p-4 lg:p-8 overflow-y-auto">
+          <CustomFieldsManager />
         </main>
       </div>
     </div>
