@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { useAppointments, Appointment } from '@/hooks/useAppointments';
 import { usePayments } from '@/hooks/usePayments';
 import { ModelAppointmentForm } from './ModelAppointmentForm';
+import ModelWorkingHours from './ModelWorkingHours';
 
 const ModelAppointmentsList = () => {
   const { appointments, isLoading, deleteAppointment } = useAppointments();
@@ -178,13 +179,24 @@ const ModelAppointmentsList = () => {
     <div className="space-y-6">
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <Button
-          onClick={() => handleOpenModal()}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Agendamento
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => handleOpenModal()}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Agendamento
+          </Button>
+          
+          <ModelWorkingHours 
+            trigger={
+              <Button variant="outline" className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Horários de Atendimento
+              </Button>
+            }
+          />
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <div className="relative">
