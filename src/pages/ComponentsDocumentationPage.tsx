@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Code, FileText, Users, MessageSquare, Star, Settings, ArrowLeft, Eye, Calendar, Upload, Bell } from 'lucide-react';
+import { Search, Code, FileText, Users, MessageSquare, Star, Settings, ArrowLeft, Eye, Calendar, Upload, Bell, Route } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
@@ -21,6 +21,7 @@ interface ComponentInfo {
   category: 'ui' | 'admin' | 'model' | 'chat' | 'reviews' | 'core';
   description: string;
   usedIn: string[];
+  routes: string[];
   status: 'active' | 'deprecated' | 'unused';
   preview?: React.ReactNode;
 }
@@ -40,6 +41,7 @@ const componentsData: ComponentInfo[] = [
     category: 'ui', 
     description: 'Base button component with multiple variants', 
     usedIn: ['V2Header', 'ModelCard', 'AdminAppointmentForm'], 
+    routes: ['/v2/dashboard', '/v2/profile', '/v2/appointments', '/admin', '/'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -57,6 +59,7 @@ const componentsData: ComponentInfo[] = [
     category: 'ui', 
     description: 'Container component for structured content', 
     usedIn: ['UserPlanInfo', 'AdminAppointmentDetails', 'ModelCard'], 
+    routes: ['/profile', '/admin', '/', '/v2/dashboard'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -77,6 +80,7 @@ const componentsData: ComponentInfo[] = [
     category: 'ui', 
     description: 'Text input field component', 
     usedIn: ['V2Header', 'UserProfile', 'AdminAppointmentForm'], 
+    routes: ['/v2/dashboard', '/profile', '/admin', '/v2/appointments'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -93,6 +97,7 @@ const componentsData: ComponentInfo[] = [
     category: 'ui', 
     description: 'Modal dialog component', 
     usedIn: ['V2Header', 'ProfilePhotoUpload'], 
+    routes: ['/v2/dashboard', '/profile', '/v2/appointments'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -118,6 +123,7 @@ const componentsData: ComponentInfo[] = [
     category: 'ui', 
     description: 'User avatar display component', 
     usedIn: ['V2Header', 'Header', 'ProfilePhotoUpload'], 
+    routes: ['/v2/dashboard', '/', '/profile'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -141,6 +147,7 @@ const componentsData: ComponentInfo[] = [
     category: 'admin', 
     description: 'Form for creating/editing appointments', 
     usedIn: ['AppointmentsManager'], 
+    routes: ['/admin', '/admin-design-test/appointments'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -166,28 +173,6 @@ const componentsData: ComponentInfo[] = [
       </ComponentPreview>
     )
   },
-  { name: 'AdminAppointmentDetails', path: 'src/components/admin/AdminAppointmentDetails.tsx', category: 'admin', description: 'Detailed view of appointment information', usedIn: ['AppointmentsManager'], status: 'active' },
-  { name: 'AppointmentsManager', path: 'src/components/admin/AppointmentsManager.tsx', category: 'admin', description: 'Main interface for managing appointments', usedIn: ['AdminDesignTestAppointments'], status: 'active' },
-  { name: 'CategoriesManager', path: 'src/components/admin/CategoriesManager.tsx', category: 'admin', description: 'Interface for managing model categories', usedIn: ['AdminDesignTestFields'], status: 'active' },
-  { name: 'CategoryForm', path: 'src/components/admin/CategoryForm.tsx', category: 'admin', description: 'Form for creating/editing categories', usedIn: ['CategoriesManager'], status: 'active' },
-  { name: 'ChatManager', path: 'src/components/admin/ChatManager.tsx', category: 'admin', description: 'Admin interface for chat management', usedIn: ['AdminDesignTestChat'], status: 'active' },
-  { name: 'ChatSettings', path: 'src/components/admin/ChatSettings.tsx', category: 'admin', description: 'Configuration settings for chat functionality', usedIn: ['ChatManager'], status: 'active' },
-  { name: 'CitiesManager', path: 'src/components/admin/CitiesManager.tsx', category: 'admin', description: 'Interface for managing cities', usedIn: ['AdminDesignTestFields'], status: 'active' },
-  { name: 'ClientForm', path: 'src/components/admin/ClientForm.tsx', category: 'admin', description: 'Form for creating/editing client information', usedIn: ['V2Header'], status: 'active' },
-  { name: 'CustomFieldsManager', path: 'src/components/admin/CustomFieldsManager.tsx', category: 'admin', description: 'Interface for managing custom model fields', usedIn: ['AdminDesignTestFields'], status: 'active' },
-  { name: 'ModelForm', path: 'src/components/admin/ModelForm.tsx', category: 'admin', description: 'Comprehensive form for model registration/editing', usedIn: ['ModelsListContainer'], status: 'active' },
-  { name: 'ModelsList', path: 'src/components/admin/ModelsList.tsx', category: 'admin', description: 'List view of all models with management actions', usedIn: ['ModelsListContainer'], status: 'active' },
-  { name: 'ReviewsManager', path: 'src/components/admin/ReviewsManager.tsx', category: 'admin', description: 'Interface for managing user reviews', usedIn: ['AdminDesignTestSettings'], status: 'active' },
-  { name: 'ServiceForm', path: 'src/components/admin/ServiceForm.tsx', category: 'admin', description: 'Form for creating/editing services', usedIn: ['V2Header'], status: 'active' },
-  
-  // Model Components
-  { name: 'ModelAppointmentForm', path: 'src/components/model/ModelAppointmentForm.tsx', category: 'model', description: 'Appointment creation form for models', usedIn: ['V2Header', 'ModelV2AppointmentsPage'], status: 'active' },
-  { name: 'ModelAppointmentsList', path: 'src/components/model/ModelAppointmentsList.tsx', category: 'model', description: 'List of model appointments with management options', usedIn: ['ModelV2AppointmentsPage'], status: 'active' },
-  { name: 'ModelDashboardHome', path: 'src/components/model/ModelDashboardHome.tsx', category: 'model', description: 'Main dashboard view for models', usedIn: ['ModelV2DashboardPage'], status: 'active' },
-  { name: 'ModelMediaManager', path: 'src/components/model/ModelMediaManager.tsx', category: 'model', description: 'Media management interface for models', usedIn: ['ModelV2MediaPage'], status: 'active' },
-  { name: 'ModelProfileManager', path: 'src/components/model/ModelProfileManager.tsx', category: 'model', description: 'Profile editing interface for models', usedIn: ['ModelV2ProfilePage'], status: 'active' },
-  { name: 'ModelStats', path: 'src/components/model/ModelStats.tsx', category: 'model', description: 'Statistics display for model performance', usedIn: ['ModelDashboardHome'], status: 'active' },
-  { name: 'OrganizedMediaManager', path: 'src/components/model/OrganizedMediaManager.tsx', category: 'model', description: 'Organized view of model media content', usedIn: ['V2Header'], status: 'active' },
   
   // Chat Components
   { 
@@ -196,6 +181,7 @@ const componentsData: ComponentInfo[] = [
     category: 'chat', 
     description: 'Main chat interface component', 
     usedIn: ['ChatPage', 'ModelV2ChatPage'], 
+    routes: ['/chat', '/v2/chat', '/mobile-chat'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -217,21 +203,15 @@ const componentsData: ComponentInfo[] = [
       </ComponentPreview>
     )
   },
-  { name: 'ConversationsList', path: 'src/components/chat/ConversationsList.tsx', category: 'chat', description: 'List of user conversations', usedIn: ['ChatInterface'], status: 'active' },
-  { name: 'MessageItem', path: 'src/components/chat/MessageItem.tsx', category: 'chat', description: 'Individual message display component', usedIn: ['ChatInterface'], status: 'active' },
-  { name: 'MediaUpload', path: 'src/components/chat/MediaUpload.tsx', category: 'chat', description: 'Media upload component for chat', usedIn: ['ChatInterface'], status: 'active' },
-  { name: 'ContactInfoSheet', path: 'src/components/chat/ContactInfoSheet.tsx', category: 'chat', description: 'Contact information side panel', usedIn: ['ChatInterface'], status: 'active' },
   
   // Core Components
-  { name: 'Header', path: 'src/components/Header.tsx', category: 'core', description: 'Main application header with navigation', usedIn: ['App'], status: 'active' },
-  { name: 'V2Header', path: 'src/components/V2Header.tsx', category: 'core', description: 'Enhanced header for V2 interface', usedIn: ['ModelV2Pages'], status: 'active' },
-  { name: 'AuthRedirectHandler', path: 'src/components/AuthRedirectHandler.tsx', category: 'core', description: 'Handles authentication redirects', usedIn: ['App'], status: 'active' },
   { 
     name: 'ModelCard', 
     path: 'src/components/ModelCard.tsx', 
     category: 'core', 
     description: 'Card component for displaying model information', 
     usedIn: ['HomePage', 'SearchPage'], 
+    routes: ['/', '/buscar', '/cidade/:cityId', '/categoria/:categoryId'],
     status: 'active',
     preview: (
       <ComponentPreview>
@@ -250,15 +230,50 @@ const componentsData: ComponentInfo[] = [
       </ComponentPreview>
     )
   },
-  { name: 'ModelProfile', path: 'src/components/ModelProfile.tsx', category: 'core', description: 'Full model profile display', usedIn: ['ModelPage'], status: 'active' },
-  { name: 'ProfilePhotoUpload', path: 'src/components/ProfilePhotoUpload.tsx', category: 'core', description: 'Component for uploading profile photos', usedIn: ['UserProfile'], status: 'active' },
-  { name: 'UserProfile', path: 'src/components/UserProfile.tsx', category: 'core', description: 'User profile management interface', usedIn: ['Profile'], status: 'active' },
-  { name: 'UserPlanInfo', path: 'src/components/UserPlanInfo.tsx', category: 'core', description: 'Display user plan information', usedIn: ['UserProfile'], status: 'active' },
+  
+  // Outros componentes sem preview detalhado
+  { name: 'AdminAppointmentDetails', path: 'src/components/admin/AdminAppointmentDetails.tsx', category: 'admin', description: 'Detailed view of appointment information', usedIn: ['AppointmentsManager'], routes: ['/admin'], status: 'active' },
+  { name: 'AppointmentsManager', path: 'src/components/admin/AppointmentsManager.tsx', category: 'admin', description: 'Main interface for managing appointments', usedIn: ['AdminDesignTestAppointments'], routes: ['/admin'], status: 'active' },
+  { name: 'CategoriesManager', path: 'src/components/admin/CategoriesManager.tsx', category: 'admin', description: 'Interface for managing model categories', usedIn: ['AdminDesignTestFields'], routes: ['/admin'], status: 'active' },
+  { name: 'CategoryForm', path: 'src/components/admin/CategoryForm.tsx', category: 'admin', description: 'Form for creating/editing categories', usedIn: ['CategoriesManager'], routes: ['/admin'], status: 'active' },
+  { name: 'ChatManager', path: 'src/components/admin/ChatManager.tsx', category: 'admin', description: 'Admin interface for chat management', usedIn: ['AdminDesignTestChat'], routes: ['/admin'], status: 'active' },
+  { name: 'ChatSettings', path: 'src/components/admin/ChatSettings.tsx', category: 'admin', description: 'Configuration settings for chat functionality', usedIn: ['ChatManager'], routes: ['/admin'], status: 'active' },
+  { name: 'CitiesManager', path: 'src/components/admin/CitiesManager.tsx', category: 'admin', description: 'Interface for managing cities', usedIn: ['AdminDesignTestFields'], routes: ['/admin'], status: 'active' },
+  { name: 'ClientForm', path: 'src/components/admin/ClientForm.tsx', category: 'admin', description: 'Form for creating/editing client information', usedIn: ['V2Header'], routes: ['/v2/dashboard'], status: 'active' },
+  { name: 'CustomFieldsManager', path: 'src/components/admin/CustomFieldsManager.tsx', category: 'admin', description: 'Interface for managing custom model fields', usedIn: ['AdminDesignTestFields'], routes: ['/admin'], status: 'active' },
+  { name: 'ModelForm', path: 'src/components/admin/ModelForm.tsx', category: 'admin', description: 'Comprehensive form for model registration/editing', usedIn: ['ModelsListContainer'], routes: ['/admin'], status: 'active' },
+  { name: 'ModelsList', path: 'src/components/admin/ModelsList.tsx', category: 'admin', description: 'List view of all models with management actions', usedIn: ['ModelsListContainer'], routes: ['/admin'], status: 'active' },
+  { name: 'ReviewsManager', path: 'src/components/admin/ReviewsManager.tsx', category: 'admin', description: 'Interface for managing user reviews', usedIn: ['AdminDesignTestSettings'], routes: ['/admin'], status: 'active' },
+  { name: 'ServiceForm', path: 'src/components/admin/ServiceForm.tsx', category: 'admin', description: 'Form for creating/editing services', usedIn: ['V2Header'], routes: ['/v2/dashboard'], status: 'active' },
+  
+  // Model Components
+  { name: 'ModelAppointmentForm', path: 'src/components/model/ModelAppointmentForm.tsx', category: 'model', description: 'Appointment creation form for models', usedIn: ['V2Header', 'ModelV2AppointmentsPage'], routes: ['/v2/appointments'], status: 'active' },
+  { name: 'ModelAppointmentsList', path: 'src/components/model/ModelAppointmentsList.tsx', category: 'model', description: 'List of model appointments with management options', usedIn: ['ModelV2AppointmentsPage'], routes: ['/v2/appointments'], status: 'active' },
+  { name: 'ModelDashboardHome', path: 'src/components/model/ModelDashboardHome.tsx', category: 'model', description: 'Main dashboard view for models', usedIn: ['ModelV2DashboardPage'], routes: ['/v2/dashboard'], status: 'active' },
+  { name: 'ModelMediaManager', path: 'src/components/model/ModelMediaManager.tsx', category: 'model', description: 'Media management interface for models', usedIn: ['ModelV2MediaPage'], routes: ['/v2/media'], status: 'active' },
+  { name: 'ModelProfileManager', path: 'src/components/model/ModelProfileManager.tsx', category: 'model', description: 'Profile editing interface for models', usedIn: ['ModelV2ProfilePage'], routes: ['/v2/profile'], status: 'active' },
+  { name: 'ModelStats', path: 'src/components/model/ModelStats.tsx', category: 'model', description: 'Statistics display for model performance', usedIn: ['ModelDashboardHome'], routes: ['/v2/dashboard'], status: 'active' },
+  { name: 'OrganizedMediaManager', path: 'src/components/model/OrganizedMediaManager.tsx', category: 'model', description: 'Organized view of model media content', usedIn: ['V2Header'], routes: ['/v2/media'], status: 'active' },
+  
+  // Chat Components  
+  { name: 'ConversationsList', path: 'src/components/chat/ConversationsList.tsx', category: 'chat', description: 'List of user conversations', usedIn: ['ChatInterface'], routes: ['/chat', '/v2/chat'], status: 'active' },
+  { name: 'MessageItem', path: 'src/components/chat/MessageItem.tsx', category: 'chat', description: 'Individual message display component', usedIn: ['ChatInterface'], routes: ['/chat', '/v2/chat'], status: 'active' },
+  { name: 'MediaUpload', path: 'src/components/chat/MediaUpload.tsx', category: 'chat', description: 'Media upload component for chat', usedIn: ['ChatInterface'], routes: ['/chat', '/v2/chat'], status: 'active' },
+  { name: 'ContactInfoSheet', path: 'src/components/chat/ContactInfoSheet.tsx', category: 'chat', description: 'Contact information side panel', usedIn: ['ChatInterface'], routes: ['/chat', '/v2/chat'], status: 'active' },
+  
+  // Core Components
+  { name: 'Header', path: 'src/components/Header.tsx', category: 'core', description: 'Main application header with navigation', usedIn: ['App'], routes: ['/', '/profile', '/buscar'], status: 'active' },
+  { name: 'V2Header', path: 'src/components/V2Header.tsx', category: 'core', description: 'Enhanced header for V2 interface', usedIn: ['ModelV2Pages'], routes: ['/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile'], status: 'active' },
+  { name: 'AuthRedirectHandler', path: 'src/components/AuthRedirectHandler.tsx', category: 'core', description: 'Handles authentication redirects', usedIn: ['App'], routes: ['/*'], status: 'active' },
+  { name: 'ModelProfile', path: 'src/components/ModelProfile.tsx', category: 'core', description: 'Full model profile display', usedIn: ['ModelPage'], routes: ['/modelo/:id'], status: 'active' },
+  { name: 'ProfilePhotoUpload', path: 'src/components/ProfilePhotoUpload.tsx', category: 'core', description: 'Component for uploading profile photos', usedIn: ['UserProfile'], routes: ['/profile'], status: 'active' },
+  { name: 'UserProfile', path: 'src/components/UserProfile.tsx', category: 'core', description: 'User profile management interface', usedIn: ['Profile'], routes: ['/profile'], status: 'active' },
+  { name: 'UserPlanInfo', path: 'src/components/UserPlanInfo.tsx', category: 'core', description: 'Display user plan information', usedIn: ['UserProfile'], routes: ['/profile'], status: 'active' },
   
   // Reviews Components
-  { name: 'ReviewForm', path: 'src/components/reviews/ReviewForm.tsx', category: 'reviews', description: 'Form for creating user reviews', usedIn: ['ReviewsPage'], status: 'active' },
-  { name: 'PendingReviewsPanel', path: 'src/components/reviews/PendingReviewsPanel.tsx', category: 'reviews', description: 'Panel showing pending reviews', usedIn: ['ReviewsPage'], status: 'active' },
-  { name: 'PriveTrustPanel', path: 'src/components/reviews/PriveTrustPanel.tsx', category: 'reviews', description: 'Panel for PriveTrust status display', usedIn: ['ReviewsPage'], status: 'active' },
+  { name: 'ReviewForm', path: 'src/components/reviews/ReviewForm.tsx', category: 'reviews', description: 'Form for creating user reviews', usedIn: ['ReviewsPage'], routes: ['/avaliacoes', '/v2/reviews'], status: 'active' },
+  { name: 'PendingReviewsPanel', path: 'src/components/reviews/PendingReviewsPanel.tsx', category: 'reviews', description: 'Panel showing pending reviews', usedIn: ['ReviewsPage'], routes: ['/avaliacoes', '/v2/reviews'], status: 'active' },
+  { name: 'PriveTrustPanel', path: 'src/components/reviews/PriveTrustPanel.tsx', category: 'reviews', description: 'Panel for PriveTrust status display', usedIn: ['ReviewsPage'], routes: ['/avaliacoes', '/v2/reviews'], status: 'active' },
 ];
 
 const categoryIcons = {
@@ -289,17 +304,21 @@ const ComponentsDocumentationPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedRoute, setSelectedRoute] = useState<string>('all');
 
   const filteredComponents = useMemo(() => {
     return componentsData.filter(component => {
       const matchesSearch = component.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           component.description.toLowerCase().includes(searchTerm.toLowerCase());
+                           component.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           component.routes.some(route => route.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           component.usedIn.some(usage => usage.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = selectedCategory === 'all' || component.category === selectedCategory;
       const matchesStatus = selectedStatus === 'all' || component.status === selectedStatus;
+      const matchesRoute = selectedRoute === 'all' || component.routes.includes(selectedRoute);
       
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesCategory && matchesStatus && matchesRoute;
     });
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [searchTerm, selectedCategory, selectedStatus, selectedRoute]);
 
   const componentsByCategory = useMemo(() => {
     const grouped = filteredComponents.reduce((acc, component) => {
@@ -320,8 +339,14 @@ const ComponentsDocumentationPage = () => {
     const mostUsed = componentsData.reduce((prev, current) => 
       current.usedIn.length > prev.usedIn.length ? current : prev
     );
+    const uniqueRoutes = [...new Set(componentsData.flatMap(c => c.routes))];
     
-    return { total, active, unused, mostUsed };
+    return { total, active, unused, mostUsed, totalRoutes: uniqueRoutes.length };
+  }, []);
+
+  const allRoutes = useMemo(() => {
+    const routes = [...new Set(componentsData.flatMap(c => c.routes))];
+    return routes.sort();
   }, []);
 
   return (
@@ -358,8 +383,8 @@ const ComponentsDocumentationPage = () => {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-orange-600">{statistics.unused}</div>
-                <div className="text-sm text-muted-foreground">Não Utilizados</div>
+                <div className="text-2xl font-bold text-blue-600">{statistics.totalRoutes}</div>
+                <div className="text-sm text-muted-foreground">Rotas Cobertas</div>
               </CardContent>
             </Card>
             <Card>
@@ -371,40 +396,56 @@ const ComponentsDocumentationPage = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar componentes..."
+                  placeholder="Buscar componentes, rotas ou descrições..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Categorias</SelectItem>
-                {Object.entries(categoryLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="deprecated">Deprecated</SelectItem>
-                <SelectItem value="unused">Não Utilizado</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {Object.entries(categoryLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="deprecated">Deprecated</SelectItem>
+                  <SelectItem value="unused">Não Utilizado</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedRoute} onValueChange={setSelectedRoute}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Rota" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Rotas</SelectItem>
+                  {allRoutes.map((route) => (
+                    <SelectItem key={route} value={route}>{route}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -418,6 +459,11 @@ const ComponentsDocumentationPage = () => {
           </TabsList>
 
           <TabsContent value="by-category" className="space-y-6">
+            <div className="text-sm text-muted-foreground mb-4">
+              Mostrando {filteredComponents.length} de {componentsData.length} componentes
+              {selectedRoute !== 'all' && ` na rota "${selectedRoute}"`}
+            </div>
+            
             {Object.entries(componentsByCategory).map(([category, components]) => (
               <Card key={category}>
                 <CardHeader>
@@ -458,7 +504,7 @@ const ComponentsDocumentationPage = () => {
                           
                           <div>
                             <div className="text-sm font-medium mb-2">Usado em:</div>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 mb-3">
                               {component.usedIn.length > 0 ? (
                                 component.usedIn.map((usage) => (
                                   <Badge key={usage} variant="outline" className="text-xs">
@@ -470,6 +516,26 @@ const ComponentsDocumentationPage = () => {
                                   Não utilizado
                                 </Badge>
                               )}
+                            </div>
+                            
+                            <div>
+                              <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                                <Route className="h-4 w-4" />
+                                Rotas:
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {component.routes.length > 0 ? (
+                                  component.routes.map((route) => (
+                                    <Badge key={route} variant="secondary" className="text-xs">
+                                      {route}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                                    Nenhuma rota
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -501,19 +567,33 @@ const ComponentsDocumentationPage = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-medium mb-1">
-                            {component.usedIn.length} uso(s)
+                            {component.usedIn.length} uso(s) • {component.routes.length} rota(s)
                           </div>
-                          <div className="flex flex-wrap gap-1 justify-end max-w-64">
-                            {component.usedIn.slice(0, 3).map((usage) => (
-                              <Badge key={usage} variant="outline" className="text-xs">
-                                {usage}
-                              </Badge>
-                            ))}
-                            {component.usedIn.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{component.usedIn.length - 3} mais
-                              </Badge>
-                            )}
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-1 justify-end max-w-64">
+                              {component.usedIn.slice(0, 2).map((usage) => (
+                                <Badge key={usage} variant="outline" className="text-xs">
+                                  {usage}
+                                </Badge>
+                              ))}
+                              {component.usedIn.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{component.usedIn.length - 2} mais
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-1 justify-end max-w-64">
+                              {component.routes.slice(0, 2).map((route) => (
+                                <Badge key={route} variant="secondary" className="text-xs">
+                                  {route}
+                                </Badge>
+                              ))}
+                              {component.routes.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{component.routes.length - 2} rotas
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
