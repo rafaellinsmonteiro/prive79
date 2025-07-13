@@ -1818,6 +1818,7 @@ export type Database = {
           name: string | null
           phone: string | null
           plan_id: string | null
+          profile_photo_url: string | null
           updated_at: string
           user_id: string | null
           user_role: Database["public"]["Enums"]["user_role"]
@@ -1830,6 +1831,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           plan_id?: string | null
+          profile_photo_url?: string | null
           updated_at?: string
           user_id?: string | null
           user_role?: Database["public"]["Enums"]["user_role"]
@@ -1842,6 +1844,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           plan_id?: string | null
+          profile_photo_url?: string | null
           updated_at?: string
           user_id?: string | null
           user_role?: Database["public"]["Enums"]["user_role"]

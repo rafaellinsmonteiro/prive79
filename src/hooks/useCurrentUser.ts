@@ -12,6 +12,7 @@ export interface CurrentUserData {
   user_role: 'admin' | 'modelo' | 'cliente';
   plan_id?: string;
   is_active: boolean;
+  profile_photo_url?: string;
   plan?: {
     id: string;
     name: string;

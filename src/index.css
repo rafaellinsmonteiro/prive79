@@ -74,6 +74,110 @@
   }
 }
 
+/* React Image Crop Styles */
+.ReactCrop {
+  position: relative;
+  display: inline-block;
+  cursor: crosshair;
+  max-width: 100%;
+  background-color: #000;
+}
+
+.ReactCrop .ReactCrop__image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+.ReactCrop__crop-selection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(0, 0, 0);
+  box-sizing: border-box;
+  cursor: move;
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
+  touch-action: manipulation;
+}
+
+.ReactCrop__crop-selection:before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid hsl(var(--primary));
+  border-radius: inherit;
+}
+
+.ReactCrop__drag-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary-foreground));
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+}
+
+.ReactCrop__drag-handle:after {
+  position: absolute;
+  content: '';
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background-color: hsl(var(--primary-foreground));
+  border-radius: 1px;
+}
+
+.ReactCrop__drag-handle.ord-nw {
+  top: 0;
+  left: 0;
+  cursor: nw-resize;
+}
+
+.ReactCrop__drag-handle.ord-n {
+  top: 0;
+  left: 50%;
+  cursor: n-resize;
+}
+
+.ReactCrop__drag-handle.ord-ne {
+  top: 0;
+  left: 100%;
+  cursor: ne-resize;
+}
+
+.ReactCrop__drag-handle.ord-e {
+  top: 50%;
+  left: 100%;
+  cursor: e-resize;
+}
+
+.ReactCrop__drag-handle.ord-se {
+  top: 100%;
+  left: 100%;
+  cursor: se-resize;
+}
+
+.ReactCrop__drag-handle.ord-s {
+  top: 100%;
+  left: 50%;
+  cursor: s-resize;
+}
+
+.ReactCrop__drag-handle.ord-sw {
+  top: 100%;
+  left: 0;
+  cursor: sw-resize;
+}
+
+.ReactCrop__drag-handle.ord-w {
+  top: 50%;
+  left: 0;
+  cursor: w-resize;
+}
+
 @layer base {
   * {
     @apply border-border;

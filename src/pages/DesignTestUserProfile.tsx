@@ -12,6 +12,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
 
 const DesignTestUserProfile = () => {
   const isMobile = useIsMobile();
@@ -25,6 +26,7 @@ const DesignTestUserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>('');
   const [userInfo, setUserInfo] = useState({
     email: '',
     name: '',
@@ -58,6 +60,13 @@ const DesignTestUserProfile = () => {
         };
 
         setUserInfo(basicInfo);
+        
+        // Carregar foto de perfil
+        if (currentUser?.profile_photo_url) {
+          setProfilePhotoUrl(currentUser.profile_photo_url);
+        } else if (user.user_metadata?.profile_photo_url) {
+          setProfilePhotoUrl(user.user_metadata.profile_photo_url);
+        }
       } catch (error) {
         console.error('Error loading user data:', error);
         toast({
@@ -71,7 +80,7 @@ const DesignTestUserProfile = () => {
     };
 
     loadUserData();
-  }, [user, toast]);
+  }, [user, currentUser, toast]);
 
   const navigationItems = [{
     icon: LayoutDashboard,
@@ -209,6 +218,14 @@ const DesignTestUserProfile = () => {
     setIsEditing(false);
   };
 
+  const handlePhotoUpdate = (photoUrl: string) => {
+    setProfilePhotoUrl(photoUrl);
+    toast({
+      title: "Sucesso",
+      description: "Foto de perfil atualizada!"
+    });
+  };
+
   return <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
       {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
@@ -299,14 +316,14 @@ const DesignTestUserProfile = () => {
             )}
             
             {/* User Profile */}
-            <div className="mb-4 px-3">
-              <div className={`flex items-center gap-3 p-3 rounded-xl bg-accent/50 ${(isExpanded || isMobileMenuOpen) ? '' : 'justify-center'}`}>
-                <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                  <AvatarImage src="/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
-                    {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="mb-4 px-3">
+                <div className={`flex items-center gap-3 p-3 rounded-xl bg-accent/50 ${(isExpanded || isMobileMenuOpen) ? '' : 'justify-center'}`}>
+                  <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
+                    <AvatarImage src={profilePhotoUrl || currentUser?.profile_photo_url || '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
+                      {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                 {(isExpanded || isMobileMenuOpen) && (
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground text-sm truncate">
@@ -408,12 +425,7 @@ const DesignTestUserProfile = () => {
                 <Card className="bg-card border-border">
                   <CardHeader className="text-center">
                     <div className="flex items-center justify-center mb-4">
-                      <Avatar className="w-24 h-24 ring-4 ring-primary/20">
-                        <AvatarImage src="/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png" />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-2xl">
-                          {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
-                        </AvatarFallback>
-                      </Avatar>
+                      <ProfilePhotoUpload size="lg" />
                     </div>
                     <CardTitle className="text-foreground text-2xl">Informações Pessoais</CardTitle>
                     {isAdmin && (
