@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Calendar, MessageCircle, Settings, LogOut, Home } from 'lucide-react';
+import { Search, Calendar, MessageCircle, Settings, LogOut, Home, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { toast } from 'sonner';
 import ClientDashboardHome from '@/components/client/ClientDashboardHome';
 
@@ -12,6 +13,7 @@ const ClientDashboard = () => {
   const section = searchParams.get('section');
   const [activeSection, setActiveSection] = useState(section || 'home');
   const { user, signOut, loading, authComplete } = useAuth();
+  const { data: currentUser } = useCurrentUser();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -129,10 +131,31 @@ const ClientDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-zinc-950 relative">
+      {/* Floating User Icon */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          onClick={handleSignOut}
+          size="icon"
+          className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-100 rounded-full w-12 h-12 shadow-lg"
+        >
+          {currentUser?.profile_photo_url ? (
+            <img 
+              src={currentUser.profile_photo_url} 
+              alt="User" 
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <User className="w-5 h-5" />
+          )}
+        </Button>
+      </div>
+
       {/* Main Content */}
-      <div className="p-4">
-        {renderContent()}
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
