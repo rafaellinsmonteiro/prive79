@@ -218,9 +218,16 @@ const DesignTestModelsPage = () => {
                 <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
               </Button>
               
-              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4">
+              <Button 
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] text-sm lg:text-base px-3 lg:px-4"
+                onClick={() => {
+                  if ((window as any).openModelForm) {
+                    (window as any).openModelForm();
+                  }
+                }}
+              >
                 <PlusCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                <span className="hidden sm:inline">Novo</span>
+                <span className="hidden sm:inline">Nova Modelo</span>
                 <span className="sm:hidden">+</span>
               </Button>
               
@@ -242,7 +249,7 @@ const DesignTestModelsPage = () => {
 
         {/* Content Area - Models Management */}
         <main className="p-4 lg:p-8 overflow-y-auto">
-          <ModelsListContainer />
+          <ModelsListContainer onOpenForm={true} />
         </main>
       </div>
     </div>;
