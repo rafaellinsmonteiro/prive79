@@ -107,85 +107,116 @@ const SearchPage = () => {
     return [];
   }, [results, activeCategory]);
   const renderListCard = (result: any) => {
-    return <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
+    // Mock multiple images for demonstration
+    const mockImages = [
+      result.image,
+      `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=300&fit=crop`,
+      `https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=300&fit=crop`,
+      `https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=300&fit=crop`,
+      `https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=300&fit=crop`
+    ].filter(Boolean).slice(0, 5);
+
+    return (
+      <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
         <CardContent className="p-6">
           <div className="flex gap-6">
-            {/* Photo - Full square */}
-            <div className="relative">
-              <div className="w-32 h-32 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">
-                {result.image ? <img src={result.image} alt={result.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
-                    <User className="h-16 w-16 text-[hsl(var(--dark-muted))]" />
-                  </div>}
-              </div>
-              {result.type === 'model' && <div className="absolute -bottom-1 -right-1">
-                  <div className={`w-6 h-6 rounded-full border-2 border-[hsl(var(--dark-card))] ${result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'}`} />
-                </div>}
+            {/* Images Gallery */}
+            <div className="flex gap-2">
+              {mockImages.map((image, index) => (
+                <div key={index} className="relative">
+                  <div className={`${index === 0 ? 'w-32 h-32' : 'w-20 h-20'} rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300`}>
+                    {image ? (
+                      <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className={`${index === 0 ? 'h-16 w-16' : 'h-8 w-8'} text-[hsl(var(--dark-muted))]`} />
+                      </div>
+                    )}
+                  </div>
+                  {result.type === 'model' && index === 0 && (
+                    <div className="absolute -bottom-1 -right-1">
+                      <div className={`w-6 h-6 rounded-full border-2 border-[hsl(var(--dark-card))] ${result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'}`} />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-xl truncate text-[hsl(var(--gold-primary))]">{result.title}</h3>
-                  {result.age && <span className="text-[hsl(var(--dark-muted))]">{result.age} anos</span>}
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-xl truncate text-[hsl(var(--gold-primary))]">{result.title}</h3>
+                    {result.age && <span className="text-[hsl(var(--dark-muted))]">{result.age} anos</span>}
+                  </div>
+                  {result.is_online && (
+                    <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
+                      Online
+                    </Badge>
+                  )}
                 </div>
-                {result.is_online && <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
-                    Online
-                  </Badge>}
+                
+                {result.description && (
+                  <p className="text-[hsl(var(--dark-muted))] line-clamp-2">{result.description}</p>
+                )}
+                
+                <div className="flex items-center gap-4 text-sm text-[hsl(var(--dark-muted))]">
+                  {result.location && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{result.location}</span>
+                    </div>
+                  )}
+                  {result.is_online !== undefined && (
+                    <div className="flex items-center gap-1">
+                      <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-[hsl(var(--dark-muted))] text-[hsl(var(--dark-muted))]'}`} />
+                      <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              {result.description && <p className="text-[hsl(var(--dark-muted))] mb-4 line-clamp-3">{result.description}</p>}
-              
-              <div className="flex items-center gap-4 text-sm text-[hsl(var(--dark-muted))]">
-                {result.location && <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{result.location}</span>
-                  </div>}
-                {result.is_online !== undefined && <div className="flex items-center gap-1">
-                    <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-[hsl(var(--dark-muted))] text-[hsl(var(--dark-muted))]'}`} />
-                    <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
-                  </div>}
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2">
-              <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
-                Ver Perfil
-              </Button>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                  title="Enviar mensagem"
-                  onClick={() => handleChat(result)}
-                >
-                  <MessageCircle className="h-4 w-4" />
+              {/* Actions */}
+              <div className="flex flex-col gap-2 mt-4">
+                <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
+                  Ver Perfil
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                  title="Ver mídias"
-                  onClick={() => handleViewMedia(result)}
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className={`hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
-                  title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                  onClick={() => handleToggleFavorite(result.id)}
-                >
-                  <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                    title="Enviar mensagem"
+                    onClick={() => handleChat(result)}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
+                    title="Ver mídias"
+                    onClick={() => handleViewMedia(result)}
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className={`hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
+                    title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                    onClick={() => handleToggleFavorite(result.id)}
+                  >
+                    <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   };
   const renderGridCard = (result: any) => {
     return <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
