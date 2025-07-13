@@ -196,7 +196,7 @@ const ModelAppointmentsList = () => {
             trigger={
               <Button variant="outline" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                
+                Horários
               </Button>
             }
           />
