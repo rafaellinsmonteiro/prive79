@@ -288,35 +288,63 @@ const DesignTestUserProfile = () => {
                 Conta
               </div>}
             
-            {/* User Profile */}
+            {/* User Profile Section */}
               <div className="mb-4 px-3">
-                <div className={`flex items-center gap-3 p-3 rounded-xl bg-accent/50 ${isExpanded || isMobileMenuOpen ? '' : 'justify-center'}`}>
-                  <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                    <AvatarImage src={profilePhotoUrl || currentUser?.profile_photo_url || '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'} />
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
-                      {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                {(isExpanded || isMobileMenuOpen) && <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-foreground text-sm truncate">
-                      {currentUser?.name || 'Usuário'}
+                {isExpanded || isMobileMenuOpen ? (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/50">
+                    <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
+                      <AvatarImage src={profilePhotoUrl || currentUser?.profile_photo_url || '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
+                        {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground text-sm truncate">
+                        {currentUser?.name || 'Usuário'}
+                      </div>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {currentUser?.user_role || 'Cliente'}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground capitalize">
-                      {currentUser?.user_role || 'Cliente'}
+                    
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Button variant="ghost" size="sm" className="p-1.5 h-7 w-7 hover:bg-accent text-muted-foreground hover:text-foreground">
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleSignOut} className="p-1.5 h-7 w-7 hover:bg-red-500/10 text-muted-foreground hover:text-red-500">
+                        <LogOut className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>}
-                  
-                  {/* Action Icons */}
-                  <div className="flex items-center gap-2 ml-auto">
-                    <Button variant="ghost" size="sm" className="p-1.5 h-7 w-7 hover:bg-accent text-muted-foreground hover:text-foreground">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleSignOut} className="p-1.5 h-7 w-7 hover:bg-red-500/10 text-muted-foreground hover:text-red-500">
-                      <LogOut className="w-4 h-4" />
-                    </Button>
                   </div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Profile Icon */}
+                    <div className="flex justify-center">
+                      <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                        <AvatarImage src={profilePhotoUrl || currentUser?.profile_photo_url || '/lovable-uploads/182f2a41-9665-421f-ad03-aee8b5a34ad0.png'} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm">
+                          {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    
+                    {/* Settings Icon */}
+                    <div className="flex justify-center">
+                      <Button variant="ghost" size="sm" className="p-2 h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground">
+                        <Settings className="w-5 h-5" />
+                      </Button>
+                    </div>
+                    
+                    {/* Logout Icon */}
+                    <div className="flex justify-center">
+                      <Button variant="ghost" size="sm" onClick={handleSignOut} className="p-2 h-10 w-10 hover:bg-red-500/10 text-muted-foreground hover:text-red-500">
+                        <LogOut className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
 
             {/* Balance Display */}
             {(isExpanded || isMobileMenuOpen) && balanceData && <div className="mb-4 px-3">
