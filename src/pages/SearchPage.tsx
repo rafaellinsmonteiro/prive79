@@ -338,7 +338,7 @@ const SearchPage = () => {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
                       <Label htmlFor="video-call" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
                         <Camera className="h-3 w-3" />
-                        Videochamada
+                        Criadora
                       </Label>
                       <Switch id="video-call" checked={videoCall} onCheckedChange={setVideoCall} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
                     </div>
