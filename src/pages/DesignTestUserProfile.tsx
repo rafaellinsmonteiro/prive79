@@ -115,15 +115,6 @@ const DesignTestUserProfile = () => {
     label: 'Analytics',
     id: 'analytics'
   }];
-  const accountItems = [{
-    icon: Settings,
-    label: 'Configurações',
-    id: 'settings'
-  }, {
-    icon: LogOut,
-    label: 'Sair',
-    id: 'logout'
-  }];
   const handleSignOut = async () => {
     const {
       error
@@ -314,6 +305,16 @@ const DesignTestUserProfile = () => {
                       {currentUser?.user_role || 'Cliente'}
                     </div>
                   </div>}
+                  
+                  {/* Action Icons */}
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Button variant="ghost" size="sm" className="p-1.5 h-7 w-7 hover:bg-accent text-muted-foreground hover:text-foreground">
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleSignOut} className="p-1.5 h-7 w-7 hover:bg-red-500/10 text-muted-foreground hover:text-red-500">
+                      <LogOut className="w-4 h-4" />
+                    </Button>
+                  </div>
               </div>
             </div>
 
@@ -342,19 +343,6 @@ const DesignTestUserProfile = () => {
                 </div>
               </div>}
 
-            <nav className="space-y-2">
-              {accountItems.map(item => <div key={item.id} className="relative" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
-                  <Button variant="ghost" className="w-full justify-start px-3 py-3 h-12 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200">
-                    <item.icon className="w-5 h-5 shrink-0" />
-                    {(isExpanded || isMobileMenuOpen) && <span className="ml-3 font-medium">{item.label}</span>}
-                  </Button>
-                  
-                  {!isMobile && !isExpanded && hoveredItem === item.id && <div className="absolute left-20 top-3 z-50 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg shadow-lg whitespace-nowrap">
-                      {item.label}
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
-                    </div>}
-                </div>)}
-            </nav>
           </div>
         </div>
 
