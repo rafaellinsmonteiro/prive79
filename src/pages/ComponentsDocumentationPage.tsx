@@ -5,8 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Code, FileText, Users, MessageSquare, Star, Settings, ArrowLeft } from 'lucide-react';
+import { Search, Code, FileText, Users, MessageSquare, Star, Settings, ArrowLeft, Eye, Calendar, Upload, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ComponentInfo {
   name: string;
@@ -15,18 +22,150 @@ interface ComponentInfo {
   description: string;
   usedIn: string[];
   status: 'active' | 'deprecated' | 'unused';
+  preview?: React.ReactNode;
 }
+
+// Component Preview Components
+const ComponentPreview = ({ children }: { children: React.ReactNode }) => (
+  <div className="p-4 border rounded-lg bg-card/50 flex items-center justify-center min-h-[120px]">
+    {children}
+  </div>
+);
 
 const componentsData: ComponentInfo[] = [
   // UI Components
-  { name: 'Button', path: 'src/components/ui/button.tsx', category: 'ui', description: 'Base button component with multiple variants', usedIn: ['V2Header', 'ModelCard', 'AdminAppointmentForm'], status: 'active' },
-  { name: 'Card', path: 'src/components/ui/card.tsx', category: 'ui', description: 'Container component for structured content', usedIn: ['UserPlanInfo', 'AdminAppointmentDetails', 'ModelCard'], status: 'active' },
-  { name: 'Input', path: 'src/components/ui/input.tsx', category: 'ui', description: 'Text input field component', usedIn: ['V2Header', 'UserProfile', 'AdminAppointmentForm'], status: 'active' },
-  { name: 'Dialog', path: 'src/components/ui/dialog.tsx', category: 'ui', description: 'Modal dialog component', usedIn: ['V2Header', 'ProfilePhotoUpload'], status: 'active' },
-  { name: 'Avatar', path: 'src/components/ui/avatar.tsx', category: 'ui', description: 'User avatar display component', usedIn: ['V2Header', 'Header', 'ProfilePhotoUpload'], status: 'active' },
+  { 
+    name: 'Button', 
+    path: 'src/components/ui/button.tsx', 
+    category: 'ui', 
+    description: 'Base button component with multiple variants', 
+    usedIn: ['V2Header', 'ModelCard', 'AdminAppointmentForm'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <div className="space-x-2">
+          <Button>Primary</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="secondary">Secondary</Button>
+        </div>
+      </ComponentPreview>
+    )
+  },
+  { 
+    name: 'Card', 
+    path: 'src/components/ui/card.tsx', 
+    category: 'ui', 
+    description: 'Container component for structured content', 
+    usedIn: ['UserPlanInfo', 'AdminAppointmentDetails', 'ModelCard'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <Card className="w-64">
+          <CardHeader>
+            <CardTitle>Card Title</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">Card content goes here</p>
+          </CardContent>
+        </Card>
+      </ComponentPreview>
+    )
+  },
+  { 
+    name: 'Input', 
+    path: 'src/components/ui/input.tsx', 
+    category: 'ui', 
+    description: 'Text input field component', 
+    usedIn: ['V2Header', 'UserProfile', 'AdminAppointmentForm'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <div className="space-y-2 w-64">
+          <Input placeholder="Digite algo..." />
+          <Input type="email" placeholder="email@exemplo.com" />
+        </div>
+      </ComponentPreview>
+    )
+  },
+  { 
+    name: 'Dialog', 
+    path: 'src/components/ui/dialog.tsx', 
+    category: 'ui', 
+    description: 'Modal dialog component', 
+    usedIn: ['V2Header', 'ProfilePhotoUpload'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Abrir Modal</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Título do Modal</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground">Conteúdo do modal aqui.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </ComponentPreview>
+    )
+  },
+  { 
+    name: 'Avatar', 
+    path: 'src/components/ui/avatar.tsx', 
+    category: 'ui', 
+    description: 'User avatar display component', 
+    usedIn: ['V2Header', 'Header', 'ProfilePhotoUpload'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <div className="flex space-x-3">
+          <Avatar>
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarFallback>AB</AvatarFallback>
+          </Avatar>
+        </div>
+      </ComponentPreview>
+    )
+  },
   
   // Admin Components
-  { name: 'AdminAppointmentForm', path: 'src/components/admin/AdminAppointmentForm.tsx', category: 'admin', description: 'Form for creating/editing appointments', usedIn: ['AppointmentsManager'], status: 'active' },
+  { 
+    name: 'AdminAppointmentForm', 
+    path: 'src/components/admin/AdminAppointmentForm.tsx', 
+    category: 'admin', 
+    description: 'Form for creating/editing appointments', 
+    usedIn: ['AppointmentsManager'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <Card className="w-80">
+          <CardHeader>
+            <CardTitle>Novo Agendamento</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label>Data</Label>
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm">Selecionar data</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Input placeholder="Nome do cliente" />
+            </div>
+            <Button className="w-full">Criar Agendamento</Button>
+          </CardContent>
+        </Card>
+      </ComponentPreview>
+    )
+  },
   { name: 'AdminAppointmentDetails', path: 'src/components/admin/AdminAppointmentDetails.tsx', category: 'admin', description: 'Detailed view of appointment information', usedIn: ['AppointmentsManager'], status: 'active' },
   { name: 'AppointmentsManager', path: 'src/components/admin/AppointmentsManager.tsx', category: 'admin', description: 'Main interface for managing appointments', usedIn: ['AdminDesignTestAppointments'], status: 'active' },
   { name: 'CategoriesManager', path: 'src/components/admin/CategoriesManager.tsx', category: 'admin', description: 'Interface for managing model categories', usedIn: ['AdminDesignTestFields'], status: 'active' },
@@ -51,7 +190,33 @@ const componentsData: ComponentInfo[] = [
   { name: 'OrganizedMediaManager', path: 'src/components/model/OrganizedMediaManager.tsx', category: 'model', description: 'Organized view of model media content', usedIn: ['V2Header'], status: 'active' },
   
   // Chat Components
-  { name: 'ChatInterface', path: 'src/components/chat/ChatInterface.tsx', category: 'chat', description: 'Main chat interface component', usedIn: ['ChatPage', 'ModelV2ChatPage'], status: 'active' },
+  { 
+    name: 'ChatInterface', 
+    path: 'src/components/chat/ChatInterface.tsx', 
+    category: 'chat', 
+    description: 'Main chat interface component', 
+    usedIn: ['ChatPage', 'ModelV2ChatPage'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <Card className="w-80 h-64">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Chat Interface</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <div className="bg-muted p-2 rounded-lg text-sm">Olá! Como posso ajudar?</div>
+              <div className="bg-primary p-2 rounded-lg text-sm text-primary-foreground ml-8">Preciso de informações</div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Input placeholder="Digite sua mensagem..." className="text-xs" />
+              <Button size="sm">Enviar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </ComponentPreview>
+    )
+  },
   { name: 'ConversationsList', path: 'src/components/chat/ConversationsList.tsx', category: 'chat', description: 'List of user conversations', usedIn: ['ChatInterface'], status: 'active' },
   { name: 'MessageItem', path: 'src/components/chat/MessageItem.tsx', category: 'chat', description: 'Individual message display component', usedIn: ['ChatInterface'], status: 'active' },
   { name: 'MediaUpload', path: 'src/components/chat/MediaUpload.tsx', category: 'chat', description: 'Media upload component for chat', usedIn: ['ChatInterface'], status: 'active' },
@@ -61,7 +226,30 @@ const componentsData: ComponentInfo[] = [
   { name: 'Header', path: 'src/components/Header.tsx', category: 'core', description: 'Main application header with navigation', usedIn: ['App'], status: 'active' },
   { name: 'V2Header', path: 'src/components/V2Header.tsx', category: 'core', description: 'Enhanced header for V2 interface', usedIn: ['ModelV2Pages'], status: 'active' },
   { name: 'AuthRedirectHandler', path: 'src/components/AuthRedirectHandler.tsx', category: 'core', description: 'Handles authentication redirects', usedIn: ['App'], status: 'active' },
-  { name: 'ModelCard', path: 'src/components/ModelCard.tsx', category: 'core', description: 'Card component for displaying model information', usedIn: ['HomePage', 'SearchPage'], status: 'active' },
+  { 
+    name: 'ModelCard', 
+    path: 'src/components/ModelCard.tsx', 
+    category: 'core', 
+    description: 'Card component for displaying model information', 
+    usedIn: ['HomePage', 'SearchPage'], 
+    status: 'active',
+    preview: (
+      <ComponentPreview>
+        <Card className="w-64">
+          <div className="aspect-[3/4] bg-muted rounded-t-lg flex items-center justify-center">
+            <Users className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <CardContent className="p-3">
+            <h3 className="font-medium">Nome do Modelo</h3>
+            <p className="text-sm text-muted-foreground">25 anos • São Paulo</p>
+            <div className="flex items-center mt-2">
+              <Badge variant="secondary" className="text-xs">Disponível</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </ComponentPreview>
+    )
+  },
   { name: 'ModelProfile', path: 'src/components/ModelProfile.tsx', category: 'core', description: 'Full model profile display', usedIn: ['ModelPage'], status: 'active' },
   { name: 'ProfilePhotoUpload', path: 'src/components/ProfilePhotoUpload.tsx', category: 'core', description: 'Component for uploading profile photos', usedIn: ['UserProfile'], status: 'active' },
   { name: 'UserProfile', path: 'src/components/UserProfile.tsx', category: 'core', description: 'User profile management interface', usedIn: ['Profile'], status: 'active' },
@@ -256,6 +444,18 @@ const ComponentsDocumentationPage = () => {
                         </CardHeader>
                         <CardContent className="pt-0">
                           <p className="text-sm mb-3">{component.description}</p>
+                          
+                          {/* Preview Section */}
+                          {component.preview && (
+                            <div className="mb-4">
+                              <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                                <Eye className="h-4 w-4" />
+                                Preview:
+                              </div>
+                              {component.preview}
+                            </div>
+                          )}
+                          
                           <div>
                             <div className="text-sm font-medium mb-2">Usado em:</div>
                             <div className="flex flex-wrap gap-1">
@@ -286,35 +486,50 @@ const ComponentsDocumentationPage = () => {
               <CardContent className="p-0">
                 <div className="space-y-4 p-6">
                   {filteredComponents.map((component) => (
-                    <div key={component.name} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          {categoryIcons[component.category]}
-                          <h3 className="font-medium">{component.name}</h3>
-                          <Badge className={statusColors[component.status]}>
-                            {component.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{component.description}</p>
-                        <p className="text-xs text-muted-foreground">{component.path}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium mb-1">
-                          {component.usedIn.length} uso(s)
-                        </div>
-                        <div className="flex flex-wrap gap-1 justify-end max-w-64">
-                          {component.usedIn.slice(0, 3).map((usage) => (
-                            <Badge key={usage} variant="outline" className="text-xs">
-                              {usage}
+                    <div key={component.name} className="border rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            {categoryIcons[component.category]}
+                            <h3 className="font-medium">{component.name}</h3>
+                            <Badge className={statusColors[component.status]}>
+                              {component.status}
                             </Badge>
-                          ))}
-                          {component.usedIn.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{component.usedIn.length - 3} mais
-                            </Badge>
-                          )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{component.description}</p>
+                          <p className="text-xs text-muted-foreground">{component.path}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium mb-1">
+                            {component.usedIn.length} uso(s)
+                          </div>
+                          <div className="flex flex-wrap gap-1 justify-end max-w-64">
+                            {component.usedIn.slice(0, 3).map((usage) => (
+                              <Badge key={usage} variant="outline" className="text-xs">
+                                {usage}
+                              </Badge>
+                            ))}
+                            {component.usedIn.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{component.usedIn.length - 3} mais
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Preview Section */}
+                      {component.preview && (
+                        <div className="border-t bg-muted/20 p-4">
+                          <div className="text-sm font-medium mb-3 flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            Preview Visual:
+                          </div>
+                          <div className="bg-background rounded-lg p-3">
+                            {component.preview}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
