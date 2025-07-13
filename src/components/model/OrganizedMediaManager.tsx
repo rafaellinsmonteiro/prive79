@@ -901,9 +901,9 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       
       {/* Modal de Detalhes do Item */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">
               {selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}
             </DialogTitle>
           </DialogHeader>
@@ -957,7 +957,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               <div className="space-y-6">
                 {selectedItem.type === 'video' && (
                   <div>
-                    <Label className="text-sm font-medium mb-2 block">Título do Vídeo</Label>
+                    <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Título do Vídeo</Label>
                     <Input
                       value={selectedItem.title || ''}
                       onChange={(e) => {
@@ -969,13 +969,14 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                         setSelectedItem({...selectedItem, title: e.target.value});
                       }}
                       placeholder="Título do vídeo"
+                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                     />
                   </div>
                 )}
 
                 {/* Etapa */}
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Etapa</Label>
+                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Etapa</Label>
                   <Select 
                     value={selectedItem.stage || stages[0]} 
                     onValueChange={(stage) => {
@@ -983,12 +984,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                       setSelectedItem({...selectedItem, stage});
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                       {stages.map(stage => (
-                        <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                        <SelectItem key={stage} value={stage} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">{stage}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -996,7 +997,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Pasta */}
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Pasta</Label>
+                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Pasta</Label>
                   <Select 
                     value={selectedItem.folder_id || 'no-folder'} 
                     onValueChange={(folderId) => {
@@ -1005,13 +1006,13 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                       setSelectedItem({...selectedItem, folder_id: newFolderId});
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="no-folder">Sem pasta</SelectItem>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                      <SelectItem value="no-folder" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Sem pasta</SelectItem>
                       {folders.map(folder => (
-                        <SelectItem key={folder.id} value={folder.id}>
+                        <SelectItem key={folder.id} value={folder.id} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
                           {folder.name}
                         </SelectItem>
                       ))}
@@ -1021,15 +1022,15 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Tags */}
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Tags</Label>
+                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Tags</Label>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(selectedItem.tags || []).map(tag => (
-                      <Badge key={tag} variant="outline" className="flex items-center gap-1">
+                      <Badge key={tag} variant="outline" className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                         {tag}
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-4 w-4 p-0"
+                          className="h-4 w-4 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
                           onClick={() => {
                             removeTagFromMedia(selectedItem.id, selectedItem.type, selectedItem.tags || [], tag);
                             setSelectedItem({
@@ -1047,6 +1048,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                   <div className="flex gap-2">
                     <Input 
                       placeholder="Nova tag"
+                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -1064,6 +1066,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                     />
                     <Button
                       variant="outline"
+                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={(e) => {
                         const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement;
                         const newTag = input?.value.trim();
@@ -1084,12 +1087,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Opções de Visibilidade */}
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Visibilidade</Label>
+                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">Visibilidade</Label>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
                       <div className="flex items-center space-x-2">
-                        <Eye className="h-4 w-4" />
-                        <Label className="text-sm">Mostrar no Perfil</Label>
+                        <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <Label className="text-sm text-gray-700 dark:text-gray-300">Mostrar no Perfil</Label>
                       </div>
                       <Switch
                         checked={selectedItem.show_in_profile}
@@ -1104,10 +1107,10 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
                       <div className="flex items-center space-x-2">
-                        <Image className="h-4 w-4" />
-                        <Label className="text-sm">Mostrar na Galeria</Label>
+                        <Image className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <Label className="text-sm text-gray-700 dark:text-gray-300">Mostrar na Galeria</Label>
                       </div>
                       <Switch
                         checked={selectedItem.show_in_gallery}
