@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { 
   Image, Video, Plus, Upload, Trash2, Star, Eye, Film, Settings, 
   Folder, FolderPlus, Tag, Filter, Move, Grid3X3, List, FileText,
-  ChevronDown, X, Edit3
+  ChevronDown, X, Edit3, RotateCw, FlipHorizontal, FlipVertical, Save
 } from 'lucide-react';
+import ReactCrop, { type Crop as ReactCropType, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -63,7 +65,20 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
+  // Estados para edição de imagem
+  const [isImageEditOpen, setIsImageEditOpen] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('');
+  const [crop, setCrop] = useState<ReactCropType>();
+  const [completedCrop, setCompletedCrop] = useState<ReactCropType>();
+  const [rotation, setRotation] = useState(0);
+  const [flipHorizontal, setFlipHorizontal] = useState(false);
+  const [flipVertical, setFlipVertical] = useState(false);
+  const [cropAspect, setCropAspect] = useState<number | undefined>(1);
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   const modelId = propModelId || currentModel?.model_id;
@@ -388,6 +403,156 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       type,
       data: { tags: currentTags.filter(tag => tag !== tagToRemove) }
     });
+  };
+
+  // Funções de edição de imagem
+  const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setImageSrc(reader.result?.toString() || '');
+        setIsImageEditOpen(true);
+      });
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const newCrop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 90,
+        },
+        cropAspect || 1,
+        width,
+        height
+      ),
+      width,
+      height
+    );
+    setCrop(newCrop);
+  }, [cropAspect]);
+
+  const getCroppedImg = useCallback(
+    (image: HTMLImageElement, crop: ReactCropType, rotation: number, flipH: boolean, flipV: boolean): Promise<Blob> => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        throw new Error('No 2d context');
+      }
+
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+
+      // Calcular dimensões do canvas considerando rotação
+      const rotRad = (rotation * Math.PI) / 180;
+      const sin = Math.abs(Math.sin(rotRad));
+      const cos = Math.abs(Math.cos(rotRad));
+      
+      const cropWidth = crop.width * scaleX;
+      const cropHeight = crop.height * scaleY;
+      
+      canvas.width = cropWidth * cos + cropHeight * sin;
+      canvas.height = cropWidth * sin + cropHeight * cos;
+
+      // Centralizar e aplicar transformações
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(rotRad);
+      ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+
+      ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        cropWidth,
+        cropHeight,
+        -cropWidth / 2,
+        -cropHeight / 2,
+        cropWidth,
+        cropHeight
+      );
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            throw new Error('Canvas is empty');
+          }
+          resolve(blob);
+        }, 'image/jpeg', 0.9);
+      });
+    },
+    []
+  );
+
+  const resetImageEdit = () => {
+    setImageSrc('');
+    setCrop(undefined);
+    setCompletedCrop(undefined);
+    setRotation(0);
+    setFlipHorizontal(false);
+    setFlipVertical(false);
+    setCropAspect(1);
+    setIsImageEditOpen(false);
+  };
+
+  const handleSaveEditedImage = async () => {
+    if (!completedCrop || !imgRef.current || !selectedItem) {
+      toast.error('Erro ao processar a imagem');
+      return;
+    }
+
+    setIsUpdatingPhoto(true);
+    
+    try {
+      // Gerar imagem editada
+      const croppedBlob = await getCroppedImg(
+        imgRef.current, 
+        completedCrop, 
+        rotation, 
+        flipHorizontal, 
+        flipVertical
+      );
+      
+      // Upload da nova imagem
+      const fileName = `${modelId}/${Date.now()}-edited.jpg`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('model-photos')
+        .upload(fileName, croppedBlob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('model-photos')
+        .getPublicUrl(fileName);
+
+      // Atualizar no banco de dados
+      updateMediaMutation.mutate({
+        id: selectedItem.id,
+        type: 'photo',
+        data: { photo_url: publicUrl }
+      });
+
+      // Atualizar estado local
+      setSelectedItem({...selectedItem, photo_url: publicUrl});
+      
+      resetImageEdit();
+      toast.success('Imagem atualizada com sucesso!');
+    } catch (error) {
+      console.error('Error updating image:', error);
+      toast.error('Erro ao atualizar a imagem');
+    } finally {
+      setIsUpdatingPhoto(false);
+    }
+  };
+
+  const startImageEdit = () => {
+    if (selectedItem?.type === 'photo') {
+      setImageSrc(selectedItem.photo_url);
+      setIsImageEditOpen(true);
+    }
   };
 
   // Obter todas as tags únicas
@@ -901,12 +1066,23 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       
       {/* Modal de Detalhes do Item */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-gray-100">
-              {selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="flex items-center justify-between">
+               <span>{selectedItem?.type === 'video' ? 'Detalhes do Vídeo' : 'Detalhes da Foto'}</span>
+               {selectedItem?.type === 'photo' && (
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={startImageEdit}
+                   className="ml-2"
+                 >
+                   <Edit3 className="h-4 w-4 mr-2" />
+                   Editar Imagem
+                 </Button>
+               )}
+             </DialogTitle>
+           </DialogHeader>
           
           {selectedItem && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1155,10 +1331,143 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+         </DialogContent>
+       </Dialog>
 
-export default OrganizedMediaManager;
+       {/* Modal de Edição de Imagem */}
+       <Dialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen}>
+         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle>Editar Imagem</DialogTitle>
+           </DialogHeader>
+           
+           <div className="space-y-6">
+             {imageSrc && (
+               <>
+                 {/* Controles de Edição */}
+                 <div className="flex flex-wrap gap-4 items-center justify-center border-b pb-4">
+                   {/* Aspecto do Corte */}
+                   <div className="flex items-center gap-2">
+                     <Label className="text-sm font-medium">Aspecto:</Label>
+                     <Select
+                       value={cropAspect?.toString() || 'free'}
+                       onValueChange={(value) => {
+                         const aspect = value === 'free' ? undefined : parseFloat(value);
+                         setCropAspect(aspect);
+                       }}
+                     >
+                       <SelectTrigger className="w-32">
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="free">Livre</SelectItem>
+                         <SelectItem value="1">1:1 (Quadrado)</SelectItem>
+                         <SelectItem value="1.7777777778">16:9 (Paisagem)</SelectItem>
+                         <SelectItem value="0.5625">9:16 (Retrato)</SelectItem>
+                         <SelectItem value="1.3333333333">4:3</SelectItem>
+                         <SelectItem value="0.75">3:4</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+
+                   {/* Rotação */}
+                   <div className="flex items-center gap-2">
+                     <Label className="text-sm font-medium">Rotação:</Label>
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => setRotation(prev => (prev + 90) % 360)}
+                     >
+                       <RotateCw className="h-4 w-4 mr-1" />
+                       90°
+                     </Button>
+                     <span className="text-sm text-muted-foreground">{rotation}°</span>
+                   </div>
+
+                   {/* Espelhar */}
+                   <div className="flex items-center gap-2">
+                     <Label className="text-sm font-medium">Espelhar:</Label>
+                     <Button
+                       variant={flipHorizontal ? "default" : "outline"}
+                       size="sm"
+                       onClick={() => setFlipHorizontal(prev => !prev)}
+                     >
+                       <FlipHorizontal className="h-4 w-4 mr-1" />
+                       H
+                     </Button>
+                     <Button
+                       variant={flipVertical ? "default" : "outline"}
+                       size="sm"
+                       onClick={() => setFlipVertical(prev => !prev)}
+                     >
+                       <FlipVertical className="h-4 w-4 mr-1" />
+                       V
+                     </Button>
+                   </div>
+                 </div>
+
+                 {/* Área de Corte */}
+                 <div className="flex justify-center">
+                   <div className="relative" style={{ transform: `rotate(${rotation}deg) scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})` }}>
+                     <ReactCrop
+                       crop={crop}
+                       onChange={(_, percentCrop) => setCrop(percentCrop)}
+                       onComplete={(c) => setCompletedCrop(c)}
+                       aspect={cropAspect}
+                       minWidth={50}
+                       minHeight={50}
+                     >
+                       <img
+                         ref={imgRef}
+                         alt="Editar imagem"
+                         src={imageSrc}
+                         style={{ maxHeight: '400px', maxWidth: '100%' }}
+                         onLoad={onImageLoad}
+                       />
+                     </ReactCrop>
+                   </div>
+                 </div>
+
+                 {/* Ações */}
+                 <div className="flex justify-end gap-2 pt-4 border-t">
+                   <Button
+                     variant="outline"
+                     onClick={resetImageEdit}
+                     disabled={isUpdatingPhoto}
+                   >
+                     <X className="h-4 w-4 mr-2" />
+                     Cancelar
+                   </Button>
+                   <Button
+                     onClick={handleSaveEditedImage}
+                     disabled={!completedCrop || isUpdatingPhoto}
+                   >
+                     {isUpdatingPhoto ? (
+                       <>Salvando...</>
+                     ) : (
+                       <>
+                         <Save className="h-4 w-4 mr-2" />
+                         Salvar Alterações
+                       </>
+                     )}
+                   </Button>
+                 </div>
+               </>
+             )}
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* Input de arquivo oculto para edição */}
+       <input
+         ref={hiddenFileInput}
+         type="file"
+         accept="image/*"
+         onChange={onSelectFile}
+         className="hidden"
+       />
+     </div>
+   );
+ };
+ 
+ export default OrganizedMediaManager;
