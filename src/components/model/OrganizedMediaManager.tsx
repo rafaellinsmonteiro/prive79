@@ -1061,6 +1061,62 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                 )}
               </Button>
 
+              {/* Adicionar Conteúdo */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button disabled={uploading} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {uploading ? 'Enviando...' : 'Adicionar'}
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carregar Arquivos
+                  </DropdownMenuItem>
+                  <Dialog open={isCreateTextOpen} onOpenChange={setIsCreateTextOpen}>
+                    <DialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Criar Texto
+                      </DropdownMenuItem>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Criar Conteúdo de Texto</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Título do texto"
+                          value={textTitle}
+                          onChange={(e) => setTextTitle(e.target.value)}
+                        />
+                        <Textarea
+                          placeholder="Conteúdo do texto..."
+                          value={textContent}
+                          onChange={(e) => setTextContent(e.target.value)}
+                          rows={6}
+                        />
+                        <Button 
+                          onClick={() => {
+                            // TODO: Implementar salvamento de texto
+                            toast.success('Texto criado com sucesso!');
+                            setTextTitle('');
+                            setTextContent('');
+                            setIsCreateTextOpen(false);
+                          }}
+                          disabled={!textTitle.trim() || !textContent.trim()}
+                          className="w-full"
+                        >
+                          Criar Texto
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {/* Toggle de visualização */}
               <div className="flex items-center border rounded-lg p-1">
                 <Button
@@ -1294,76 +1350,14 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
         </CardHeader>
       </Card>
 
-      {/* Adicionar Conteúdo */}
-      <Card className="border-border bg-card">
-        <CardContent className="pt-6">
-          <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button disabled={uploading} className="flex-1">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {uploading ? 'Enviando...' : 'Adicionar Conteúdo'}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full">
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Carregar Arquivos
-                </DropdownMenuItem>
-                <Dialog open={isCreateTextOpen} onOpenChange={setIsCreateTextOpen}>
-                  <DialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Criar Texto
-                    </DropdownMenuItem>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Criar Conteúdo de Texto</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Input
-                        placeholder="Título do texto"
-                        value={textTitle}
-                        onChange={(e) => setTextTitle(e.target.value)}
-                      />
-                      <Textarea
-                        placeholder="Conteúdo do texto..."
-                        value={textContent}
-                        onChange={(e) => setTextContent(e.target.value)}
-                        rows={6}
-                      />
-                      <Button 
-                        onClick={() => {
-                          // TODO: Implementar salvamento de texto
-                          toast.success('Texto criado com sucesso!');
-                          setTextTitle('');
-                          setTextContent('');
-                          setIsCreateTextOpen(false);
-                        }}
-                        disabled={!textTitle.trim() || !textContent.trim()}
-                        className="w-full"
-                      >
-                        Criar Texto
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,image/heif,image/heic,video/*,.mov"
-            onChange={handleFileUpload}
-            className="hidden"
-            multiple
-          />
-        </CardContent>
-      </Card>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,image/heif,image/heic,video/*,.mov"
+        onChange={handleFileUpload}
+        className="hidden"
+        multiple
+      />
 
       {/* Fila de Upload */}
       {uploadQueue.length > 0 && (
