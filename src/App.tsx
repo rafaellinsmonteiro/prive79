@@ -10,7 +10,24 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/AdminDashboard";
+// New Design System Pages
+import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
+import AdminDesignTestModels from "./pages/AdminDesignTestModels";
+import AdminDesignTestUsers from "./pages/AdminDesignTestUsers";
+import AdminDesignTestFields from "./pages/AdminDesignTestFields";
+import AdminDesignTestChat from "./pages/AdminDesignTestChat";
+import AdminDesignTestAppointments from "./pages/AdminDesignTestAppointments";
+import AdminDesignTestSettings from "./pages/AdminDesignTestSettings";
+import DesignTestPage from "./pages/DesignTestPage";
+import DesignTestModelsPage from "./pages/DesignTestModelsPage";
+import DesignTestChatPage from "./pages/DesignTestChatPage";
+import DesignTestAppointmentsPage from "./pages/DesignTestAppointmentsPage";
+import DesignTestClientsPage from "./pages/DesignTestClientsPage";
+import DesignTestServicesPage from "./pages/DesignTestServicesPage";
+import DesignTestUserProfile from "./pages/DesignTestUserProfile";
+import DesignTestModelDashboard from "./pages/DesignTestModelDashboard";
+
+// Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ModelPage from "./pages/ModelPage";
@@ -23,15 +40,7 @@ import ModelOnboarding from "./pages/ModelOnboarding";
 import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
-import ModelDashboard from "./pages/ModelDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
-import DesignTestPage from "./pages/DesignTestPage";
-import DesignTestModelsPage from "./pages/DesignTestModelsPage";
-import DesignTestChatPage from "./pages/DesignTestChatPage";
-import DesignTestAppointmentsPage from "./pages/DesignTestAppointmentsPage";
-import DesignTestClientsPage from "./pages/DesignTestClientsPage";
-import DesignTestServicesPage from "./pages/DesignTestServicesPage";
-import DesignTestUserProfile from "./pages/DesignTestUserProfile";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -40,13 +49,6 @@ import PriveBankPage from "./pages/PriveBankPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import SearchPage from "./pages/SearchPage";
 import LunnaPage from "./pages/LunnaPage";
-import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
-import AdminDesignTestModels from "./pages/AdminDesignTestModels";
-import AdminDesignTestUsers from "./pages/AdminDesignTestUsers";
-import AdminDesignTestFields from "./pages/AdminDesignTestFields";
-import AdminDesignTestChat from "./pages/AdminDesignTestChat";
-import AdminDesignTestAppointments from "./pages/AdminDesignTestAppointments";
-import AdminDesignTestSettings from "./pages/AdminDesignTestSettings";
 import Header from "@/components/Header";
 
 const queryClient = new QueryClient();
@@ -59,7 +61,8 @@ const AppContent = () => {
   const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute;
+  const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute || isNewDashboardRoute;
 
   if (loading) {
     return (
@@ -87,8 +90,8 @@ const AppContent = () => {
           
           {/* Protected routes - redirect to login if not authenticated */}
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
-          <Route path="/admin" element={user ? <AdminDashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/model-dashboard" element={user ? <ModelDashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/admin" element={user ? <AdminDesignTestDashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/model-dashboard" element={user ? <DesignTestModelDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
           <Route path="/modelo/:id" element={<ModelPage />} />
           <Route path="/cidade/:cityId" element={<CityPage />} />
