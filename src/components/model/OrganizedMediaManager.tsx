@@ -1136,7 +1136,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
               <div className="space-y-6">
                  {selectedItem.type === 'video' && (
                    <div>
-                     <Label className="text-sm font-medium mb-2 block">Título do Vídeo</Label>
+                     <Label className="text-sm font-medium mb-2 block text-foreground">Título do Vídeo</Label>
                      <Input
                        value={selectedItem.title || ''}
                        onChange={(e) => {
@@ -1154,7 +1154,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Etapa */}
                  <div>
-                   <Label className="text-sm font-medium mb-2 block">Etapa</Label>
+                   <Label className="text-sm font-medium mb-2 block text-foreground">Etapa</Label>
                   <Select 
                     value={selectedItem.stage || stages[0]} 
                     onValueChange={(stage) => {
@@ -1175,7 +1175,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Pasta */}
                  <div>
-                   <Label className="text-sm font-medium mb-2 block">Pasta</Label>
+                   <Label className="text-sm font-medium mb-2 block text-foreground">Pasta</Label>
                   <Select 
                     value={selectedItem.folder_id || 'no-folder'} 
                     onValueChange={(folderId) => {
@@ -1200,7 +1200,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Tags */}
                  <div>
-                   <Label className="text-sm font-medium mb-2 block">Tags</Label>
+                   <Label className="text-sm font-medium mb-2 block text-foreground">Tags</Label>
                   <div className="flex flex-wrap gap-1 mb-2">
                      {(selectedItem.tags || []).map(tag => (
                        <Badge key={tag} variant="outline" className="flex items-center gap-1">
@@ -1224,9 +1224,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                   </div>
                   
                   <div className="flex gap-2">
-                    <Input 
-                      placeholder="Nova tag"
-                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                     <Input 
+                       placeholder="Nova tag"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           const input = e.target as HTMLInputElement;
@@ -1264,12 +1263,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
 
                 {/* Opções de Visibilidade */}
                  <div>
-                   <Label className="text-sm font-medium mb-2 block">Visibilidade</Label>
+                   <Label className="text-sm font-medium mb-2 block text-foreground">Visibilidade</Label>
                    <div className="space-y-3">
                      <div className="flex items-center justify-between p-2 rounded border bg-muted/50">
                        <div className="flex items-center space-x-2">
                          <Eye className="h-4 w-4 text-muted-foreground" />
-                         <Label className="text-sm">Mostrar no Perfil</Label>
+                         <Label className="text-sm text-foreground">Mostrar no Perfil</Label>
                       </div>
                       <Switch
                         checked={selectedItem.show_in_profile}
@@ -1287,8 +1286,8 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
                      <div className="flex items-center justify-between p-2 rounded border bg-muted/50">
                        <div className="flex items-center space-x-2">
                          <Image className="h-4 w-4 text-muted-foreground" />
-                         <Label className="text-sm">Mostrar na Galeria</Label>
-                      </div>
+                         <Label className="text-sm text-foreground">Mostrar na Galeria</Label>
+                       </div>
                       <Switch
                         checked={selectedItem.show_in_gallery}
                         onCheckedChange={(checked) => {
