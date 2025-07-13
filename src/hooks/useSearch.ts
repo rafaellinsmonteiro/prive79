@@ -16,12 +16,19 @@ export interface SearchResult {
   is_online?: boolean;
 }
 
+export interface SearchFilters {
+  searchTerm: string;
+  category: string;
+  onlineOnly: boolean;
+  showsFace: boolean;
+}
+
 export const useSearch = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const searchModels = async (searchTerm: string, categoryFilter: string) => {
+  const searchModels = async (filters: SearchFilters) => {
     setLoading(true);
     
     try {
@@ -36,7 +43,7 @@ export const useSearch = () => {
           is_online,
           is_active,
           cities:city_id(name),
-          model_photos!inner(photo_url),
+          model_photos!inner(photo_url, show_in_profile),
           model_categories!left(
             categories!inner(name)
           )
@@ -45,8 +52,18 @@ export const useSearch = () => {
         .limit(1, { foreignTable: 'model_photos' });
 
       // Apply search filter
-      if (searchTerm.trim()) {
-        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`);
+      if (filters.searchTerm.trim()) {
+        query = query.or(`name.ilike.%${filters.searchTerm}%,description.ilike.%${filters.searchTerm}%,city.ilike.%${filters.searchTerm}%`);
+      }
+
+      // Apply online filter
+      if (filters.onlineOnly) {
+        query = query.eq('is_online', true);
+      }
+
+      // Apply shows face filter (models with profile photos visible)
+      if (filters.showsFace) {
+        query = query.eq('model_photos.show_in_profile', true);
       }
 
       const { data: models, error } = await query;
@@ -84,9 +101,9 @@ export const useSearch = () => {
 
       // Apply category filter
       let filteredResults = searchResults;
-      if (categoryFilter === 'profiles') {
+      if (filters.category === 'profiles') {
         // Already filtered to models only
-      } else if (categoryFilter !== 'all') {
+      } else if (filters.category !== 'all') {
         // For other categories, return empty for now since we're only searching models
         filteredResults = [];
       }
