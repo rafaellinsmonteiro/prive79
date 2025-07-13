@@ -30,6 +30,7 @@ const MEDIA_STAGES = [
 ];
 
 const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerProps) => {
+  // Todos os hooks devem vir primeiro, antes de qualquer return early
   const { data: currentModel, isLoading: modelLoading, error: modelError } = useCurrentModel();
   const [activeTab, setActiveTab] = useState('photos');
   const [uploading, setUploading] = useState(false);
@@ -45,31 +46,12 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
   // Usar o modelId da prop ou do hook
   const modelId = propModelId || currentModel?.model_id;
 
-  console.log('🔍 OrganizedMediaManager - modelId:', modelId);
-  console.log('🔍 OrganizedMediaManager - currentModel:', currentModel);
-  console.log('🔍 OrganizedMediaManager - modelLoading:', modelLoading);
-
-  // Se está carregando o modelo ou se não tem modelId ainda
-  if (modelLoading || !modelId) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Carregando dados do modelo...</div>
-      </div>
-    );
-  }
-
-  if (modelError) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-red-500">Erro ao carregar dados do modelo</div>
-      </div>
-    );
-  }
-
-  // Buscar pastas
+  // Buscar pastas - SEMPRE executar o hook
   const { data: folders = [] } = useQuery({
     queryKey: ['model-folders', modelId],
     queryFn: async () => {
+      if (!modelId) return [];
+      
       const { data, error } = await supabase
         .from('model_media_folders')
         .select('*')
@@ -79,12 +61,15 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
+    enabled: !!modelId, // Só executa se tiver modelId
   });
 
-  // Buscar fotos
+  // Buscar fotos - SEMPRE executar o hook
   const { data: photos = [], isLoading: photosLoading, refetch: refetchPhotos } = useQuery({
     queryKey: ['model-photos', modelId, selectedFolder, selectedStage, selectedTags],
     queryFn: async () => {
+      if (!modelId) return [];
+      
       let query = supabase
         .from('model_photos')
         .select('*')
@@ -111,12 +96,15 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
+    enabled: !!modelId, // Só executa se tiver modelId
   });
 
-  // Buscar vídeos
+  // Buscar vídeos - SEMPRE executar o hook
   const { data: videos = [], isLoading: videosLoading, refetch: refetchVideos } = useQuery({
     queryKey: ['model-videos', modelId, selectedFolder, selectedStage, selectedTags],
     queryFn: async () => {
+      if (!modelId) return [];
+      
       let query = supabase
         .from('model_videos')
         .select('*')
@@ -143,6 +131,7 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
       if (error) throw error;
       return data;
     },
+    enabled: !!modelId, // Só executa se tiver modelId
   });
 
   // Criar pasta
@@ -377,6 +366,23 @@ const OrganizedMediaManager = ({ modelId: propModelId }: OrganizedMediaManagerPr
     ...photos.flatMap(p => p.tags || []),
     ...videos.flatMap(v => v.tags || [])
   ])].sort();
+
+  // Verificações condicionais para rendering
+  if (modelLoading || !modelId) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Carregando dados do modelo...</div>
+      </div>
+    );
+  }
+
+  if (modelError) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-red-500">Erro ao carregar dados do modelo</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
