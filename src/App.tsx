@@ -74,7 +74,9 @@ const AppContent = () => {
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
   const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute || isNewDashboardRoute;
+  const isModelRoute = location.pathname.startsWith('/modelo/');
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute || isNewDashboardRoute || isModelRoute;
+  
 
   if (loading) {
     return (
