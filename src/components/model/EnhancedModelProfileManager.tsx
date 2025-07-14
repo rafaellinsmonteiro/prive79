@@ -19,6 +19,19 @@ interface EnhancedModelProfileManagerProps {
 }
 
 const EnhancedModelProfileManager = ({ profile }: EnhancedModelProfileManagerProps) => {
+  // Add loading state check
+  if (!profile || !profile.models) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            Carregando perfil...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const [formData, setFormData] = useState({
     // Informações básicas
     name: profile.models?.name || '',
