@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -29,7 +30,7 @@ const SearchPage = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { data: currentUser } = useCurrentUser();
 
   const {
@@ -114,11 +115,15 @@ const SearchPage = () => {
     
     try {
       await signOut();
-      navigate('/login', { replace: true });
+      navigate('/buscar', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
-      navigate('/login', { replace: true });
+      navigate('/buscar', { replace: true });
     }
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
   };
 
   // Filter results based on category
@@ -313,30 +318,89 @@ const SearchPage = () => {
   };
   return (
     <div className="min-h-screen bg-[hsl(var(--dark-primary))] relative">
-      {/* Floating User Icon */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button
-          onClick={handleSignOut}
-          size="icon"
-          className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-100 rounded-full w-12 h-12 shadow-lg"
-        >
-          {currentUser?.profile_photo_url ? (
-            <img 
-              src={currentUser.profile_photo_url} 
-              alt="User" 
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <User className="w-5 h-5" />
-          )}
-        </Button>
-      </div>
+      {/* Floating User Icon - apenas se logado */}
+      {user && (
+        <div className="fixed top-4 right-4 z-50">
+          <Button
+            onClick={handleSignOut}
+            size="icon"
+            className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-100 rounded-full w-12 h-12 shadow-lg"
+          >
+            {currentUser?.profile_photo_url ? (
+              <img 
+                src={currentUser.profile_photo_url} 
+                alt="User" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <User className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
+      )}
 
       <div className="container max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <div className="w-full lg:w-80 lg:flex-shrink-0">{/* ... keep existing code */}
-            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 lg:sticky lg:top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">{/* ... keep existing code */}
+          <div className="w-full lg:w-80 lg:flex-shrink-0">
+            {/* Card de Login/Logout */}
+            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 mb-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
+              <CardHeader>
+                <CardTitle className="text-[hsl(var(--dark-text))] text-lg">
+                  {user ? 'Conta' : 'Entrar'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {user ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      {currentUser?.profile_photo_url ? (
+                        <img 
+                          src={currentUser.profile_photo_url} 
+                          alt="User" 
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
+                          <User className="w-5 h-5 text-zinc-300" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[hsl(var(--dark-text))] font-medium">
+                          {currentUser?.name || user.email}
+                        </p>
+                        <p className="text-[hsl(var(--dark-muted))] text-sm">
+                          {currentUser?.user_role || 'Usuário'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={handleSignOut}
+                      variant="outline"
+                      className="w-full bg-transparent border-[hsl(var(--gold-accent))] text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/10"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-[hsl(var(--dark-muted))] text-sm">
+                      Faça login para acessar recursos exclusivos e personalizar sua experiência.
+                    </p>
+                    <Button 
+                      onClick={handleLogin}
+                      className="w-full bg-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/90 text-black font-medium"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Fazer Login
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 lg:sticky lg:top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[hsl(var(--gold-primary))]">
                   <Search className="h-5 w-5" />

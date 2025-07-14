@@ -44,6 +44,7 @@ export const useSearch = () => {
           city,
           is_online,
           is_active,
+          allowed_plan_ids,
           cities:city_id(name),
           model_photos!inner(photo_url, show_in_profile),
           model_categories!left(
@@ -51,6 +52,7 @@ export const useSearch = () => {
           )
         `)
         .eq('is_active', true)
+        .or('allowed_plan_ids.is.null,allowed_plan_ids.eq.{}') // Apenas modelos sem restrição de planos
         .limit(1, { foreignTable: 'model_photos' });
 
       // Apply search filter
