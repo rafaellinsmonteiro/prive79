@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
-
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +20,10 @@ const Login = () => {
     authComplete,
     loading: authLoading
   } = useAuth();
-  const { profile: modelProfile, isLoading: profileLoading } = useModelProfile();
+  const {
+    profile: modelProfile,
+    isLoading: profileLoading
+  } = useModelProfile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const {
@@ -36,16 +38,21 @@ const Login = () => {
       const timeoutId = setTimeout(() => {
         if (isAdmin) {
           console.log('🔄 Login: Redirecting admin to /admin');
-          navigate('/admin', { replace: true });
+          navigate('/admin', {
+            replace: true
+          });
         } else if (modelProfile) {
           console.log('🔄 Login: Redirecting model to /v2/dashboard');
-          navigate('/v2/dashboard', { replace: true });
+          navigate('/v2/dashboard', {
+            replace: true
+          });
         } else {
           console.log('🔄 Login: Redirecting user to home page');
-          navigate('/', { replace: true });
+          navigate('/', {
+            replace: true
+          });
         }
       }, 100);
-      
       return () => clearTimeout(timeoutId);
     }
   }, [authComplete, user, isAdmin, authLoading, profileLoading, modelProfile, navigate]);
@@ -54,12 +61,14 @@ const Login = () => {
   useEffect(() => {
     if (authComplete && user && !authLoading && !isAdmin && modelProfile && !profileLoading) {
       console.log('🔄 Login: Model profile detected after auth, redirecting to dashboard');
-      navigate('/v2/dashboard', { replace: true });
+      navigate('/v2/dashboard', {
+        replace: true
+      });
     }
   }, [authComplete, user, authLoading, isAdmin, modelProfile, profileLoading, navigate]);
 
   // Show loading while auth is being checked
-  if (authLoading || profileLoading || (user && !authComplete)) {
+  if (authLoading || profileLoading || user && !authComplete) {
     return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-white">
           {user ? 'Verificando perfil e permissões...' : 'Verificando autenticação...'}
@@ -71,7 +80,6 @@ const Login = () => {
   if (user && authComplete) {
     return null;
   }
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -90,21 +98,21 @@ const Login = () => {
         title: "Login realizado com sucesso",
         description: "Verificando permissões..."
       });
-      
+
       // Invalidar a query do perfil da modelo para garantir dados atualizados
-      queryClient.invalidateQueries({ queryKey: ['model-profile'] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ['model-profile']
+      });
+
       // Don't set loading to false here - let useEffect handle the redirect
     }
   };
-
-  return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <a href="/">
-              <img src="/lovable-uploads/70971ded-9507-4b5c-8989-708b248ff733.png" alt="Privê Logo" className="h-10" />
+              
             </a>
           </div>
           <CardTitle className="text-zinc-100">Entre em sua conta</CardTitle>
@@ -115,45 +123,23 @@ const Login = () => {
               <Label htmlFor="email" className="text-zinc-300">
                 Email
               </Label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                placeholder="Digite seu email" 
-                required 
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                autoComplete="email"
-              />
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Digite seu email" required className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500" autoComplete="email" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-zinc-300">
                 Senha
               </Label>
-              <Input 
-                id="password" 
-                type="password" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                placeholder="Digite sua senha" 
-                required 
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                autoComplete="current-password"
-              />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Digite sua senha" required className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500" autoComplete="current-password" />
             </div>
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Entrando..." : (
-                <>
+              {loading ? "Entrando..." : <>
                   <LogIn className="h-4 w-4 mr-2" />
                   Entrar
-                </>
-              )}
+                </>}
             </Button>
           </form>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
