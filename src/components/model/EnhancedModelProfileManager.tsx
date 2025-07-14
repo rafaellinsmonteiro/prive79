@@ -12,13 +12,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCities } from '@/hooks/useCities';
 import { useCustomFields, useCustomSections } from '@/hooks/useCustomFields';
-import { User, Heart, Settings, Eye } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { User, Heart, Settings, Eye, Edit2, Save, X, EyeOff } from 'lucide-react';
 interface EnhancedModelProfileManagerProps {
   profile: any;
 }
 const EnhancedModelProfileManager = ({
   profile
 }: EnhancedModelProfileManagerProps) => {
+  const { user } = useAuth();
+  const { data: currentUser } = useCurrentUser();
+  
   // Add loading state check
   if (!profile || !profile.models) {
     return <Card>
@@ -56,6 +61,17 @@ const EnhancedModelProfileManager = ({
     is_active: profile.models?.is_active !== false,
     languages: profile.models?.languages || ''
   });
+
+  // Estados para o perfil básico do usuário
+  const [isEditingBasic, setIsEditingBasic] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    email: '',
+    name: '',
+    whatsapp: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [customFieldsData, setCustomFieldsData] = useState<Record<string, any>>({});
   const queryClient = useQueryClient();
   const {
@@ -81,6 +97,19 @@ const EnhancedModelProfileManager = ({
       setCustomFieldsData(customData);
     }
   }, [profile.models, customFields]);
+
+  // Carregar informações básicas do usuário
+  useEffect(() => {
+    if (user) {
+      setUserInfo({
+        email: user.email || '',
+        name: user.user_metadata?.name || '',
+        whatsapp: user.user_metadata?.whatsapp || '',
+        password: '',
+        confirmPassword: '',
+      });
+    }
+  }, [user]);
   const updateProfile = useMutation({
     mutationFn: async (data: any) => {
       const {
@@ -119,6 +148,73 @@ const EnhancedModelProfileManager = ({
       ...prev,
       [fieldName]: value
     }));
+  };
+
+  // Funções para o perfil básico
+  const handleSaveBasic = async () => {
+    try {
+      // Validações básicas
+      if (userInfo.password && userInfo.password !== userInfo.confirmPassword) {
+        toast.error('As senhas não coincidem');
+        return;
+      }
+
+      if (userInfo.password && userInfo.password.length < 6) {
+        toast.error('A senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+
+      // Atualizar informações do usuário
+      const updateData: any = {
+        data: {
+          name: userInfo.name,
+          whatsapp: userInfo.whatsapp,
+        }
+      };
+
+      // Se email mudou, incluir na atualização
+      if (userInfo.email !== user?.email) {
+        updateData.email = userInfo.email;
+      }
+
+      // Se senha foi fornecida, incluir na atualização
+      if (userInfo.password) {
+        updateData.password = userInfo.password;
+      }
+
+      const { error } = await supabase.auth.updateUser(updateData);
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Perfil básico atualizado com sucesso!');
+
+      // Limpar senha dos campos
+      setUserInfo(prev => ({
+        ...prev,
+        password: '',
+        confirmPassword: ''
+      }));
+
+      setIsEditingBasic(false);
+    } catch (error) {
+      console.error('Erro ao salvar perfil básico:', error);
+      toast.error('Ocorreu um erro ao salvar as informações');
+    }
+  };
+
+  const handleCancelBasic = () => {
+    // Restaurar dados originais
+    setUserInfo({
+      email: user?.email || '',
+      name: user?.user_metadata?.name || '',
+      whatsapp: user?.user_metadata?.whatsapp || '',
+      password: '',
+      confirmPassword: '',
+    });
+    setIsEditingBasic(false);
   };
   const renderCustomField = (field: any) => {
     const value = customFieldsData[field.field_name] || '';
@@ -165,126 +261,154 @@ const EnhancedModelProfileManager = ({
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="basic">Básico</TabsTrigger>
-                
-                <TabsTrigger value="custom" className="text-center">Modelo / Criadora</TabsTrigger>
-                
+                <TabsTrigger value="custom">Modelo / Criadora</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name" className="text-zinc-300">Nome *</Label>
-                    <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" required />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="age" className="text-zinc-300">Idade *</Label>
-                    <Input id="age" type="number" value={formData.age} onChange={e => handleInputChange('age', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" required />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="city" className="text-zinc-300">Cidade</Label>
-                    <Select value={formData.city_id} onValueChange={value => handleInputChange('city_id', value)}>
-                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                        <SelectValue placeholder="Selecione a cidade..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map(city => <SelectItem key={city.id} value={city.id}>
-                            {city.name}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="neighborhood" className="text-zinc-300">Bairro</Label>
-                    <Input id="neighborhood" value={formData.neighborhood} onChange={e => handleInputChange('neighborhood', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
-                  </div>
+                <Card className="bg-zinc-800 border-zinc-700">
+                  <CardHeader>
+                    <CardTitle className="text-white text-lg flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Informações Básicas da Conta
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="userName" className="text-zinc-300">Nome</Label>
+                        <Input
+                          id="userName"
+                          type="text"
+                          value={userInfo.name}
+                          onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                          disabled={!isEditingBasic}
+                          placeholder="Digite seu nome"
+                          className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 disabled:opacity-60"
+                        />
+                      </div>
 
-                  <div>
-                    <Label htmlFor="whatsapp" className="text-zinc-300">WhatsApp</Label>
-                    <Input id="whatsapp" value={formData.whatsapp_number} onChange={e => handleInputChange('whatsapp_number', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="(11) 99999-9999" />
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="userEmail" className="text-zinc-300">Email</Label>
+                        <Input
+                          id="userEmail"
+                          type="email"
+                          value={userInfo.email}
+                          onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+                          disabled={!isEditingBasic}
+                          className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 disabled:opacity-60"
+                        />
+                      </div>
 
-                  <div>
-                    <Label htmlFor="languages" className="text-zinc-300">Idiomas</Label>
-                    <Input id="languages" value={formData.languages} onChange={e => handleInputChange('languages', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="Português, Inglês, Espanhol..." />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="description" className="text-zinc-300">Descrição</Label>
-                  <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" rows={4} placeholder="Conte um pouco sobre você..." />
-                </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="userWhatsapp" className="text-zinc-300">WhatsApp</Label>
+                        <Input
+                          id="userWhatsapp"
+                          type="tel"
+                          value={userInfo.whatsapp}
+                          onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
+                          disabled={!isEditingBasic}
+                          placeholder="(11) 99999-9999"
+                          className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 disabled:opacity-60"
+                        />
+                      </div>
+
+                      {isEditingBasic && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="userPassword" className="text-zinc-300">Nova Senha (opcional)</Label>
+                            <div className="relative">
+                              <Input
+                                id="userPassword"
+                                type={showPassword ? "text" : "password"}
+                                value={userInfo.password}
+                                onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
+                                placeholder="Digite uma nova senha"
+                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 pr-10"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4 text-zinc-400" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-zinc-400" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="userConfirmPassword" className="text-zinc-300">Confirmar Nova Senha</Label>
+                            <Input
+                              id="userConfirmPassword"
+                              type="password"
+                              value={userInfo.confirmPassword}
+                              onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
+                              placeholder="Confirme a nova senha"
+                              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Plano Ativo</Label>
+                        <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white">
+                          {currentUser?.plan ? (
+                            <span className="text-green-400">
+                              {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
+                            </span>
+                          ) : currentUser ? (
+                            <span className="text-yellow-400">Nenhum plano ativo</span>
+                          ) : (
+                            <span className="text-zinc-500">Carregando...</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col space-y-2">
+                        {!isEditingBasic ? (
+                          <Button
+                            type="button"
+                            onClick={() => setIsEditingBasic(true)}
+                            variant="outline"
+                            className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
+                          >
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            Editar Informações
+                          </Button>
+                        ) : (
+                          <div className="flex space-x-2">
+                            <Button
+                              type="button"
+                              onClick={handleSaveBasic}
+                              className="flex-1"
+                            >
+                              <Save className="h-4 w-4 mr-2" />
+                              Salvar
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={handleCancelBasic}
+                              variant="outline"
+                              className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
-              <TabsContent value="physical" className="space-y-4 mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="height" className="text-zinc-300">Altura</Label>
-                    <Input id="height" value={formData.height} onChange={e => handleInputChange('height', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="1,65m" />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="weight" className="text-zinc-300">Peso</Label>
-                    <Input id="weight" value={formData.weight} onChange={e => handleInputChange('weight', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="60kg" />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="shoe_size" className="text-zinc-300">Calçado</Label>
-                    <Input id="shoe_size" value={formData.shoe_size} onChange={e => handleInputChange('shoe_size', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="37" />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="bust" className="text-zinc-300">Busto</Label>
-                    <Input id="bust" value={formData.bust} onChange={e => handleInputChange('bust', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="90cm" />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="waist" className="text-zinc-300">Cintura</Label>
-                    <Input id="waist" value={formData.waist} onChange={e => handleInputChange('waist', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="65cm" />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="hip" className="text-zinc-300">Quadril</Label>
-                    <Input id="hip" value={formData.hip} onChange={e => handleInputChange('hip', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="95cm" />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="body_type" className="text-zinc-300">Manequim</Label>
-                    <Input id="body_type" value={formData.body_type} onChange={e => handleInputChange('body_type', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="M, 40, etc." />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="olhos" className="text-zinc-300">Olhos</Label>
-                    <Input id="olhos" value={formData.olhos} onChange={e => handleInputChange('olhos', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="Castanhos, Azuis..." />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="cabelo" className="text-zinc-300">Cabelo</Label>
-                    <Input id="cabelo" value={formData.cabelo} onChange={e => handleInputChange('cabelo', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="Loiro, Moreno..." />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="etnia" className="text-zinc-300">Etnia</Label>
-                    <Input id="etnia" value={formData.etnia} onChange={e => handleInputChange('etnia', e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" placeholder="Branca, Morena..." />
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="silicone" checked={formData.silicone} onCheckedChange={checked => handleInputChange('silicone', checked)} />
-                    <Label htmlFor="silicone" className="text-zinc-300">Silicone</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch id="tatuagem" checked={formData.tatuagem} onCheckedChange={checked => handleInputChange('tatuagem', checked)} />
-                    <Label htmlFor="tatuagem" className="text-zinc-300">Tatuagem</Label>
-                  </div>
-                </div>
-              </TabsContent>
 
               <TabsContent value="custom" className="space-y-6 mt-6">
                 {activeSections.map(section => {
@@ -313,34 +437,13 @@ const EnhancedModelProfileManager = ({
                     <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Nenhum campo personalizado disponível</p>
                   </div>}
+
+                <Button type="submit" disabled={updateProfile.isPending} className="w-full">
+                  {updateProfile.isPending ? 'Salvando...' : 'Salvar Alterações do Modelo'}
+                </Button>
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-4 mt-6">
-                <Card className="bg-zinc-800 border-zinc-700">
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg flex items-center gap-2">
-                      <Eye className="h-5 w-5" />
-                      Visibilidade do Perfil
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="is_active" checked={formData.is_active} onCheckedChange={checked => handleInputChange('is_active', checked)} />
-                      <Label htmlFor="is_active" className="text-zinc-300">
-                        Perfil Ativo
-                      </Label>
-                    </div>
-                    <p className="text-xs text-zinc-500">
-                      Quando desativado, seu perfil não aparecerá nas buscas dos clientes
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
-            
-            <Button type="submit" disabled={updateProfile.isPending} className="w-full">
-              {updateProfile.isPending ? 'Salvando...' : 'Salvar Alterações'}
-            </Button>
           </form>
         </CardContent>
       </Card>
