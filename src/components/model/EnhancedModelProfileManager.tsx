@@ -263,7 +263,7 @@ const EnhancedModelProfileManager = ({
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="basic">Dados Pessoais</TabsTrigger>
-                <TabsTrigger value="custom">Informações para Anúncios</TabsTrigger>
+                <TabsTrigger value="custom">Anúncios</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 mt-6">
