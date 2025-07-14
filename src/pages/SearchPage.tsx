@@ -125,6 +125,10 @@ const SearchPage = () => {
     navigate('/login');
   };
 
+  const handleViewProfile = (model: any) => {
+    navigate(`/modelo/${model.id}`);
+  };
+
   // Filter results based on category
   const filteredResults = useMemo(() => {
     if (activeCategory === 'all' || activeCategory === 'profiles') {
@@ -182,7 +186,7 @@ const SearchPage = () => {
 
               {/* Actions */}
               <div className="flex flex-col gap-2 mt-4">
-                <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
+                <Button size="sm" className="bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium" onClick={() => handleViewProfile(result)}>
                   Ver Perfil
                 </Button>
                 <div className="flex gap-2">
@@ -235,7 +239,7 @@ const SearchPage = () => {
 
             {/* Actions */}
             <div className="space-y-2">
-              <Button size="sm" className="w-full bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium">
+              <Button size="sm" className="w-full bg-gradient-to-r from-[hsl(var(--gold-primary))] to-[hsl(var(--gold-accent))] text-[hsl(var(--dark-primary))] hover:from-[hsl(var(--gold-primary))]/90 hover:to-[hsl(var(--gold-accent))]/90 shadow-[0_4px_12px_hsl(var(--gold-primary))_/_0.3] font-medium" onClick={() => handleViewProfile(result)}>
                 Ver Perfil
               </Button>
               <div className="flex gap-1">
