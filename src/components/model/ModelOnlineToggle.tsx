@@ -115,7 +115,7 @@ const ModelOnlineToggle = () => {
         {manualOverride}
       </div>
 
-      {manualOverride && <Button size="sm" variant="ghost" onClick={resetToAutoMode} disabled={loading} className="text-xs">
+      {manualOverride && <Button size="sm" variant="ghost" onClick={resetToAutoMode} disabled={loading} className="text-xs mx-0 px-0">
           AUTO
         </Button>}
     </div>;
