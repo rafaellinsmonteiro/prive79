@@ -262,8 +262,8 @@ const EnhancedModelProfileManager = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="basic">Básico</TabsTrigger>
-                <TabsTrigger value="custom">Modelo / Criadora</TabsTrigger>
+                <TabsTrigger value="basic">Dados Pessoais</TabsTrigger>
+                <TabsTrigger value="custom">Informações para Anúncios</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 mt-6">
