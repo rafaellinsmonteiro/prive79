@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useModelProfile } from '@/hooks/useModelProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useUserBalance } from '@/hooks/useUserBalance';
@@ -8,7 +8,7 @@ import V2VipModel from '@/components/V2VipModel';
 
 const ModelV2ProfilePage = () => {
   const { user } = useAuth();
-  const { data: currentUser } = useCurrentUser();
+  const { profile, isLoading } = useModelProfile();
   const { data: balanceData } = useUserBalance();
   const { toast } = useToast();
 
@@ -18,7 +18,7 @@ const ModelV2ProfilePage = () => {
       subtitle="Gerencie suas informações pessoais e configurações."
       activeId="profile"
     >
-      <EnhancedModelProfileManager profile={currentUser} />
+      <EnhancedModelProfileManager profile={profile} />
     </V2VipModel>
   );
 };
