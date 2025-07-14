@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera, X, LogOut } from 'lucide-react';
+import { Search, User, Image, Briefcase, Package, Calendar, Star, MapPin, Heart, Circle, Eye, Users, Grid3X3, List, MessageCircle, Camera, X, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,7 @@ const SearchPage = () => {
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const {
     toast
@@ -145,11 +146,11 @@ const SearchPage = () => {
       <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1] overflow-hidden">
         <CardContent className="p-3">
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Images Gallery - Mais destaque */}
+            {/* Images Gallery - Padronizado 1:1 */}
             <div className="flex gap-2 overflow-x-auto pb-2 flex-shrink-0">
               {mockImages.map((image, index) => (
                 <div key={index} className="relative">
-                  <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-xl overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/30 group-hover:ring-[hsl(var(--gold-primary))]/50 transition-all duration-300 shadow-lg">
+                  <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-xl overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/30 group-hover:ring-[hsl(var(--gold-primary))]/50 transition-all duration-300 shadow-lg aspect-square">
                     {image ? (
                       <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                     ) : (
@@ -234,9 +235,9 @@ const SearchPage = () => {
       <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1] overflow-hidden">
         <CardContent className="p-2">
           <div className="space-y-2">
-            {/* Photo - Imagem em destaque */}
+            {/* Photo - Imagem em destaque 1:1 */}
             <div className="relative mx-auto w-fit">
-              <div className="w-full h-48 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/30 group-hover:ring-[hsl(var(--gold-primary))]/50 transition-all duration-300 shadow-lg">
+              <div className="w-full aspect-square h-48 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/30 group-hover:ring-[hsl(var(--gold-primary))]/50 transition-all duration-300 shadow-lg">
                 {result.image ? (
                   <img src={result.image} alt={result.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                 ) : (
@@ -302,9 +303,19 @@ const SearchPage = () => {
         </div>}
 
       <div className="container max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6 relative">
+          {/* Botão para colapsar sidebar */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`fixed top-4 left-4 z-50 lg:absolute lg:top-0 lg:-right-12 bg-[hsl(var(--dark-card))] border border-[hsl(var(--gold-accent))]/20 hover:bg-[hsl(var(--gold-accent))]/10 transition-all duration-300 ${sidebarCollapsed ? 'lg:left-4' : ''}`}
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+
           {/* Sidebar */}
-          <div className="w-full lg:w-80 lg:flex-shrink-0">
+          <div className={`w-full lg:flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'lg:w-0 lg:overflow-hidden' : 'lg:w-80'}`}>
             {/* Card de Login/Logout */}
             <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 mb-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
               <CardHeader>
