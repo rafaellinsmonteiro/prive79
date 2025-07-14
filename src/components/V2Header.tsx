@@ -14,73 +14,66 @@ import { ModelAppointmentForm } from "@/components/model/ModelAppointmentForm";
 import { ClientForm } from "@/components/admin/ClientForm";
 import OrganizedMediaManager from "@/components/model/OrganizedMediaManager";
 import { ServiceForm } from "@/components/admin/ServiceForm";
-
 interface V2HeaderProps {
   title: string;
   subtitle?: string;
   onMobileMenuToggle?: () => void;
 }
-
-const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
-  const { signOut } = useAuth();
-  const { data: currentUser } = useCurrentUser();
-  const { currentPhotoUrl } = useProfilePhoto();
+const V2Header = ({
+  title,
+  subtitle,
+  onMobileMenuToggle
+}: V2HeaderProps) => {
+  const {
+    signOut
+  } = useAuth();
+  const {
+    data: currentUser
+  } = useCurrentUser();
+  const {
+    currentPhotoUrl
+  } = useProfilePhoto();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
+
   // Modal states
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
-
   const getUserInitials = (name?: string) => {
     if (!name) return 'U';
     return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
   };
-
-  return (
-    <>
+  return <>
       <header className="bg-card border-b border-border px-4 lg:px-8 py-4 lg:py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Mobile Menu Button */}
-            {isMobile && onMobileMenuToggle && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onMobileMenuToggle}
-                className="p-2 hover:bg-accent"
-              >
+            {isMobile && onMobileMenuToggle && <Button variant="ghost" size="sm" onClick={onMobileMenuToggle} className="p-2 hover:bg-accent">
                 <Menu className="w-5 h-5 text-muted-foreground" />
-              </Button>
-            )}
+              </Button>}
             
             <div>
               <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
                 {title}
               </h1>
-              {subtitle && (
-                <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
+              {subtitle && <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
                   {subtitle}
-                </p>
-              )}
+                </p>}
             </div>
           </div>
           
           <div className="flex items-center gap-2 lg:gap-4">
             {/* Search - Hidden on small mobile */}
-            {!isMobile && (
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Buscar..." className="pl-10 w-60 lg:w-80 bg-accent border-border focus:border-primary" />
-              </div>
-            )}
+            {!isMobile && <div className="relative hidden md:block">
+                
+                
+              </div>}
             
             <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent">
               <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
@@ -165,33 +158,21 @@ const V2Header = ({ title, subtitle, onMobileMenuToggle }: V2HeaderProps) => {
       </header>
 
       {/* Modals */}
-      {showAppointmentModal && (
-        <Dialog open={showAppointmentModal} onOpenChange={setShowAppointmentModal}>
+      {showAppointmentModal && <Dialog open={showAppointmentModal} onOpenChange={setShowAppointmentModal}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-0">
             <ModelAppointmentForm onClose={() => setShowAppointmentModal(false)} />
           </DialogContent>
-        </Dialog>
-      )}
+        </Dialog>}
 
-      <ClientForm 
-        open={showClientModal} 
-        onOpenChange={setShowClientModal}
-      />
+      <ClientForm open={showClientModal} onOpenChange={setShowClientModal} />
 
-      <ServiceForm 
-        open={showServiceModal} 
-        onOpenChange={setShowServiceModal}
-      />
+      <ServiceForm open={showServiceModal} onOpenChange={setShowServiceModal} />
 
-      {showMediaModal && (
-        <Dialog open={showMediaModal} onOpenChange={setShowMediaModal}>
+      {showMediaModal && <Dialog open={showMediaModal} onOpenChange={setShowMediaModal}>
           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-2 sm:p-6">
             <OrganizedMediaManager />
           </DialogContent>
-        </Dialog>
-      )}
-    </>
-  );
+        </Dialog>}
+    </>;
 };
-
 export default V2Header;
