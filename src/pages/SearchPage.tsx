@@ -303,120 +303,130 @@ const SearchPage = () => {
         </div>}
 
       <div className="container max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6 relative">
-          {/* Botão para colapsar sidebar */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Botão para colapsar sidebar - apenas no desktop */}
           <Button
             variant="ghost"
             size="sm"
-            className={`fixed top-4 left-4 z-50 lg:absolute lg:top-0 lg:-right-12 bg-[hsl(var(--dark-card))] border border-[hsl(var(--gold-accent))]/20 hover:bg-[hsl(var(--gold-accent))]/10 transition-all duration-300 ${sidebarCollapsed ? 'lg:left-4' : ''}`}
+            className="hidden lg:flex fixed top-4 left-4 z-50 bg-[hsl(var(--dark-card))] border border-[hsl(var(--gold-accent))]/20 hover:bg-[hsl(var(--gold-accent))]/10 transition-all duration-300 items-center justify-center w-10 h-10"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
 
           {/* Sidebar */}
-          <div className={`w-full lg:flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'lg:w-0 lg:overflow-hidden' : 'lg:w-80'}`}>
-            {/* Card de Login/Logout */}
-            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 mb-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
-              <CardHeader>
-                <CardTitle className="text-[hsl(var(--dark-text))] text-lg">
-                  {user ? 'Conta' : 'Entrar'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {user ? <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      {currentUser?.profile_photo_url ? <img src={currentUser.profile_photo_url} alt="User" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
-                          <User className="w-5 h-5 text-zinc-300" />
-                        </div>}
-                      <div>
-                        <p className="text-[hsl(var(--dark-text))] font-medium">
-                          {currentUser?.name || user.email}
-                        </p>
-                        <p className="text-[hsl(var(--dark-muted))] text-sm">
-                          {currentUser?.user_role || 'Usuário'}
-                        </p>
+          {!sidebarCollapsed && (
+            <div className="w-full lg:w-80 lg:flex-shrink-0 animate-fade-in">
+              {/* Card de Login/Logout */}
+              <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 mb-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
+                <CardHeader>
+                  <CardTitle className="text-[hsl(var(--dark-text))] text-lg">
+                    {user ? 'Conta' : 'Entrar'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {user ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        {currentUser?.profile_photo_url ? (
+                          <img src={currentUser.profile_photo_url} alt="User" className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
+                            <User className="w-5 h-5 text-zinc-300" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-[hsl(var(--dark-text))] font-medium">
+                            {currentUser?.name || user.email}
+                          </p>
+                          <p className="text-[hsl(var(--dark-muted))] text-sm">
+                            {currentUser?.user_role || 'Usuário'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button onClick={handleSignOut} variant="outline" className="w-full bg-transparent border-[hsl(var(--gold-accent))] text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/10">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sair
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-[hsl(var(--dark-muted))] text-sm">
+                        Faça login para acessar recursos exclusivos e personalizar sua experiência.
+                      </p>
+                      <Button onClick={handleLogin} className="w-full bg-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/90 text-black font-medium">
+                        <User className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 lg:sticky lg:top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[hsl(var(--gold-primary))]">
+                    <Search className="h-5 w-5" />
+                    Filtros de Busca
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Quick Filters */}
+                  <div className="space-y-4">
+                    <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                        <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                          <Circle className="h-3 w-3 fill-green-500 text-green-500" />
+                          Online
+                        </Label>
+                        <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                        <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                          <Eye className="h-3 w-3" />
+                          Rosto
+                        </Label>
+                        <Switch id="shows-face" checked={showsFace} onCheckedChange={setShowsFace} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                        <Label htmlFor="my-location" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                          <MapPin className="h-3 w-3" />
+                          Meu local
+                        </Label>
+                        <Switch id="my-location" checked={myLocation} onCheckedChange={setMyLocation} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
+                        <Label htmlFor="video-call" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
+                          <Camera className="h-3 w-3" />
+                          Criadora
+                        </Label>
+                        <Switch id="video-call" checked={videoCall} onCheckedChange={setVideoCall} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
                       </div>
                     </div>
-                    <Button onClick={handleSignOut} variant="outline" className="w-full bg-transparent border-[hsl(var(--gold-accent))] text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/10">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sair
-                    </Button>
-                  </div> : <div className="space-y-4">
-                    <p className="text-[hsl(var(--dark-muted))] text-sm">
-                      Faça login para acessar recursos exclusivos e personalizar sua experiência.
-                    </p>
-                    <Button onClick={handleLogin} className="w-full bg-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/90 text-black font-medium">
-                      <User className="w-4 h-4 mr-2" />
-                      Fazer Login
-                    </Button>
-                  </div>}
-              </CardContent>
-            </Card>
+                  </div>
 
-            <Card className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 lg:sticky lg:top-6 shadow-[0_4px_20px_hsl(var(--gold-primary))_/_0.1]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-[hsl(var(--gold-primary))]">
-                  <Search className="h-5 w-5" />
-                  Filtros de Busca
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Quick Filters */}
-                <div className="space-y-4">
-                  <Label className="text-[hsl(var(--dark-text))]">Filtros Rápidos</Label>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{/* ... keep existing code */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                      <Label htmlFor="online-only" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
-                        <Circle className="h-3 w-3 fill-green-500 text-green-500" />
-                        Online
-                      </Label>
-                      <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
-                    </div>
+                  <Separator className="bg-[hsl(var(--gold-accent))]/20" />
 
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                      <Label htmlFor="shows-face" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
-                        <Eye className="h-3 w-3" />
-                        Rosto
-                      </Label>
-                      <Switch id="shows-face" checked={showsFace} onCheckedChange={setShowsFace} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                      <Label htmlFor="my-location" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
-                        <MapPin className="h-3 w-3" />
-                        Meu local
-                      </Label>
-                      <Switch id="my-location" checked={myLocation} onCheckedChange={setMyLocation} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20">
-                      <Label htmlFor="video-call" className="flex items-center gap-2 cursor-pointer text-[hsl(var(--dark-text))] text-xs">
-                        <Camera className="h-3 w-3" />
-                        Criadora
-                      </Label>
-                      <Switch id="video-call" checked={videoCall} onCheckedChange={setVideoCall} className="data-[state=checked]:bg-[hsl(var(--gold-primary))] scale-75" />
+                  {/* Search Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
+                    <div className="relative flex-shrink-0">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
+                      <Input id="search" placeholder="Digite sua busca..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" />
                     </div>
                   </div>
-                </div>
-
-                <Separator className="bg-[hsl(var(--gold-accent))]/20" />
-
-                {/* Search Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
-                  <div className="relative flex-shrink-0">{/* ... keep existing code */}
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
-                    <Input id="search" placeholder="Digite sua busca..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Main Content */}
-          <div className="flex-1 space-y-6">
+          <div className={`flex-1 space-y-6 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : ''}`}>
             {/* Quick Filter Badges */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-[hsl(var(--dark-muted))]">Filtros ativos:</span>
