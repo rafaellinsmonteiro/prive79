@@ -15,7 +15,6 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -27,12 +26,17 @@ const SearchPage = () => {
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
-
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { user, signOut } = useAuth();
-  const { data: currentUser } = useCurrentUser();
-
+  const {
+    toast
+  } = useToast();
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    data: currentUser
+  } = useCurrentUser();
   const {
     results,
     loading,
@@ -86,42 +90,37 @@ const SearchPage = () => {
   const handleChat = (model: any) => {
     navigate(`/chat?model=${model.id}`);
   };
-
   const handleViewMedia = (model: any) => {
     setSelectedModel(model);
     setShowMediaModal(true);
   };
-
   const handleToggleFavorite = (modelId: string) => {
     setFavorites(prev => {
-      const newFavorites = prev.includes(modelId) 
-        ? prev.filter(id => id !== modelId)
-        : [...prev, modelId];
-      
+      const newFavorites = prev.includes(modelId) ? prev.filter(id => id !== modelId) : [...prev, modelId];
       toast({
         title: prev.includes(modelId) ? "Removido dos favoritos" : "Adicionado aos favoritos",
-        description: prev.includes(modelId) ? "Modelo removido da sua lista de favoritos" : "Modelo adicionado à sua lista de favoritos",
+        description: prev.includes(modelId) ? "Modelo removido da sua lista de favoritos" : "Modelo adicionado à sua lista de favoritos"
       });
-      
       return newFavorites;
     });
   };
-
   const handleSignOut = async () => {
     const loadingToast = toast({
       title: "Fazendo logout...",
-      description: "Aguarde...",
+      description: "Aguarde..."
     });
-    
     try {
       await signOut();
-      navigate('/buscar', { replace: true });
+      navigate('/buscar', {
+        replace: true
+      });
     } catch (error) {
       console.error('Logout error:', error);
-      navigate('/buscar', { replace: true });
+      navigate('/buscar', {
+        replace: true
+      });
     }
   };
-
   const handleLogin = () => {
     navigate('/login');
   };
@@ -136,38 +135,22 @@ const SearchPage = () => {
   }, [results, activeCategory]);
   const renderListCard = (result: any) => {
     // Mock multiple images for demonstration
-    const mockImages = [
-      result.image,
-      `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=300&fit=crop`,
-      `https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=300&fit=crop`,
-      `https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=300&fit=crop`,
-      `https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=300&fit=crop`
-    ].filter(Boolean).slice(0, 5);
-
-    return (
-      <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
+    const mockImages = [result.image, `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=300&fit=crop`, `https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=300&fit=crop`, `https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=300&fit=crop`, `https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=300&fit=crop`].filter(Boolean).slice(0, 5);
+    return <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">{/* ... keep existing code */}
             {/* Images Gallery */}
             <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2">{/* ... keep existing code */}
-              {mockImages.map((image, index) => (
-                <div key={index} className="relative">
+              {mockImages.map((image, index) => <div key={index} className="relative">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] ring-2 ring-[hsl(var(--gold-accent))]/20 group-hover:ring-[hsl(var(--gold-primary))]/40 transition-all duration-300">{/* ... keep existing code */}
-                    {image ? (
-                      <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                    {image ? <img src={image} alt={`${result.title} ${index + 1}`} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
                         <User className="h-8 w-8 text-[hsl(var(--dark-muted))]" />
-                      </div>
-                    )}
+                      </div>}
                   </div>
-                  {result.type === 'model' && index === 0 && (
-                    <div className="absolute -bottom-1 -right-1">
+                  {result.type === 'model' && index === 0 && <div className="absolute -bottom-1 -right-1">
                       <div className={`w-5 h-5 rounded-full border-2 border-[hsl(var(--dark-card))] ${result.is_online ? 'bg-green-500 shadow-[0_0_8px_green_/_0.5]' : 'bg-[hsl(var(--dark-muted))]'}`} />
-                    </div>
-                  )}
-                </div>
-              ))}
+                    </div>}
+                </div>)}
             </div>
 
             {/* Content */}
@@ -178,30 +161,22 @@ const SearchPage = () => {
                     <h3 className="font-semibold text-xl truncate text-[hsl(var(--gold-primary))]">{result.title}</h3>
                     {result.age && <span className="text-[hsl(var(--dark-muted))]">{result.age} anos</span>}
                   </div>
-                  {result.is_online && (
-                    <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
+                  {result.is_online && <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
                       Online
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
                 
-                {result.description && (
-                  <p className="text-[hsl(var(--dark-muted))] line-clamp-2">{result.description}</p>
-                )}
+                {result.description && <p className="text-[hsl(var(--dark-muted))] line-clamp-2">{result.description}</p>}
                 
                 <div className="flex items-center gap-4 text-sm text-[hsl(var(--dark-muted))]">
-                  {result.location && (
-                    <div className="flex items-center gap-1">
+                  {result.location && <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
                       <span>{result.location}</span>
-                    </div>
-                  )}
-                  {result.is_online !== undefined && (
-                    <div className="flex items-center gap-1">
+                    </div>}
+                  {result.is_online !== undefined && <div className="flex items-center gap-1">
                       <Circle className={`h-4 w-4 ${result.is_online ? 'fill-green-500 text-green-500' : 'fill-[hsl(var(--dark-muted))] text-[hsl(var(--dark-muted))]'}`} />
                       <span>{result.is_online ? 'Disponível' : 'Indisponível'}</span>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </div>
 
@@ -211,31 +186,13 @@ const SearchPage = () => {
                   Ver Perfil
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                    title="Enviar mensagem"
-                    onClick={() => handleChat(result)}
-                  >
+                  <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem" onClick={() => handleChat(result)}>
                     <MessageCircle className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                    title="Ver mídias"
-                    onClick={() => handleViewMedia(result)}
-                  >
+                  <Button size="sm" variant="ghost" className="text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias" onClick={() => handleViewMedia(result)}>
                     <Camera className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className={`hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
-                    title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                    onClick={() => handleToggleFavorite(result.id)}
-                  >
+                  <Button size="sm" variant="ghost" className={`hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`} title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} onClick={() => handleToggleFavorite(result.id)}>
                     <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
                   </Button>
                 </div>
@@ -243,8 +200,7 @@ const SearchPage = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   };
   const renderGridCard = (result: any) => {
     return <Card key={result.id} className="bg-[hsl(var(--dark-card))] border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_hsl(var(--gold-primary))_/_0.1]">
@@ -283,31 +239,13 @@ const SearchPage = () => {
                 Ver Perfil
               </Button>
               <div className="flex gap-1">
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                  title="Enviar mensagem"
-                  onClick={() => handleChat(result)}
-                >
+                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Enviar mensagem" onClick={() => handleChat(result)}>
                   <MessageCircle className="h-4 w-4" />
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" 
-                  title="Ver mídias"
-                  onClick={() => handleViewMedia(result)}
-                >
+                <Button size="sm" variant="ghost" className="flex-1 text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-accent))]/10" title="Ver mídias" onClick={() => handleViewMedia(result)}>
                   <Camera className="h-4 w-4" />
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className={`flex-1 hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`}
-                  title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                  onClick={() => handleToggleFavorite(result.id)}
-                >
+                <Button size="sm" variant="ghost" className={`flex-1 hover:bg-[hsl(var(--gold-accent))]/10 ${favorites.includes(result.id) ? 'text-red-500 hover:text-red-600' : 'text-[hsl(var(--dark-muted))] hover:text-[hsl(var(--gold-primary))]'}`} title={favorites.includes(result.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} onClick={() => handleToggleFavorite(result.id)}>
                   <Heart className={`h-4 w-4 ${favorites.includes(result.id) ? 'fill-current' : ''}`} />
                 </Button>
               </div>
@@ -316,28 +254,11 @@ const SearchPage = () => {
         </CardContent>
       </Card>;
   };
-  return (
-    <div className="min-h-screen bg-[hsl(var(--dark-primary))] relative">
+  return <div className="min-h-screen bg-[hsl(var(--dark-primary))] relative">
       {/* Floating User Icon - apenas se logado */}
-      {user && (
-        <div className="fixed top-4 right-4 z-50">
-          <Button
-            onClick={handleSignOut}
-            size="icon"
-            className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-100 rounded-full w-12 h-12 shadow-lg"
-          >
-            {currentUser?.profile_photo_url ? (
-              <img 
-                src={currentUser.profile_photo_url} 
-                alt="User" 
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5" />
-            )}
-          </Button>
-        </div>
-      )}
+      {user && <div className="fixed top-4 right-4 z-50">
+          
+        </div>}
 
       <div className="container max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
@@ -351,20 +272,11 @@ const SearchPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {user ? (
-                  <div className="space-y-4">
+                {user ? <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      {currentUser?.profile_photo_url ? (
-                        <img 
-                          src={currentUser.profile_photo_url} 
-                          alt="User" 
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
+                      {currentUser?.profile_photo_url ? <img src={currentUser.profile_photo_url} alt="User" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
                           <User className="w-5 h-5 text-zinc-300" />
-                        </div>
-                      )}
+                        </div>}
                       <div>
                         <p className="text-[hsl(var(--dark-text))] font-medium">
                           {currentUser?.name || user.email}
@@ -374,29 +286,19 @@ const SearchPage = () => {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      onClick={handleSignOut}
-                      variant="outline"
-                      className="w-full bg-transparent border-[hsl(var(--gold-accent))] text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/10"
-                    >
+                    <Button onClick={handleSignOut} variant="outline" className="w-full bg-transparent border-[hsl(var(--gold-accent))] text-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/10">
                       <LogOut className="w-4 h-4 mr-2" />
                       Sair
                     </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
+                  </div> : <div className="space-y-4">
                     <p className="text-[hsl(var(--dark-muted))] text-sm">
                       Faça login para acessar recursos exclusivos e personalizar sua experiência.
                     </p>
-                    <Button 
-                      onClick={handleLogin}
-                      className="w-full bg-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/90 text-black font-medium"
-                    >
+                    <Button onClick={handleLogin} className="w-full bg-[hsl(var(--gold-primary))] hover:bg-[hsl(var(--gold-primary))]/90 text-black font-medium">
                       <User className="w-4 h-4 mr-2" />
                       Fazer Login
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
@@ -454,13 +356,7 @@ const SearchPage = () => {
                   <Label htmlFor="search" className="text-[hsl(var(--dark-text))]">Buscar</Label>
                   <div className="relative flex-shrink-0">{/* ... keep existing code */}
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--dark-muted))]" />
-                    <Input 
-                      id="search" 
-                      placeholder="Digite sua busca..." 
-                      value={searchTerm} 
-                      onChange={e => setSearchTerm(e.target.value)} 
-                      className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" 
-                    />
+                    <Input id="search" placeholder="Digite sua busca..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-[hsl(var(--dark-primary))] border-[hsl(var(--gold-accent))]/30 text-[hsl(var(--dark-text))] placeholder:text-[hsl(var(--dark-muted))] focus:border-[hsl(var(--gold-primary))] focus:ring-[hsl(var(--gold-primary))]/20" />
                   </div>
                 </div>
               </CardContent>
@@ -472,35 +368,25 @@ const SearchPage = () => {
             {/* Quick Filter Badges */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-[hsl(var(--dark-muted))]">Filtros ativos:</span>
-              {onlineOnly && (
-                <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
+              {onlineOnly && <Badge className="bg-gradient-to-r from-green-500/20 to-green-400/20 text-green-400 border-green-500/30 shadow-[0_2px_8px_green_/_0.2]">
                   <Circle className="h-3 w-3 mr-1 fill-current" />
                   Online agora
-                </Badge>
-              )}
-              {showsFace && (
-                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                </Badge>}
+              {showsFace && <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
                   <Eye className="h-3 w-3 mr-1" />
                   Mostra o rosto
-                </Badge>
-              )}
-              {myLocation && (
-                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                </Badge>}
+              {myLocation && <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
                   <MapPin className="h-3 w-3 mr-1" />
                   Meu local
-                </Badge>
-              )}
-              {videoCall && (
-                <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
+                </Badge>}
+              {videoCall && <Badge className="bg-gradient-to-r from-[hsl(var(--gold-primary))]/20 to-[hsl(var(--gold-accent))]/20 text-[hsl(var(--gold-primary))] border-[hsl(var(--gold-primary))]/30 shadow-[0_2px_8px_hsl(var(--gold-primary))_/_0.2]">
                   <Camera className="h-3 w-3 mr-1" />
                   Videochamada
-                </Badge>
-              )}
-              {activeCategory !== 'all' && (
-                <Badge variant="outline" className="border-[hsl(var(--gold-accent))]/40 text-[hsl(var(--dark-text))]">
+                </Badge>}
+              {activeCategory !== 'all' && <Badge variant="outline" className="border-[hsl(var(--gold-accent))]/40 text-[hsl(var(--dark-text))]">
                   {categories.find(c => c.key === activeCategory)?.label}
-                </Badge>
-              )}
+                </Badge>}
             </div>
 
             {/* Results Header */}
@@ -556,37 +442,21 @@ const SearchPage = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[70vh] overflow-y-auto">
-            {selectedModel ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
+            {selectedModel ? <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
                 {/* Simulated media gallery */}
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <div 
-                    key={index} 
-                    className="aspect-square rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group"
-                  >
-                    {selectedModel.image ? (
-                      <img 
-                        src={selectedModel.image} 
-                        alt={`Media ${index + 1}`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                {Array.from({
+              length: 8
+            }).map((_, index) => <div key={index} className="aspect-square rounded-lg overflow-hidden bg-[hsl(var(--dark-primary))] border border-[hsl(var(--gold-accent))]/20 hover:border-[hsl(var(--gold-primary))]/40 transition-all duration-300 cursor-pointer group">
+                    {selectedModel.image ? <img src={selectedModel.image} alt={`Media ${index + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="w-full h-full flex items-center justify-center">
                         <Image className="h-8 w-8 text-[hsl(var(--dark-muted))]" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-[hsl(var(--dark-muted))]">
+                      </div>}
+                  </div>)}
+              </div> : <div className="p-8 text-center text-[hsl(var(--dark-muted))]">
                 Nenhuma mídia disponível
-              </div>
-            )}
+              </div>}
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
 export default SearchPage;
