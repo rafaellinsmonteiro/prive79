@@ -57,14 +57,13 @@ export const AdminAppointmentForm = ({ onClose }: AdminAppointmentFormProps) => 
   const { data: models = [] } = useAdminModels();
   const { createAppointment } = useAdminAppointments();
 
-  // Carregar clientes quando uma modelo for selecionada
+  // Carregar clientes e serviços quando uma modelo for selecionada
   useEffect(() => {
     if (selectedModel) {
       setLoadingClients(true);
       supabase
         .from('clients')
         .select('*')
-        .eq('model_id', selectedModel)
         .eq('is_active', true)
         .then(({ data, error }) => {
           if (error) {
