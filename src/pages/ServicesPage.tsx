@@ -109,7 +109,8 @@ const ServicesPage = () => {
           description: formData.description,
           price: formData.price,
           duration: formData.duration,
-          is_active: formData.is_active
+          is_active: formData.is_active,
+          allow_online_booking: false,
         });
       }
 
@@ -127,7 +128,8 @@ const ServicesPage = () => {
         description: service.description,
         price: service.price,
         duration: service.duration,
-        is_active: service.is_active
+        is_active: service.is_active,
+        allow_online_booking: service.allow_online_booking ?? false,
       });
     } catch (error) {
       console.error('Error duplicating service:', error);

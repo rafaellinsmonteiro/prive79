@@ -37,6 +37,7 @@ import ModelV2ClientsPage from "./pages/ModelV2ClientsPage";
 import ModelV2ReviewsPage from "./pages/ModelV2ReviewsPage";
 import ModelV2GoalsPage from "./pages/ModelV2GoalsPage";
 import ComponentsDocumentationPage from "./pages/ComponentsDocumentationPage";
+import PublicBookingPage from "./pages/PublicBookingPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -101,6 +102,8 @@ const AppContent = () => {
           <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding-modelo" element={<ModelOnboarding />} />
+          <Route path="/agendar" element={<PublicBookingPage />} />
+          
           
           {/* Home route - show login if not authenticated, otherwise show main app */}
           <Route path="/" element={<Index />} />

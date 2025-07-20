@@ -336,7 +336,6 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean
-          model_id: string
           name: string
           notes: string | null
           phone: string | null
@@ -348,7 +347,6 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
-          model_id: string
           name: string
           notes?: string | null
           phone?: string | null
@@ -360,21 +358,12 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
-          model_id?: string
           name?: string
           notes?: string | null
           phone?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "clients_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       conversations: {
         Row: {
