@@ -18,6 +18,7 @@ const serviceSchema = z.object({
   price: z.number().min(0, 'Preço deve ser positivo'),
   duration: z.number().min(1, 'Duração deve ser pelo menos 1 minuto'),
   is_active: z.boolean(),
+  allow_online_booking: z.boolean().default(false),
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -45,6 +46,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       price: service?.price || 0,
       duration: service?.duration || 60,
       is_active: service?.is_active ?? true,
+      allow_online_booking: service?.allow_online_booking ?? false,
     },
   });
 
@@ -56,6 +58,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         price: service.price,
         duration: service.duration,
         is_active: service.is_active,
+        allow_online_booking: service.allow_online_booking ?? false,
       });
     } else {
       form.reset({
@@ -64,6 +67,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         price: 0,
         duration: 60,
         is_active: true,
+        allow_online_booking: false,
       });
     }
   }, [service, form]);
@@ -87,6 +91,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           price: data.price,
           duration: data.duration,
           is_active: data.is_active,
+          allow_online_booking: data.allow_online_booking,
         });
         toast({
           title: "Serviço criado",
@@ -199,6 +204,27 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                     <FormLabel>Serviço Ativo</FormLabel>
                     <div className="text-sm text-muted-foreground">
                       O serviço estará disponível para agendamento
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="allow_online_booking"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Agendamento Online</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Permitir que clientes agendem este serviço online
                     </div>
                   </div>
                   <FormControl>

@@ -9,6 +9,7 @@ export interface Service {
   price: number;
   duration: number;
   is_active: boolean;
+  allow_online_booking: boolean;
   model_id: string;
   created_at: string;
   updated_at: string;

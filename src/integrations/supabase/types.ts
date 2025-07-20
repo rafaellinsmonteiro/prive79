@@ -1265,6 +1265,8 @@ export type Database = {
           dupla_penetracao: boolean | null
           etnia: string | null
           eyes: string | null
+          face_private: boolean | null
+          face_public: boolean | null
           garganta: boolean | null
           grava: boolean | null
           height: string | null
@@ -1289,6 +1291,8 @@ export type Database = {
           plataformas: string | null
           privacy: boolean | null
           Privacy: string | null
+          privefan: boolean | null
+          profiles_extra: string | null
           shoe_size: string | null
           silicone: boolean | null
           silicone2: boolean | null
@@ -1303,7 +1307,9 @@ export type Database = {
           visibility_type: string | null
           waist: string | null
           weight: string | null
+          whatsapp_normal: boolean | null
           whatsapp_number: string | null
+          whatsapp_temp: boolean | null
         }
         Insert: {
           "1hora"?: number | null
@@ -1332,6 +1338,8 @@ export type Database = {
           dupla_penetracao?: boolean | null
           etnia?: string | null
           eyes?: string | null
+          face_private?: boolean | null
+          face_public?: boolean | null
           garganta?: boolean | null
           grava?: boolean | null
           height?: string | null
@@ -1356,6 +1364,8 @@ export type Database = {
           plataformas?: string | null
           privacy?: boolean | null
           Privacy?: string | null
+          privefan?: boolean | null
+          profiles_extra?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           silicone2?: boolean | null
@@ -1370,7 +1380,9 @@ export type Database = {
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
+          whatsapp_normal?: boolean | null
           whatsapp_number?: string | null
+          whatsapp_temp?: boolean | null
         }
         Update: {
           "1hora"?: number | null
@@ -1399,6 +1411,8 @@ export type Database = {
           dupla_penetracao?: boolean | null
           etnia?: string | null
           eyes?: string | null
+          face_private?: boolean | null
+          face_public?: boolean | null
           garganta?: boolean | null
           grava?: boolean | null
           height?: string | null
@@ -1423,6 +1437,8 @@ export type Database = {
           plataformas?: string | null
           privacy?: boolean | null
           Privacy?: string | null
+          privefan?: boolean | null
+          profiles_extra?: string | null
           shoe_size?: string | null
           silicone?: boolean | null
           silicone2?: boolean | null
@@ -1437,7 +1453,9 @@ export type Database = {
           visibility_type?: string | null
           waist?: string | null
           weight?: string | null
+          whatsapp_normal?: boolean | null
           whatsapp_number?: string | null
+          whatsapp_temp?: boolean | null
         }
         Relationships: [
           {
