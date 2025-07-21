@@ -30,47 +30,8 @@ export default function ClientV2AccountPage() {
   return (
     <V2VipModel title="Minha Conta" subtitle="Gerencie todas as configurações da sua conta" activeId="account">
       <div className="p-6">
-        {/* Texto explicativo e módulos */}
-        <div className="mb-8">
-          <div className="text-center mb-6">
-            <p className="text-lg text-muted-foreground">
-              Nossa plataforma é perfeita para suas necessidades. Os módulos e recursos funcionam de maneira separada ou integrada, oferecendo máxima flexibilidade.
-            </p>
-          </div>
-
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-semibold mb-4">Módulos Principais</h3>
-              
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-medium text-green-600 mb-3">Ativos em sua conta:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {["Prive Account", "Prive Model", "Prive Bank", "Prive Chat", "Prive ServiceBooking", "Prive Cloud"].map((module) => (
-                      <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-green-50 border-green-200">
-                        <span className="text-sm font-medium text-green-700">{module}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-orange-600 mb-3">Ainda não disponíveis:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {["Prive Date", "Prive Delivery", "Prive Trust", "Prive Intelligence"].map((module) => (
-                      <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-orange-50 border-orange-200">
-                        <span className="text-sm font-medium text-orange-700">{module}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Dados Pessoais</span>
@@ -93,11 +54,7 @@ export default function ClientV2AccountPage() {
             </TabsTrigger>
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Preferências</span>
-            </TabsTrigger>
-            <TabsTrigger value="account" className="flex items-center gap-2">
-              <UserX className="h-4 w-4" />
-              <span className="hidden sm:inline">Conta</span>
+              <span className="hidden sm:inline">Recursos e Preferências</span>
             </TabsTrigger>
           </TabsList>
 
@@ -347,8 +304,47 @@ export default function ClientV2AccountPage() {
             </Card>
           </TabsContent>
 
-          {/* Preferências */}
+          {/* Recursos e Preferências */}
           <TabsContent value="preferences" className="space-y-6">
+            {/* Módulos e Recursos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Módulos e Recursos</CardTitle>
+                <CardDescription>
+                  Nossa plataforma é perfeita para suas necessidades. Os módulos e recursos funcionam de maneira separada ou integrada, oferecendo máxima flexibilidade.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Módulos Principais</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-medium text-green-600 mb-3">Ativos em sua conta:</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {["Prive Account", "Prive Model", "Prive Bank", "Prive Chat", "Prive ServiceBooking", "Prive Cloud"].map((module) => (
+                          <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-green-50 border-green-200">
+                            <span className="text-sm font-medium text-green-700">{module}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium text-orange-600 mb-3">Ainda não disponíveis:</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {["Prive Date", "Prive Delivery", "Prive Trust", "Prive Intelligence"].map((module) => (
+                          <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-orange-50 border-orange-200">
+                            <span className="text-sm font-medium text-orange-700">{module}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Preferências Gerais</CardTitle>
@@ -405,56 +401,6 @@ export default function ClientV2AccountPage() {
             </Card>
           </TabsContent>
 
-          {/* Conta */}
-          <TabsContent value="account" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciar Conta</CardTitle>
-                <CardDescription>
-                  Opções avançadas para sua conta
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Exportar Dados</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Baixe uma cópia de todos os seus dados
-                      </p>
-                    </div>
-                    <Button variant="outline">
-                      <Download className="h-4 w-4 mr-2" />
-                      Exportar
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Desativar Conta</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Desative temporariamente sua conta
-                      </p>
-                    </div>
-                    <Button variant="outline">Desativar</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Excluir Conta</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Exclua permanentemente sua conta e todos os dados
-                      </p>
-                    </div>
-                    <Button variant="destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </V2VipModel>
