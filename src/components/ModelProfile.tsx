@@ -30,11 +30,11 @@ const ModelProfile = ({ model, onClose }: ModelProfileProps) => {
 
     try {
       const conversation = await createConversation.mutateAsync(model.id);
-      navigate(`/chat?conversation=${conversation.id}`);
+      navigate(`/v2/client/chat?conversation=${conversation.id}`);
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
       // Fallback: navegar para chat geral
-      navigate('/chat');
+      navigate('/v2/client/chat');
     }
   };
 

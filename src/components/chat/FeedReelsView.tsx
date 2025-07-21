@@ -112,7 +112,7 @@ const FeedReelsView: React.FC<FeedReelsViewProps> = ({ contacts }) => {
     
     try {
       const conversation = await createConversation.mutateAsync(currentContact.model_id);
-      navigate(`/chat?conversation=${conversation.id}`);
+      navigate(`/v2/client/chat?conversation=${conversation.id}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
     }

@@ -45,7 +45,7 @@ const ContactUpdatesModal: React.FC<ContactUpdatesModalProps> = ({
   const handleOpenChat = async () => {
     try {
       const conversation = await createConversation.mutateAsync(contact.model_id);
-      navigate(`/chat?conversation=${conversation.id}`);
+      navigate(`/v2/client/chat?conversation=${conversation.id}`);
       onClose();
     } catch (error) {
       console.error('Error creating conversation:', error);

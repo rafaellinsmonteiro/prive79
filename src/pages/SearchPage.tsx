@@ -89,7 +89,7 @@ const SearchPage = () => {
 
   // Handler functions
   const handleChat = (model: any) => {
-    navigate(`/chat?model=${model.id}`);
+    navigate(`/v2/client/chat?model=${model.id}`);
   };
   const handleViewMedia = (model: any) => {
     setSelectedModel(model);

@@ -131,16 +131,16 @@ const ReelItem = ({ model, isActive, onSwipeUp, onSwipeDown, settings, isMobile 
 
       if (existingConversation) {
         // Se já existe uma conversa, navegar para ela
-        navigate(`/chat?conversation=${existingConversation.id}`);
+        navigate(`/v2/client/chat?conversation=${existingConversation.id}`);
       } else {
         // Se não existe, criar uma nova conversa
         const conversation = await createConversation.mutateAsync(model.id);
-        navigate(`/chat?conversation=${conversation.id}`);
+        navigate(`/v2/client/chat?conversation=${conversation.id}`);
       }
     } catch (error) {
       console.error('Erro ao acessar conversa:', error);
       // Fallback: navegar para chat geral
-      navigate('/chat');
+      navigate('/v2/client/chat');
     }
   };
 
