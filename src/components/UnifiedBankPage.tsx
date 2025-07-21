@@ -52,9 +52,9 @@ const UnifiedBankPage = () => {
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  const [transferCurrency, setTransferCurrency] = useState('PCoins');
-  const [depositCurrency, setDepositCurrency] = useState('PCoins');
-  const [withdrawCurrency, setWithdrawCurrency] = useState('PCoins');
+  const [transferCurrency, setTransferCurrency] = useState('PDolar');
+  const [depositCurrency, setDepositCurrency] = useState('PDolar');
+  const [withdrawCurrency, setWithdrawCurrency] = useState('PDolar');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -97,7 +97,7 @@ const UnifiedBankPage = () => {
       
       toast({
         title: "Depósito realizado!",
-        description: `${depositCurrency === 'PCoins' ? 'P$' : 'R$'} ${depositAmount} depositado com sucesso.`
+        description: `${depositCurrency === 'PDolar' ? 'P$' : 'R$'} ${depositAmount} depositado com sucesso.`
       });
       
       setDepositAmount('');
@@ -122,7 +122,7 @@ const UnifiedBankPage = () => {
       return;
     }
 
-    const currentBalance = withdrawCurrency === 'PCoins' ? account?.balance : account?.balance_brl;
+    const currentBalance = withdrawCurrency === 'PDolar' ? account?.balance : account?.balance_brl;
     if (parseFloat(withdrawAmount) > (currentBalance || 0)) {
       toast({
         title: "Saldo insuficiente",
@@ -139,7 +139,7 @@ const UnifiedBankPage = () => {
       
       toast({
         title: "Saque realizado!",
-        description: `${withdrawCurrency === 'PCoins' ? 'P$' : 'R$'} ${withdrawAmount} sacado com sucesso.`
+        description: `${withdrawCurrency === 'PDolar' ? 'P$' : 'R$'} ${withdrawAmount} sacado com sucesso.`
       });
       
       setWithdrawAmount('');
@@ -173,7 +173,7 @@ const UnifiedBankPage = () => {
       return;
     }
 
-    const currentBalance = transferCurrency === 'PCoins' ? account?.balance : account?.balance_brl;
+    const currentBalance = transferCurrency === 'PDolar' ? account?.balance : account?.balance_brl;
     if (parseFloat(transferAmount) > (currentBalance || 0)) {
       toast({
         title: "Saldo insuficiente",
@@ -190,12 +190,12 @@ const UnifiedBankPage = () => {
         fromAccountId: account.id,
         toUserEmail: recipientEmail,
         amount: parseFloat(transferAmount),
-        description: `Transferência de ${transferCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`
+        description: `Transferência de ${transferCurrency === 'PDolar' ? 'P-Dólar' : 'Reais'}`
       });
       
       toast({
         title: "Transferência realizada!",
-        description: `${transferCurrency === 'PCoins' ? 'P$' : 'R$'} ${transferAmount} transferido para ${recipientEmail}`
+        description: `${transferCurrency === 'PDolar' ? 'P$' : 'R$'} ${transferAmount} transferido para ${recipientEmail}`
       });
       
       setTransferAmount('');
@@ -380,7 +380,7 @@ const UnifiedBankPage = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">P-Coins</p>
+                    <p className="text-sm text-muted-foreground">P-Dólar</p>
                     <div className="flex items-center gap-2">
                       {showBalance ? (
                         <p className="text-2xl font-bold text-foreground">
@@ -561,12 +561,12 @@ const UnifiedBankPage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="deposit-currency">Moeda</Label>
-                      <Select value={depositCurrency} onValueChange={setDepositCurrency}>
+                    <Select value={depositCurrency} onValueChange={setDepositCurrency}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="PCoins">P-Coins</SelectItem>
+                          <SelectItem value="PDolar">P-Dólar</SelectItem>
                           <SelectItem value="BRL">Reais (R$)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -614,7 +614,7 @@ const UnifiedBankPage = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="PCoins">P-Coins</SelectItem>
+                          <SelectItem value="PDolar">P-Dólar</SelectItem>
                           <SelectItem value="BRL">Reais (R$)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -672,7 +672,7 @@ const UnifiedBankPage = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="PCoins">P-Coins</SelectItem>
+                          <SelectItem value="PDolar">P-Dólar</SelectItem>
                           <SelectItem value="BRL">Reais (R$)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -738,7 +738,7 @@ const UnifiedBankPage = () => {
                               transaction.transaction_type === 'deposit' ? 'text-green-500' : 'text-red-500'
                             }`}>
                               {transaction.transaction_type === 'deposit' ? '+' : '-'}
-                              {transaction.currency === 'PCoins' ? 'P$' : 'R$'} {Number(transaction.amount).toFixed(2)}
+                              {transaction.currency === 'PDolar' ? 'P$' : 'R$'} {Number(transaction.amount).toFixed(2)}
                             </p>
                             <Badge variant={transaction.status === 'completed' ? 'default' : 'secondary'}>
                               {transaction.status === 'completed' ? 'Concluída' : 'Pendente'}
