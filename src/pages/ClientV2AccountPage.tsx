@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import V2VipModel from '@/components/V2VipModel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
 import { 
   User, 
   Shield, 
@@ -21,40 +26,158 @@ import {
   Bell,
   Globe,
   Download,
-  Trash2
+  Trash2,
+  Edit2,
+  Save,
+  X,
+  EyeOff
 } from 'lucide-react';
 
 export default function ClientV2AccountPage() {
+  const { user } = useAuth();
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('personal');
+  const [isEditing, setIsEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>('');
+  const [userInfo, setUserInfo] = useState({
+    email: '',
+    name: '',
+    whatsapp: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      setUserInfo({
+        email: user.email || '',
+        name: user.user_metadata?.name || '',
+        whatsapp: user.user_metadata?.whatsapp || '',
+        password: '',
+        confirmPassword: ''
+      });
+
+      if (currentUser?.profile_photo_url) {
+        setProfilePhotoUrl(currentUser.profile_photo_url);
+      } else if (user.user_metadata?.profile_photo_url) {
+        setProfilePhotoUrl(user.user_metadata.profile_photo_url);
+      }
+    }
+  }, [user, currentUser]);
+
+  const handleSave = async () => {
+    try {
+      if (userInfo.password && userInfo.password !== userInfo.confirmPassword) {
+        toast({
+          title: "Erro",
+          description: "As senhas não coincidem",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (userInfo.password && userInfo.password.length < 6) {
+        toast({
+          title: "Erro",
+          description: "A senha deve ter pelo menos 6 caracteres",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const updateData: any = {
+        data: {
+          name: userInfo.name,
+          whatsapp: userInfo.whatsapp
+        }
+      };
+
+      if (userInfo.email !== user?.email) {
+        updateData.email = userInfo.email;
+      }
+
+      if (userInfo.password) {
+        updateData.password = userInfo.password;
+      }
+
+      const { error } = await supabase.auth.updateUser(updateData);
+      
+      if (error) {
+        toast({
+          title: "Erro ao atualizar",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso"
+      });
+
+      setUserInfo(prev => ({
+        ...prev,
+        password: '',
+        confirmPassword: ''
+      }));
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar as informações",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setUserInfo({
+      email: user?.email || '',
+      name: user?.user_metadata?.name || '',
+      whatsapp: user?.user_metadata?.whatsapp || '',
+      password: '',
+      confirmPassword: ''
+    });
+    setIsEditing(false);
+  };
+
+  const handlePhotoUpdate = (photoUrl: string) => {
+    setProfilePhotoUrl(photoUrl);
+    toast({
+      title: "Sucesso",
+      description: "Foto de perfil atualizada!"
+    });
+  };
 
   return (
     <V2VipModel title="Minha Conta" subtitle="Gerencie todas as configurações da sua conta" activeId="account">
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-6 w-full">
-            <TabsTrigger value="personal" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Dados Pessoais</span>
+          <TabsList className="grid grid-cols-5 w-full bg-muted/50">
+            <TabsTrigger value="personal" className="flex items-center gap-1 px-2 py-3 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <User className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline truncate">Dados Pessoais</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Segurança</span>
+            <TabsTrigger value="security" className="flex items-center gap-1 px-2 py-3 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <Shield className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline truncate">Segurança</span>
             </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">Privacidade</span>
+            <TabsTrigger value="privacy" className="flex items-center gap-1 px-2 py-3 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <Eye className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline truncate">Privacidade</span>
             </TabsTrigger>
-            <TabsTrigger value="financial" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Financeiro</span>
+            <TabsTrigger value="financial" className="flex items-center gap-1 px-2 py-3 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <CreditCard className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline truncate">Financeiro</span>
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Documentos</span>
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Recursos e Preferências</span>
+            <TabsTrigger value="preferences" className="flex items-center gap-1 px-2 py-3 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <Settings className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline truncate">Recursos</span>
             </TabsTrigger>
           </TabsList>
 
@@ -62,44 +185,159 @@ export default function ClientV2AccountPage() {
           <TabsContent value="personal" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Informações Pessoais</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Informações Pessoais
+                </CardTitle>
                 <CardDescription>
                   Atualize suas informações pessoais e de contato
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullname">Nome Completo</Label>
-                    <Input id="fullname" placeholder="Seu nome completo" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="nickname">Como Podemos Te Chamar</Label>
-                    <Input id="nickname" placeholder="Seu apelido ou nome preferido" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
-                    <Input id="email" type="email" placeholder="seu@email.com" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp">WhatsApp</Label>
-                    <Input id="whatsapp" placeholder="(11) 99999-9999" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birthdate">Data de Nascimento</Label>
-                    <Input id="birthdate" type="date" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-photo">Foto de Perfil</Label>
-                    <div className="flex items-center gap-2">
-                      <Input id="profile-photo" type="file" accept="image/*" />
-                      <Button variant="outline" size="sm">
-                        Alterar Foto
-                      </Button>
-                    </div>
+              <CardContent className="space-y-6">
+                {/* Profile Photo Section */}
+                <div className="flex flex-col items-center space-y-4">
+                  <ProfilePhotoUpload size="lg" />
+                  <div className="text-center">
+                    <h3 className="font-semibold text-lg">
+                      {currentUser?.name || userInfo.name || 'Usuário'}
+                    </h3>
+                    <p className="text-muted-foreground capitalize">
+                      {currentUser?.user_role || 'Cliente'}
+                    </p>
                   </div>
                 </div>
-                <Button>Salvar Alterações</Button>
+
+                {/* User Information Form */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome</Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        value={userInfo.name}
+                        onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                        disabled={!isEditing}
+                        placeholder="Digite seu nome"
+                        className="disabled:opacity-60"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={userInfo.email}
+                        onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+                        disabled={!isEditing}
+                        className="disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp</Label>
+                    <Input
+                      id="whatsapp"
+                      type="tel"
+                      value={userInfo.whatsapp}
+                      onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
+                      disabled={!isEditing}
+                      placeholder="(11) 99999-9999"
+                      className="disabled:opacity-60"
+                    />
+                  </div>
+
+                  {isEditing && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Nova Senha (opcional)</Label>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={userInfo.password}
+                            onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
+                            placeholder="Digite uma nova senha"
+                            className="pr-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={userInfo.confirmPassword}
+                          onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
+                          placeholder="Confirme a nova senha"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Plano Ativo</Label>
+                    <div className="p-3 bg-muted rounded-md">
+                      {currentUser?.plan_id ? (
+                        <span className="text-green-600 font-medium">
+                          Plano Ativo
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Nenhum plano ativo</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                    {!isEditing ? (
+                      <Button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Editar Informações
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleSave}
+                          className="flex items-center gap-2 flex-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Salvar
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={handleCancel}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -263,46 +501,6 @@ export default function ClientV2AccountPage() {
             </Card>
           </TabsContent>
 
-          {/* Documentos */}
-          <TabsContent value="documents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Documentos e Verificação</CardTitle>
-                <CardDescription>
-                  Faça upload e gerencie seus documentos
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Documento de Identidade</Label>
-                      <p className="text-sm text-muted-foreground">
-                        RG ou CNH para verificação da conta
-                      </p>
-                    </div>
-                    <Button variant="outline">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Enviar
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Comprovante de Residência</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Conta de luz, água ou telefone
-                      </p>
-                    </div>
-                    <Button variant="outline">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Enviar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Recursos e Preferências */}
           <TabsContent value="preferences" className="space-y-6">
