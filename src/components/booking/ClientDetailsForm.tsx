@@ -1,26 +1,93 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2 } from "lucide-react";
 import { ClientData } from "@/hooks/usePublicBooking";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
+interface Guest {
+  id: string;
+  name: string;
+  gender: string;
+  relationship: string;
+}
+
+interface ExtendedClientData extends ClientData {
+  hasGuests: boolean;
+  guests: Guest[];
+}
 
 interface ClientDetailsFormProps {
-  onSubmit: (clientData: ClientData) => void;
+  onSubmit: (clientData: ExtendedClientData) => void;
   isLoading?: boolean;
 }
 
 export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProps) => {
-  const [formData, setFormData] = useState<ClientData>({
+  const { user } = useAuth();
+  const { data: currentUser } = useCurrentUser();
+  
+  const [formData, setFormData] = useState<ExtendedClientData>({
     name: "",
     email: "",
-    phone: ""
+    phone: "",
+    hasGuests: false,
+    guests: []
   });
 
-  const [errors, setErrors] = useState<Partial<ClientData>>({});
+  const [errors, setErrors] = useState<Partial<ExtendedClientData>>({});
+
+  // Pré-preencher dados do usuário logado
+  useEffect(() => {
+    if (user && currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.name || "",
+        email: currentUser.email || "",
+        phone: currentUser.phone || ""
+      }));
+    }
+  }, [user, currentUser]);
+
+  const addGuest = () => {
+    const newGuest: Guest = {
+      id: Date.now().toString(),
+      name: "",
+      gender: "",
+      relationship: ""
+    };
+    setFormData(prev => ({
+      ...prev,
+      guests: [...prev.guests, newGuest]
+    }));
+  };
+
+  const removeGuest = (guestId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      guests: prev.guests.filter(guest => guest.id !== guestId)
+    }));
+  };
+
+  const updateGuest = (guestId: string, field: keyof Guest, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      guests: prev.guests.map(guest =>
+        guest.id === guestId ? { ...guest, [field]: value } : guest
+      )
+    }));
+  };
+
+  const [guestErrors, setGuestErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
-    const newErrors: Partial<ClientData> = {};
+    const newErrors: Partial<ExtendedClientData> = {};
+    const newGuestErrors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
       newErrors.name = "Nome é obrigatório";
@@ -34,8 +101,24 @@ export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProp
       newErrors.phone = "Telefone deve estar no formato (00) 00000-0000";
     }
 
+    // Validar convidados se necessário
+    if (formData.hasGuests) {
+      formData.guests.forEach((guest, index) => {
+        if (!guest.name.trim()) {
+          newGuestErrors[`guest_${index}_name`] = "Nome do convidado é obrigatório";
+        }
+        if (!guest.gender) {
+          newGuestErrors[`guest_${index}_gender`] = "Gênero é obrigatório";
+        }
+        if (!guest.relationship) {
+          newGuestErrors[`guest_${index}_relationship`] = "Relação é obrigatória";
+        }
+      });
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setGuestErrors(newGuestErrors);
+    return Object.keys(newErrors).length === 0 && Object.keys(newGuestErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,9 +139,12 @@ export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Seus Dados</CardTitle>
+        <CardTitle>{user ? "Confirmação dos Dados" : "Seus Dados"}</CardTitle>
         <CardDescription>
-          Preencha suas informações para finalizar o agendamento
+          {user 
+            ? "Confirme suas informações e adicione convidados se necessário" 
+            : "Preencha suas informações para finalizar o agendamento"
+          }
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,6 +189,121 @@ export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProp
             />
             {errors.phone && (
               <p className="text-sm text-destructive">{errors.phone}</p>
+            )}
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Seção de Convidados */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="hasGuests"
+                checked={formData.hasGuests}
+                onCheckedChange={(checked) => {
+                  setFormData({ 
+                    ...formData, 
+                    hasGuests: checked,
+                    guests: checked ? formData.guests : []
+                  });
+                }}
+              />
+              <Label htmlFor="hasGuests">Levar convidados</Label>
+            </div>
+
+            {formData.hasGuests && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Convidados</h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addGuest}
+                    className="h-8 px-2"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+
+                {formData.guests.map((guest, index) => (
+                  <Card key={guest.id} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="text-sm font-medium">Convidado {index + 1}</h5>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeGuest(guest.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`guest-name-${guest.id}`}>Nome *</Label>
+                        <Input
+                          id={`guest-name-${guest.id}`}
+                          value={guest.name}
+                          onChange={(e) => updateGuest(guest.id, 'name', e.target.value)}
+                          placeholder="Nome do convidado"
+                          className={guestErrors[`guest_${index}_name`] ? "border-destructive" : ""}
+                        />
+                        {guestErrors[`guest_${index}_name`] && (
+                          <p className="text-sm text-destructive">{guestErrors[`guest_${index}_name`]}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`guest-gender-${guest.id}`}>Gênero *</Label>
+                        <Select
+                          value={guest.gender}
+                          onValueChange={(value) => updateGuest(guest.id, 'gender', value)}
+                        >
+                          <SelectTrigger className={guestErrors[`guest_${index}_gender`] ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Selecionar gênero" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="masculino">Masculino</SelectItem>
+                            <SelectItem value="feminino">Feminino</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {guestErrors[`guest_${index}_gender`] && (
+                          <p className="text-sm text-destructive">{guestErrors[`guest_${index}_gender`]}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor={`guest-relationship-${guest.id}`}>Relação *</Label>
+                        <Select
+                          value={guest.relationship}
+                          onValueChange={(value) => updateGuest(guest.id, 'relationship', value)}
+                        >
+                          <SelectTrigger className={guestErrors[`guest_${index}_relationship`] ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Selecionar relação" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="conjuge">Cônjuge</SelectItem>
+                            <SelectItem value="namorado">Namorado(a)</SelectItem>
+                            <SelectItem value="amigo">Amigo(a)</SelectItem>
+                            <SelectItem value="colega">Colega</SelectItem>
+                            <SelectItem value="familiar">Familiar</SelectItem>
+                            <SelectItem value="conhecido">Conhecido(a)</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {guestErrors[`guest_${index}_relationship`] && (
+                          <p className="text-sm text-destructive">{guestErrors[`guest_${index}_relationship`]}</p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
 

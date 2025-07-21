@@ -49,14 +49,18 @@ export default function PublicBookingPage() {
     }
   };
 
-  const handleClientSubmit = (clientData: ClientData) => {
+  const handleClientSubmit = (clientData: any) => {
     if (selectedModel && selectedService && selectedDate && selectedTime) {
       const bookingData: BookingData = {
         modelId: selectedModel.id,
         serviceId: selectedService.id,
         appointmentDate: selectedDate,
         appointmentTime: selectedTime,
-        clientData
+        clientData: {
+          name: clientData.name,
+          email: clientData.email,
+          phone: clientData.phone
+        }
       };
       
       createBooking.mutate(bookingData, {
