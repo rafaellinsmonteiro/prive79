@@ -96,34 +96,36 @@ export default function PublicBookingPage() {
     const currentIndex = steps.findIndex(step => step.key === currentStep);
 
     return (
-      <div className="flex items-center justify-center space-x-2 mb-8">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = index <= currentIndex;
-          const isCurrent = step.key === currentStep;
-          
-          return (
-            <div key={step.key} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                isActive 
-                  ? 'bg-primary border-primary text-primary-foreground' 
-                  : 'border-muted-foreground text-muted-foreground'
-              }`}>
-                <Icon className="h-4 w-4" />
+      <div className="flex items-center justify-center px-4 mb-8 overflow-x-auto">
+        <div className="flex items-center space-x-1 sm:space-x-2 min-w-max">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = index <= currentIndex;
+            const isCurrent = step.key === currentStep;
+            
+            return (
+              <div key={step.key} className="flex items-center">
+                <div className={`flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 ${
+                  isActive 
+                    ? 'bg-primary border-primary text-primary-foreground' 
+                    : 'border-muted-foreground text-muted-foreground'
+                }`}>
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                </div>
+                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium ${
+                  isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
+                } hidden xs:inline`}>
+                  {step.label}
+                </span>
+                {index < steps.length - 1 && (
+                  <div className={`w-4 sm:w-8 h-0.5 mx-2 sm:mx-4 ${
+                    index < currentIndex ? 'bg-primary' : 'bg-muted'
+                  }`} />
+                )}
               </div>
-              <span className={`ml-2 text-sm font-medium ${
-                isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
-              }`}>
-                {step.label}
-              </span>
-              {index < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-4 ${
-                  index < currentIndex ? 'bg-primary' : 'bg-muted'
-                }`} />
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -192,18 +194,8 @@ export default function PublicBookingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Agendar Atendimento
-            </h1>
-            <p className="text-muted-foreground">
-              Selecione uma modelo e agende seu atendimento de forma rápida e segura
-            </p>
-          </div>
-
           {/* Step Indicator */}
           {renderStepIndicator()}
 
