@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ReactNode } from 'react';
-import { LayoutDashboard, MessageSquare, Image, User, Calendar, Star, Users, Sun, Moon, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Image, User, Calendar, Star, Users, Sun, Moon, ChevronLeft, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -65,6 +65,11 @@ const V2VipModel = ({ title, subtitle, children, activeId }: V2VipModelProps) =>
     label: 'Clientes',
     id: 'clients',
     link: '/v2/clients'
+  }, {
+    icon: Wallet,
+    label: 'PriveBank',
+    id: 'privebank',
+    link: '/privebank'
   }];
 
   const renderNavItem = (item: any) => (
