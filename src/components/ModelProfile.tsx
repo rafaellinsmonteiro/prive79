@@ -26,7 +26,6 @@ interface ModelProfileProps {
     categories?: Array<{
       id: string;
       name: string;
-      color: string;
     }>;
   };
   onBooking?: (model: any) => void;

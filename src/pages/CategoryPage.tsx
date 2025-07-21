@@ -64,8 +64,7 @@ const CategoryPage = () => {
           {models.map(model => (
             <ModelCard 
               key={model.id} 
-              model={model} 
-              onClick={() => window.location.href = `/modelo/${model.id}`}
+              model={model}
             />
           ))}
         </div>

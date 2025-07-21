@@ -5,32 +5,25 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Calendar, Heart, Star, MapPin } from 'lucide-react';
 import { useCreateConversation } from '@/hooks/useChat';
 import { useNavigate } from 'react-router-dom';
+import { Contact } from '@/hooks/useContactsUpdates';
 
 interface ContactUpdatesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contact: {
-    id: string;
-    model_id: string;
-    name: string;
-    photo_url?: string;
-    last_message_content?: string;
-    last_message_at?: string;
-    is_online?: boolean;
-    age?: number;
-    location?: string;
-    rating?: number;
-    price?: number;
-  };
+  contact: Contact | null;
+  initialUpdateIndex?: number;
 }
 
 const ContactUpdatesModal: React.FC<ContactUpdatesModalProps> = ({
   isOpen,
   onClose,
-  contact
+  contact,
+  initialUpdateIndex = 0
 }) => {
   const navigate = useNavigate();
   const createConversation = useCreateConversation();
+
+  if (!contact) return null;
 
   const handleOpenChat = async () => {
     try {
@@ -71,68 +64,33 @@ const ContactUpdatesModal: React.FC<ContactUpdatesModalProps> = ({
           <div className="flex items-center space-x-4">
             <div className="relative">
               <img
-                src={contact.photo_url || '/placeholder.svg'}
-                alt={contact.name}
+                src={contact.model_photo || '/placeholder.svg'}
+                alt={contact.model_name}
                 className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
-              {contact.is_online && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-zinc-900"></div>
-              )}
             </div>
             
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white">{contact.name}</h3>
-                {contact.is_online && (
-                  <Badge className="bg-green-500 text-white border-0 text-xs">
-                    Online
-                  </Badge>
-                )}
+                <h3 className="font-semibold text-white">{contact.model_name}</h3>
               </div>
-              
-              {contact.age && (
-                <p className="text-sm text-zinc-400">{contact.age} anos</p>
-              )}
-              
-              {contact.location && (
-                <div className="flex items-center gap-1 text-zinc-400 text-sm">
-                  <MapPin className="h-3 w-3" />
-                  <span>{contact.location}</span>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Rating e Preço */}
-          <div className="flex items-center justify-between">
-            {contact.rating && (
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-zinc-300">{contact.rating}</span>
-              </div>
-            )}
-            
-            {contact.price && (
-              <div className="text-pink-400 font-semibold">
-                R$ {contact.price}/hora
-              </div>
-            )}
-          </div>
-
-          {/* Última Mensagem */}
-          {contact.last_message_content && (
+          {/* Atualizações */}
+          {contact.updates && contact.updates.length > 0 && (
             <div className="bg-zinc-800 rounded-lg p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-zinc-400">Última mensagem</span>
+                <span className="text-xs text-zinc-400">Atualizações recentes</span>
                 <span className="text-xs text-zinc-500">
-                  {formatLastMessageTime(contact.last_message_at)}
+                  {contact.updates.length} nova{contact.updates.length !== 1 ? 's' : ''}
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 truncate">
-                {contact.last_message_content}
+              <p className="text-sm text-zinc-300">
+                {contact.updates.length} nova{contact.updates.length !== 1 ? 's' : ''} atualização{contact.updates.length !== 1 ? 'ões' : ''} disponível{contact.updates.length !== 1 ? 'eis' : ''}
               </p>
             </div>
           )}

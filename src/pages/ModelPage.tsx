@@ -30,7 +30,7 @@ const ModelPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <ModelProfile model={model} onClose={() => window.history.back()} />
+      <ModelProfile model={model} />
     </div>
   );
 };

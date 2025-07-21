@@ -25,7 +25,6 @@ interface ModelCardProps {
     categories?: Array<{
       id: string;
       name: string;
-      color: string;
     }>;
   };
   onBooking?: (model: any) => void;

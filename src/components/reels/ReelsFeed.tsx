@@ -87,15 +87,28 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
             );
           }
           
+          // Convert model to reel format for ReelItem
+          const reelData = {
+            id: `reel-${model.id}`,
+            model_id: model.id,
+            model_name: model.name,
+            model_photo: model.photos?.[0]?.photo_url,
+            media_url: model.photos?.[0]?.photo_url || '/placeholder.svg',
+            media_type: 'image' as const,
+            caption: model.description,
+            likes_count: 0,
+            comments_count: 0,
+            views_count: 0,
+            is_liked: false,
+            created_at: model.created_at,
+            is_online: false,
+          };
+
           return (
             <ReelItem
               key={model.id}
-              model={model}
+              reel={reelData}
               isActive={index === currentIndex}
-              onSwipeUp={handleSwipeUp}
-              onSwipeDown={handleSwipeDown}
-              settings={settings}
-              isMobile={isMobile}
             />
           );
         })}

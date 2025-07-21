@@ -19,20 +19,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface FeedReelsViewProps {
-  reels: Array<{
-    id: string;
+  contacts: Array<{
     model_id: string;
     model_name: string;
-    model_photo?: string;
-    media_url: string;
-    media_type: 'video' | 'image';
-    caption?: string;
-    likes_count?: number;
-    comments_count?: number;
-    views_count?: number;
-    is_liked?: boolean;
-    created_at: string;
-    is_online?: boolean;
+    model_photo: string;
+    last_conversation_at: string;
+    updates: any[];
   }>;
   onLike?: (reelId: string) => void;
   onComment?: (reelId: string) => void;
@@ -40,7 +32,7 @@ interface FeedReelsViewProps {
 }
 
 const FeedReelsView: React.FC<FeedReelsViewProps> = ({
-  reels,
+  contacts,
   onLike,
   onComment,
   onShare
@@ -76,7 +68,7 @@ const FeedReelsView: React.FC<FeedReelsViewProps> = ({
   };
 
   const handleOpenChat = async (modelId: string) => {
-    const currentContact = reels.find(r => r.model_id === modelId);
+    const currentContact = contacts.find(c => c.model_id === modelId);
     if (!currentContact) return;
     
     const { data: conversations } = await supabase
@@ -115,6 +107,23 @@ const FeedReelsView: React.FC<FeedReelsViewProps> = ({
     if (diffInHours < 24) return `${diffInHours}h`;
     return `${Math.floor(diffInHours / 24)}d`;
   };
+
+  // Convert contacts to reels format
+  const reels = contacts.map(contact => ({
+    id: `contact-${contact.model_id}`,
+    model_id: contact.model_id,
+    model_name: contact.model_name,
+    model_photo: contact.model_photo,
+    media_url: contact.model_photo || '/placeholder.svg',
+    media_type: 'image' as const,
+    caption: `${contact.updates.length} atualizações`,
+    likes_count: 0,
+    comments_count: 0,
+    views_count: 0,
+    is_liked: false,
+    created_at: contact.last_conversation_at || new Date().toISOString(),
+    is_online: false,
+  }));
 
   return (
     <div className="space-y-6">
@@ -179,59 +188,14 @@ const FeedReelsView: React.FC<FeedReelsViewProps> = ({
 
           {/* Media */}
           <div className="relative aspect-[9/16] bg-black overflow-hidden">
-            {reel.media_type === 'video' ? (
-              <>
-                <video
-                  src={reel.media_url}
-                  className="w-full h-full object-cover"
-                  loop
-                  muted={mutedVideos.has(reel.id)}
-                  autoPlay={playingVideos.has(reel.id)}
-                  onError={(e) => {
-                    console.error('Video error:', e);
-                  }}
-                />
-                
-                {/* Video Controls */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={() => toggleVideoPlay(reel.id)}
-                    className="bg-black/50 hover:bg-black/70 text-white rounded-full p-4"
-                  >
-                    {playingVideos.has(reel.id) ? (
-                      <Pause className="h-8 w-8" />
-                    ) : (
-                      <Play className="h-8 w-8" />
-                    )}
-                  </Button>
-                </div>
-                
-                {/* Mute Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleVideoMute(reel.id)}
-                  className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
-                >
-                  {mutedVideos.has(reel.id) ? (
-                    <VolumeX className="h-4 w-4" />
-                  ) : (
-                    <Volume2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </>
-            ) : (
-              <img
-                src={reel.media_url}
-                alt="Reel"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
-              />
-            )}
+            <img
+              src={reel.media_url}
+              alt="Reel"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
+            />
           </div>
 
           {/* Caption and Stats */}
