@@ -28,8 +28,7 @@ export default function PublicModelBookingPage() {
         .from("models")
         .select("id, name, description, city, neighborhood, is_active")
         .eq("id", settings.model_id)
-        .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
       if (modelError) throw modelError;
       if (!model) throw new Error("Modelo não encontrada ou inativa");
