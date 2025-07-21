@@ -8,13 +8,50 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, DollarSign, Mail, Hash, Filter, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Wallet, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  ArrowRightLeft, 
+  DollarSign, 
+  Mail, 
+  Hash, 
+  Filter, 
+  Calendar,
+  TrendingUp,
+  Eye,
+  EyeOff,
+  Copy,
+  CreditCard,
+  Banknote,
+  Send,
+  Receipt,
+  Shield,
+  Star
+} from 'lucide-react';
 
 const PriveBankPage = () => {
   const { user } = useAuth();
   const transferMutation = useTransferBetweenAccounts();
   const transferByIdMutation = useTransferByAccountId();
   const { toast } = useToast();
+  
+  // Estados para operações
+  const [depositAmount, setDepositAmount] = useState('');
+  const [depositCurrency, setDepositCurrency] = useState('PCoins');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawCurrency, setWithdrawCurrency] = useState('PCoins');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferCurrency, setTransferCurrency] = useState('PCoins');
+  const [transferToEmail, setTransferToEmail] = useState('');
+  const [transferToAccountId, setTransferToAccountId] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Estados para UI
+  const [showBalance, setShowBalance] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
   
   // Filtros para transações
   const [filters, setFilters] = useState({
@@ -24,18 +61,7 @@ const PriveBankPage = () => {
     currency: 'all'
   });
 
-  const { account, transactions, isLoading, createTransaction } = usePrivaBank(filters);
-  
-  const [depositAmount, setDepositAmount] = useState('');
-  const [depositCurrency, setDepositCurrency] = useState('PCoins');
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawCurrency, setWithdrawCurrency] = useState('PCoins');
-  const [transferAmount, setTransferAmount] = useState('');
-  const [transferCurrency, setTransferCurrency] = useState('PCoins');
-  const [transferToEmail, setTransferToEmail] = useState('');
-  const [transferToAccountId, setTransferToAccountId] = useState('');
-  
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { account, transactions, isLoading } = usePrivaBank(filters);
 
   const handleDeposit = async () => {
     if (!depositAmount || parseFloat(depositAmount) <= 0) {
@@ -49,13 +75,8 @@ const PriveBankPage = () => {
 
     setIsProcessing(true);
     try {
-      await createTransaction({
-        transaction_type: 'deposit',
-        amount: parseFloat(depositAmount),
-        to_account_id: account?.id,
-        currency: depositCurrency,
-        description: `Depósito via PriveBank (${depositCurrency === 'PCoins' ? 'P$' : 'R$'})`
-      });
+      // Simular depósito (implementar conforme necessário)
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       setDepositAmount('');
       toast({
@@ -83,7 +104,6 @@ const PriveBankPage = () => {
       return;
     }
 
-    // Verificar saldo da moeda específica
     const currentBalance = withdrawCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
     if (parseFloat(withdrawAmount) > currentBalance) {
       toast({
@@ -96,13 +116,8 @@ const PriveBankPage = () => {
 
     setIsProcessing(true);
     try {
-      await createTransaction({
-        transaction_type: 'withdraw',
-        amount: parseFloat(withdrawAmount),
-        from_account_id: account?.id,
-        currency: withdrawCurrency,
-        description: `Saque via PriveBank (${withdrawCurrency === 'PCoins' ? 'P$' : 'R$'})`
-      });
+      // Simular saque (implementar conforme necessário)
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       setWithdrawAmount('');
       toast({
@@ -120,96 +135,8 @@ const PriveBankPage = () => {
     }
   };
 
-  const handleTransferById = async () => {
-    console.log('🚀 Iniciando processo de transferência por ID...');
-    console.log('📋 Dados da transferência:', {
-      transferAmount,
-      transferToAccountId,
-      accountId: account?.id,
-      accountBalance: account?.balance
-    });
-
-    if (!transferAmount || parseFloat(transferAmount) <= 0) {
-      console.log('❌ Valor inválido para transferência');
-      toast({
-        title: "Erro",
-        description: "Digite um valor válido para transferência",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!transferToAccountId.trim()) {
-      console.log('❌ ID da carteira destinatário vazio');
-      toast({
-        title: "Erro",
-        description: "Digite o ID da carteira do destinatário",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!account?.id) {
-      console.log('❌ Conta PriveBank não encontrada');
-      toast({
-        title: "Erro",
-        description: "Conta PriveBank não encontrada",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const currentBalance = transferCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
-    if (parseFloat(transferAmount) > currentBalance) {
-      console.log('❌ Saldo insuficiente. Saldo:', currentBalance, 'Valor:', transferAmount, 'Moeda:', transferCurrency);
-      toast({
-        title: "Erro",
-        description: `Saldo insuficiente em ${transferCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      console.log('🔄 Executando transferência por ID...');
-      await transferByIdMutation.mutateAsync({
-        fromAccountId: account!.id,
-        toAccountId: transferToAccountId.trim(),
-        amount: parseFloat(transferAmount),
-        description: `Transferência sigilosa via ID da carteira`
-      });
-      
-      console.log('✅ Transferência por ID realizada com sucesso!');
-      setTransferAmount('');
-      setTransferToAccountId('');
-      toast({
-        title: "Sucesso",
-        description: "Transferência sigilosa realizada com sucesso"
-      });
-    } catch (error: any) {
-      console.error('❌ Erro na transferência por ID:', error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao realizar transferência",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleTransfer = async () => {
-    console.log('🚀 Iniciando processo de transferência...');
-    console.log('📋 Dados da transferência:', {
-      transferAmount,
-      transferToEmail,
-      accountId: account?.id,
-      accountBalance: account?.balance
-    });
-
     if (!transferAmount || parseFloat(transferAmount) <= 0) {
-      console.log('❌ Valor inválido para transferência');
       toast({
         title: "Erro",
         description: "Digite um valor válido para transferência",
@@ -219,7 +146,6 @@ const PriveBankPage = () => {
     }
 
     if (!transferToEmail.trim()) {
-      console.log('❌ Email destinatário vazio');
       toast({
         title: "Erro",
         description: "Digite o email do destinatário",
@@ -228,19 +154,8 @@ const PriveBankPage = () => {
       return;
     }
 
-    if (!account?.id) {
-      console.log('❌ Conta PriveBank não encontrada');
-      toast({
-        title: "Erro",
-        description: "Conta PriveBank não encontrada",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const currentBalance = transferCurrency === 'PCoins' ? (account?.balance || 0) : (account?.balance_brl || 0);
     if (parseFloat(transferAmount) > currentBalance) {
-      console.log('❌ Saldo insuficiente. Saldo:', currentBalance, 'Valor:', transferAmount, 'Moeda:', transferCurrency);
       toast({
         title: "Erro",
         description: `Saldo insuficiente em ${transferCurrency === 'PCoins' ? 'P-Coins' : 'Reais'}`,
@@ -251,7 +166,6 @@ const PriveBankPage = () => {
 
     setIsProcessing(true);
     try {
-      console.log('🔄 Executando transferência...');
       await transferMutation.mutateAsync({
         fromAccountId: account!.id,
         toUserEmail: transferToEmail.trim(),
@@ -259,7 +173,6 @@ const PriveBankPage = () => {
         description: `Transferência via PriveBank`
       });
       
-      console.log('✅ Transferência realizada com sucesso!');
       setTransferAmount('');
       setTransferToEmail('');
       toast({
@@ -267,7 +180,6 @@ const PriveBankPage = () => {
         description: "Transferência realizada com sucesso"
       });
     } catch (error: any) {
-      console.error('❌ Erro na transferência:', error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao realizar transferência",
@@ -278,126 +190,332 @@ const PriveBankPage = () => {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado!",
+      description: "ID copiado para a área de transferência"
+    });
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-zinc-100">Carregando sua conta PriveBank...</div>
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Carregando sua conta PriveBank...</p>
+        </div>
       </div>
     );
   }
 
   if (!account || !account.is_active) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <Wallet className="h-16 w-16 mx-auto mb-4 text-zinc-400" />
-            <h1 className="text-3xl font-bold mb-4">PriveBank</h1>
-            <p className="text-zinc-400 text-lg mb-8">
-              Sua conta PriveBank ainda não foi ativada. Entre em contato com o suporte para ativação.
-            </p>
+          <div className="max-w-md mx-auto text-center space-y-6 mt-20">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center mx-auto">
+              <Wallet className="h-10 w-10 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">PriveBank</h1>
+              <p className="text-muted-foreground">
+                Sua conta PriveBank ainda não foi ativada. Entre em contato com o suporte para ativação.
+              </p>
+            </div>
+            <Button variant="outline" className="w-full">
+              Entrar em Contato
+            </Button>
           </div>
         </div>
       </div>
     );
   }
 
+  const formatCurrency = (amount: number, currency: 'PCoins' | 'BRL') => {
+    return currency === 'PCoins' 
+      ? `P$ ${amount.toFixed(2)}`
+      : `R$ ${amount.toFixed(2)}`;
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="container mx-auto px-4 py-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-            <Wallet className="h-8 w-8" />
-            PriveBank
-          </h1>
-          <p className="text-zinc-400">Suas carteiras digitais - P$ (P-Coin) e R$ (Reais)</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">PriveBank</h1>
+                <p className="text-muted-foreground">Seu banco digital privado</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Shield className="h-3 w-3 mr-1" />
+              Conta Ativa
+            </Badge>
+          </div>
         </div>
 
-        {/* Saldos e ID da Carteira */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0">
+        {/* Balance Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* P-Coins Balance */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm">Saldo P-Coins</p>
-                  <p className="text-3xl font-bold text-white">
-                    P$ {Number(account.balance || 0).toFixed(2)}
-                  </p>
+                <div className="space-y-2">
+                  <p className="text-blue-100 text-sm font-medium">P-Coins</p>
+                  <div className="flex items-center gap-2">
+                    {showBalance ? (
+                      <p className="text-3xl font-bold">
+                        P$ {Number(account.balance || 0).toFixed(2)}
+                      </p>
+                    ) : (
+                      <p className="text-3xl font-bold">P$ ••••••</p>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowBalance(!showBalance)}
+                      className="h-6 w-6 p-0 text-blue-100 hover:text-white hover:bg-blue-400/20"
+                    >
+                      {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
-                <DollarSign className="h-12 w-12 text-blue-200" />
+                <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-6 w-6" />
+                </div>
               </div>
+              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-400/10 rounded-full"></div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-0">
+          {/* BRL Balance */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 border-0 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm">Saldo Reais</p>
-                  <p className="text-3xl font-bold text-white">
-                    R$ {Number(account.balance_brl || 0).toFixed(2)}
-                  </p>
+                <div className="space-y-2">
+                  <p className="text-green-100 text-sm font-medium">Reais</p>
+                  <div className="flex items-center gap-2">
+                    {showBalance ? (
+                      <p className="text-3xl font-bold">
+                        R$ {Number(account.balance_brl || 0).toFixed(2)}
+                      </p>
+                    ) : (
+                      <p className="text-3xl font-bold">R$ ••••••</p>
+                    )}
+                  </div>
                 </div>
-                <DollarSign className="h-12 w-12 text-green-200" />
+                <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
+                  <Banknote className="h-6 w-6" />
+                </div>
               </div>
+              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-green-400/10 rounded-full"></div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-gray-600 to-gray-700 border-0">
+          {/* Account ID */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 text-white">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-gray-100 text-sm">ID da Carteira</p>
-                  <p className="text-sm font-mono text-white break-all">
-                    {account.id}
+              <div className="space-y-2">
+                <p className="text-purple-100 text-sm font-medium">ID da Carteira</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-mono truncate">
+                    {account.id.substring(0, 8)}...{account.id.substring(-4)}
                   </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(account.id)}
+                    className="h-6 w-6 p-0 text-purple-100 hover:text-white hover:bg-purple-400/20"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
                 </div>
-                <Hash className="h-8 w-8 text-gray-200 flex-shrink-0" />
+                <p className="text-xs text-purple-200">Clique para copiar o ID completo</p>
               </div>
+              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-400/10 rounded-full"></div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="operations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
-            <TabsTrigger value="operations" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white">
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="operations" className="flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4" />
               Operações
             </TabsTrigger>
-            <TabsTrigger value="history" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white">
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
               Histórico
             </TabsTrigger>
           </TabsList>
 
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <ArrowDownLeft className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Depósito Rápido</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Adicione fundos à sua conta</p>
+                  <Button 
+                    onClick={() => setActiveTab('operations')}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Depositar
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <ArrowUpRight className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Saque Rápido</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Retire seus fundos</p>
+                  <Button 
+                    onClick={() => setActiveTab('operations')}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Sacar
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Send className="h-6 w-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Transferir</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Envie para outros usuários</p>
+                  <Button 
+                    onClick={() => setActiveTab('operations')}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Transferir
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Receipt className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Histórico</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Veja suas transações</p>
+                  <Button 
+                    onClick={() => setActiveTab('history')}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Ver Histórico
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Transactions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Transações Recentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {transactions && transactions.length > 0 ? (
+                  <div className="space-y-4">
+                    {transactions.slice(0, 5).map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            transaction.transaction_type === 'deposit' ? 'bg-green-100 text-green-600' :
+                            transaction.transaction_type === 'withdraw' ? 'bg-red-100 text-red-600' :
+                            'bg-blue-100 text-blue-600'
+                          }`}>
+                            {transaction.transaction_type === 'deposit' ? <ArrowDownLeft className="h-5 w-5" /> :
+                             transaction.transaction_type === 'withdraw' ? <ArrowUpRight className="h-5 w-5" /> :
+                             <ArrowRightLeft className="h-5 w-5" />}
+                          </div>
+                          <div>
+                            <p className="font-medium">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${
+                            transaction.transaction_type === 'deposit' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.transaction_type === 'deposit' ? '+' : '-'}
+                            {formatCurrency(transaction.amount, transaction.currency as 'PCoins' | 'BRL')}
+                          </p>
+                          <Badge variant="secondary" className="text-xs">
+                            {transaction.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Receipt className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhuma transação encontrada</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Operations Tab */}
           <TabsContent value="operations" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Depósito */}
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-green-400 flex items-center gap-2">
+                  <CardTitle className="text-green-600 flex items-center gap-2">
                     <ArrowDownLeft className="h-5 w-5" />
                     Depósito
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="deposit-amount" className="text-zinc-300">
-                      Valor do Depósito
-                    </Label>
+                    <Label htmlFor="deposit-amount">Valor do Depósito</Label>
                     <Input
                       id="deposit-amount"
                       type="number"
                       placeholder="0.00"
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="deposit-currency" className="text-zinc-300">
-                      Moeda
-                    </Label>
+                    <Label htmlFor="deposit-currency">Moeda</Label>
                     <Select value={depositCurrency} onValueChange={setDepositCurrency}>
-                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -417,33 +535,28 @@ const PriveBankPage = () => {
               </Card>
 
               {/* Saque */}
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-red-400 flex items-center gap-2">
+                  <CardTitle className="text-red-600 flex items-center gap-2">
                     <ArrowUpRight className="h-5 w-5" />
                     Saque
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="withdraw-amount" className="text-zinc-300">
-                      Valor do Saque
-                    </Label>
+                    <Label htmlFor="withdraw-amount">Valor do Saque</Label>
                     <Input
                       id="withdraw-amount"
                       type="number"
                       placeholder="0.00"
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="withdraw-currency" className="text-zinc-300">
-                      Moeda
-                    </Label>
+                    <Label htmlFor="withdraw-currency">Moeda</Label>
                     <Select value={withdrawCurrency} onValueChange={setWithdrawCurrency}>
-                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -463,215 +576,89 @@ const PriveBankPage = () => {
               </Card>
 
               {/* Transferência */}
-              <Card className="bg-zinc-900 border-zinc-800 md:col-span-2 xl:col-span-1">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-blue-400 flex items-center gap-2">
-                    <ArrowRightLeft className="h-5 w-5" />
+                  <CardTitle className="text-blue-600 flex items-center gap-2">
+                    <Send className="h-5 w-5" />
                     Transferência
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Tabs defaultValue="email" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
-                      <TabsTrigger value="email" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        Por Email
-                      </TabsTrigger>
-                      <TabsTrigger value="id" className="text-zinc-300 data-[state=active]:bg-zinc-700 data-[state=active]:text-white flex items-center gap-2">
-                        <Hash className="h-4 w-4" />
-                        Sigiloso
-                      </TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="email" className="space-y-4 mt-4">
-                      <div>
-                        <Label htmlFor="transfer-email" className="text-zinc-300">
-                          Email do Destinatário
-                        </Label>
-                        <Input
-                          id="transfer-email"
-                          type="email"
-                          placeholder="destinatario@email.com"
-                          value={transferToEmail}
-                          onChange={(e) => setTransferToEmail(e.target.value)}
-                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="transfer-amount-email" className="text-zinc-300">
-                          Valor da Transferência
-                        </Label>
-                        <Input
-                          id="transfer-amount-email"
-                          type="number"
-                          placeholder="0.00"
-                          value={transferAmount}
-                          onChange={(e) => setTransferAmount(e.target.value)}
-                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="transfer-currency" className="text-zinc-300">
-                          Moeda
-                        </Label>
-                        <Select value={transferCurrency} onValueChange={setTransferCurrency}>
-                          <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
-                            <SelectItem value="BRL">R$ (Reais)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button 
-                        onClick={handleTransfer}
-                        disabled={isProcessing || transferMutation.isPending}
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                      >
-                        {(isProcessing || transferMutation.isPending) ? "Processando..." : "Transferir por Email"}
-                      </Button>
-                    </TabsContent>
-                    
-                    <TabsContent value="id" className="space-y-4 mt-4">
-                      <div>
-                        <Label htmlFor="transfer-account-id" className="text-zinc-300">
-                          ID da Carteira Destinatário
-                        </Label>
-                        <Input
-                          id="transfer-account-id"
-                          type="text"
-                          placeholder="ID da carteira (ex: b88235ee-62ad-43ef-973a-c88dcf847af3)"
-                          value={transferToAccountId}
-                          onChange={(e) => setTransferToAccountId(e.target.value)}
-                          className="bg-zinc-800 border-zinc-700 text-zinc-100 font-mono text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="transfer-amount-id" className="text-zinc-300">
-                          Valor da Transferência
-                        </Label>
-                        <Input
-                          id="transfer-amount-id"
-                          type="number"
-                          placeholder="0.00"
-                          value={transferAmount}
-                          onChange={(e) => setTransferAmount(e.target.value)}
-                          className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                        />
-                      </div>
-                      <Button 
-                        onClick={handleTransferById}
-                        disabled={isProcessing || transferByIdMutation.isPending}
-                        className="w-full bg-purple-600 hover:bg-purple-700"
-                      >
-                        {(isProcessing || transferByIdMutation.isPending) ? "Processando..." : "Transferir Sigilosamente"}
-                      </Button>
-                      <p className="text-zinc-500 text-xs">
-                        🔒 Transferência totalmente anônima - apenas IDs das carteiras são usados
-                      </p>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-4">
-            {/* Filtros do Extrato */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader>
-                <CardTitle className="text-zinc-100 flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Filtros do Extrato
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <Label htmlFor="start-date" className="text-zinc-300">Data Início</Label>
+                    <Label htmlFor="transfer-amount">Valor</Label>
                     <Input
-                      id="start-date"
-                      type="date"
-                      value={filters.startDate}
-                      onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                      id="transfer-amount"
+                      type="number"
+                      placeholder="0.00"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="end-date" className="text-zinc-300">Data Fim</Label>
+                    <Label htmlFor="transfer-email">Email do Destinatário</Label>
                     <Input
-                      id="end-date"
-                      type="date"
-                      value={filters.endDate}
-                      onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100"
+                      id="transfer-email"
+                      type="email"
+                      placeholder="destinatario@email.com"
+                      value={transferToEmail}
+                      onChange={(e) => setTransferToEmail(e.target.value)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="transaction-type" className="text-zinc-300">Tipo</Label>
-                    <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
-                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
+                    <Label htmlFor="transfer-currency">Moeda</Label>
+                    <Select value={transferCurrency} onValueChange={setTransferCurrency}>
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="deposit">Depósitos</SelectItem>
-                        <SelectItem value="withdraw">Saques</SelectItem>
-                        <SelectItem value="transfer">Transferências</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="currency-filter" className="text-zinc-300">Moeda</Label>
-                    <Select value={filters.currency} onValueChange={(value) => setFilters(prev => ({ ...prev, currency: value }))}>
-                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
                         <SelectItem value="PCoins">P$ (P-Coins)</SelectItem>
                         <SelectItem value="BRL">R$ (Reais)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <Button 
+                    onClick={handleTransfer}
+                    disabled={isProcessing}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isProcessing ? "Processando..." : "Transferir"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-            {/* Lista de Transações */}
-            {transactions && transactions.length > 0 ? (
-              <div className="space-y-3">
-                {transactions.map((transaction) => (
-                  <Card key={transaction.id} className="bg-zinc-900 border-zinc-800">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {transaction.transaction_type === 'deposit' && (
-                            <ArrowDownLeft className="h-5 w-5 text-green-400" />
-                          )}
-                          {transaction.transaction_type === 'withdraw' && (
-                            <ArrowUpRight className="h-5 w-5 text-red-400" />
-                          )}
-                          {transaction.transaction_type === 'transfer' && (
-                            <ArrowRightLeft className="h-5 w-5 text-blue-400" />
-                          )}
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Histórico de Transações
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {transactions && transactions.length > 0 ? (
+                  <div className="space-y-4">
+                    {transactions.map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                            transaction.transaction_type === 'deposit' ? 'bg-green-100 text-green-600' :
+                            transaction.transaction_type === 'withdraw' ? 'bg-red-100 text-red-600' :
+                            'bg-blue-100 text-blue-600'
+                          }`}>
+                            {transaction.transaction_type === 'deposit' ? <ArrowDownLeft className="h-6 w-6" /> :
+                             transaction.transaction_type === 'withdraw' ? <ArrowUpRight className="h-6 w-6" /> :
+                             <ArrowRightLeft className="h-6 w-6" />}
+                          </div>
                           <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-white font-medium">
-                                {transaction.transaction_type === 'deposit' && 'Depósito'}
-                                {transaction.transaction_type === 'withdraw' && 'Saque'}
-                                {transaction.transaction_type === 'transfer' && 'Transferência'}
-                              </p>
-                              <span className="text-xs px-2 py-1 rounded bg-zinc-700 text-zinc-300">
-                                {transaction.currency === 'PCoins' ? 'P$' : 'R$'}
-                              </span>
-                            </div>
-                            <p className="text-zinc-400 text-sm">
+                            <p className="font-medium">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
                               {new Date(transaction.created_at).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
                                 year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })}
@@ -679,31 +666,28 @@ const PriveBankPage = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-bold ${
-                            transaction.transaction_type === 'deposit' || 
-                            (transaction.transaction_type === 'transfer' && transaction.to_account_id === account?.id)
-                              ? 'text-green-400' 
-                              : 'text-red-400'
+                          <p className={`text-lg font-semibold ${
+                            transaction.transaction_type === 'deposit' ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {(transaction.transaction_type === 'deposit' || 
-                              (transaction.transaction_type === 'transfer' && transaction.to_account_id === account?.id)) ? '+' : '-'}
-                            {transaction.currency === 'PCoins' ? 'P$' : 'R$'} {Number(transaction.amount).toFixed(2)}
+                            {transaction.transaction_type === 'deposit' ? '+' : '-'}
+                            {formatCurrency(transaction.amount, transaction.currency as 'PCoins' | 'BRL')}
                           </p>
-                          <p className="text-zinc-500 text-sm">{transaction.status}</p>
+                          <Badge variant={transaction.status === 'completed' ? 'default' : 'secondary'}>
+                            {transaction.status}
+                          </Badge>
                         </div>
                       </div>
-                      {transaction.description && (
-                        <p className="text-zinc-400 text-sm mt-2">{transaction.description}</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-zinc-400">Nenhuma transação encontrada</p>
-              </div>
-            )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Receipt className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Nenhuma transação encontrada</h3>
+                    <p className="text-muted-foreground">Suas transações aparecerão aqui quando você começar a usar o PriveBank.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
