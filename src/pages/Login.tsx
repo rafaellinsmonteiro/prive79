@@ -57,15 +57,7 @@ const Login = () => {
     }
   }, [authComplete, user, isAdmin, authLoading, profileLoading, modelProfile, navigate]);
 
-  // Additional effect to handle model profile detection after login
-  useEffect(() => {
-    if (authComplete && user && !authLoading && !isAdmin && modelProfile && !profileLoading) {
-      console.log('🔄 Login: Model profile detected after auth, redirecting to dashboard');
-      navigate('/v2/dashboard', {
-        replace: true
-      });
-    }
-  }, [authComplete, user, authLoading, isAdmin, modelProfile, profileLoading, navigate]);
+  // Redirecionamento duplo removido - deixar apenas o useAuthRedirect handle isso
 
   // Show loading while auth is being checked
   if (authLoading || profileLoading || user && !authComplete) {

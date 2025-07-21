@@ -11,8 +11,16 @@ export const useAuthRedirect = () => {
   useEffect(() => {
     if (!user || !authComplete) return;
     
-    // Não redirecionar se já estiver em uma rota V2 ou se for a página de login
-    if (location.pathname.startsWith('/v2/') || location.pathname === '/login') return;
+    // Não redirecionar se já estiver em uma rota V2, admin, login ou páginas específicas
+    if (
+      location.pathname.startsWith('/v2/') || 
+      location.pathname.startsWith('/admin') ||
+      location.pathname === '/login' ||
+      location.pathname === '/privebank' ||
+      location.pathname.startsWith('/agendar-')
+    ) {
+      return;
+    }
 
     const checkUserTypeAndRedirect = async () => {
       try {
