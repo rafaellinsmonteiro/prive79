@@ -23,43 +23,45 @@ const EnhancedModelProfileManager = ({
 }: EnhancedModelProfileManagerProps) => {
   const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
   
-  // Add loading state check
-  if (!profile || !profile.models) {
-    return <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">
-            Carregando perfil...
-          </div>
-        </CardContent>
-      </Card>;
-  }
+  // All hooks must be called before any conditional logic
+  const {
+    data: cities = []
+  } = useCities();
+  const {
+    data: customFields = []
+  } = useCustomFields();
+  const {
+    data: customSections = []
+  } = useCustomSections();
+
   const [formData, setFormData] = useState({
     // Informações básicas
-    name: profile.models?.name || '',
-    age: profile.models?.age || '',
-    city_id: profile.models?.city_id || '',
-    neighborhood: profile.models?.neighborhood || '',
-    description: profile.models?.description || '',
-    whatsapp_number: profile.models?.whatsapp_number || '',
+    name: profile?.models?.name || '',
+    age: profile?.models?.age || '',
+    city_id: profile?.models?.city_id || '',
+    neighborhood: profile?.models?.neighborhood || '',
+    description: profile?.models?.description || '',
+    whatsapp_number: profile?.models?.whatsapp_number || '',
     // Características físicas
-    height: profile.models?.height || '',
-    weight: profile.models?.weight || '',
-    bust: profile.models?.bust || '',
-    waist: profile.models?.waist || '',
-    hip: profile.models?.hip || '',
-    body_type: profile.models?.body_type || '',
-    eyes: profile.models?.eyes || '',
-    shoe_size: profile.models?.shoe_size || '',
-    silicone: profile.models?.silicone || false,
+    height: profile?.models?.height || '',
+    weight: profile?.models?.weight || '',
+    bust: profile?.models?.bust || '',
+    waist: profile?.models?.waist || '',
+    hip: profile?.models?.hip || '',
+    body_type: profile?.models?.body_type || '',
+    eyes: profile?.models?.eyes || '',
+    shoe_size: profile?.models?.shoe_size || '',
+    silicone: profile?.models?.silicone || false,
     // Campos integrados
-    olhos: profile.models?.olhos || '',
-    cabelo: profile.models?.cabelo || '',
-    etnia: profile.models?.etnia || '',
-    tatuagem: profile.models?.tatuagem || false,
+    olhos: profile?.models?.olhos || '',
+    cabelo: profile?.models?.cabelo || '',
+    etnia: profile?.models?.etnia || '',
+    tatuagem: profile?.models?.tatuagem || false,
     // Configurações
-    is_active: profile.models?.is_active !== false,
-    languages: profile.models?.languages || ''
+    is_active: profile?.models?.is_active !== false,
+    languages: profile?.models?.languages || ''
   });
 
   // Estados para o perfil básico do usuário
@@ -73,16 +75,17 @@ const EnhancedModelProfileManager = ({
     confirmPassword: '',
   });
   const [customFieldsData, setCustomFieldsData] = useState<Record<string, any>>({});
-  const queryClient = useQueryClient();
-  const {
-    data: cities = []
-  } = useCities();
-  const {
-    data: customFields = []
-  } = useCustomFields();
-  const {
-    data: customSections = []
-  } = useCustomSections();
+
+  // Add loading state check AFTER all hooks
+  if (!profile || !profile.models) {
+    return <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            Carregando perfil...
+          </div>
+        </CardContent>
+      </Card>;
+  }
 
   // Carregar dados dos campos personalizados
   useEffect(() => {
