@@ -253,169 +253,190 @@ const ModelV2BankPage = () => {
       subtitle="Seu banco digital premium"
       activeId="bank"
     >
-      <div className="space-y-8">
-        {/* Status Badge */}
-        <div className="flex justify-end">
-          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <Shield className="h-3 w-3 mr-1" />
-            Conta Premium Ativa
-          </Badge>
-        </div>
-
-        {/* Balance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* P-Coins Balance */}
-          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-6">
+          <Card className="bg-card border-border shadow-sm">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    P-Coins
-                  </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">P-Coins</p>
                   <div className="flex items-center gap-2">
                     {showBalance ? (
-                      <p className="text-3xl font-bold text-slate-900">
+                      <p className="text-2xl font-bold text-foreground">
                         P$ {Number(account.balance || 0).toFixed(2)}
                       </p>
                     ) : (
-                      <p className="text-3xl font-bold text-slate-900">P$ ••••••</p>
+                      <p className="text-2xl font-bold text-foreground">P$ ••••••</p>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowBalance(!showBalance)}
-                      className="h-6 w-6 p-0 text-slate-600 hover:text-slate-900"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                     >
                       {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-                <div className="w-14 h-14 bg-slate-200/50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <CreditCard className="h-7 w-7 text-slate-600" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-5 w-5 text-blue-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* BRL Balance */}
-          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-6">
+          <Card className="bg-card border-border shadow-sm">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
-                    <Banknote className="h-4 w-4" />
-                    Reais
-                  </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">Reais</p>
                   <div className="flex items-center gap-2">
                     {showBalance ? (
-                      <p className="text-3xl font-bold text-slate-900">
+                      <p className="text-2xl font-bold text-foreground">
                         R$ {Number(account.balance_brl || 0).toFixed(2)}
                       </p>
                     ) : (
-                      <p className="text-3xl font-bold text-slate-900">R$ ••••••</p>
+                      <p className="text-2xl font-bold text-foreground">R$ ••••••</p>
                     )}
                   </div>
                 </div>
-                <div className="w-14 h-14 bg-slate-200/50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Banknote className="h-7 w-7 text-slate-600" />
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center">
+                  <Banknote className="h-5 w-5 text-green-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Account ID */}
-          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-6">
-              <div className="space-y-3">
-                <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
-                  ID da Conta
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-mono text-slate-900 bg-slate-200/50 px-2 py-1 rounded truncate">
-                    {account.id.substring(0, 8)}...{account.id.substring(-4)}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(account.id)}
-                    className="h-8 w-8 p-0 text-slate-600 hover:text-slate-900"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+          {/* Account Status */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="text-2xl font-bold text-foreground">Premium</p>
                 </div>
-                <p className="text-xs text-slate-500">Clique para copiar o ID completo</p>
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-purple-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Products */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Produtos</p>
+                  <p className="text-2xl font-bold text-foreground">3</p>
+                </div>
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg flex items-center justify-center">
+                  <Star className="h-5 w-5 text-orange-500" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Account Info */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Informações da Conta</h2>
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
+                <Shield className="h-3 w-3 mr-1" />
+                Conta Premium Ativa
+              </Badge>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-accent/20 rounded-lg">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">ID da Conta</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-mono text-foreground">
+                      {account.id.substring(0, 8)}...{account.id.substring(-4)}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(account.id)}
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Products Section */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-slate-900">Produtos PriveBank</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* PriveCard */}
-            <Card 
-              className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-              onClick={() => handleProductClick('privecard')}
-            >
-              <CardContent className="p-6 text-center relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <CreditCard className="h-8 w-8 text-white" />
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-foreground">Produtos PriveBank</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* PriveCard */}
+              <div 
+                className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors"
+                onClick={() => handleProductClick('privecard')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground">PriveCard</h3>
+                    <p className="text-sm text-muted-foreground">Cartão premium exclusivo</p>
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-slate-900">PriveCard</h3>
-                <p className="text-sm text-slate-600 mb-4">Cartão de crédito premium exclusivo</p>
-                <Button 
-                  className="w-full bg-slate-600 hover:bg-slate-700"
-                  size="sm"
-                >
-                  Acessar
-                </Button>
-              </CardContent>
-            </Card>
+                <Badge variant="secondary">Em Breve</Badge>
+              </div>
 
-            {/* Empréstimos */}
-            <Card 
-              className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-              onClick={() => handleProductClick('emprestimos')}
-            >
-              <CardContent className="p-6 text-center relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <PiggyBank className="h-8 w-8 text-white" />
+              {/* Empréstimos */}
+              <div 
+                className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors"
+                onClick={() => handleProductClick('emprestimos')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center">
+                    <PiggyBank className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground">Empréstimos</h3>
+                    <p className="text-sm text-muted-foreground">Crédito rápido e fácil</p>
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-slate-900">Empréstimos</h3>
-                <p className="text-sm text-slate-600 mb-4">Crédito rápido e descomplicado</p>
-                <Button 
-                  className="w-full bg-slate-600 hover:bg-slate-700"
-                  size="sm"
-                >
-                  Simular
-                </Button>
-              </CardContent>
-            </Card>
+                <Badge variant="secondary">Em Breve</Badge>
+              </div>
 
-            {/* Investimentos */}
-            <Card 
-              className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-              onClick={() => handleProductClick('investimentos')}
-            >
-              <CardContent className="p-6 text-center relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <TrendingUp className="h-8 w-8 text-white" />
+              {/* Investimentos */}
+              <div 
+                className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors"
+                onClick={() => handleProductClick('investimentos')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground">Investimentos</h3>
+                    <p className="text-sm text-muted-foreground">Rentabilidade premium</p>
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-slate-900">Investimentos</h3>
-                <p className="text-sm text-slate-600 mb-4">Faça seu dinheiro render mais</p>
-                <Button 
-                  className="w-full bg-slate-600 hover:bg-slate-700"
-                  size="sm"
-                >
-                  Investir
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <Badge variant="secondary">Em Breve</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -436,60 +457,45 @@ const ModelV2BankPage = () => {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Depósito */}
-              <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
-                <CardContent className="p-6 text-center relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <ArrowDownLeft className="h-8 w-8 text-white" />
+              <div className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => setActiveTab('operations')}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center">
+                    <ArrowDownLeft className="h-5 w-5 text-green-500" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2 text-slate-900">Depósito</h3>
-                  <p className="text-sm text-slate-600 mb-4">Adicione fundos à sua conta</p>
-                  <Button 
-                    onClick={() => setActiveTab('operations')}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
-                    size="sm"
-                  >
-                    Depositar
-                  </Button>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="font-medium text-foreground">Depósito</h3>
+                    <p className="text-sm text-muted-foreground">Adicionar fundos</p>
+                  </div>
+                </div>
+              </div>
 
               {/* Saque */}
-              <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
-                <CardContent className="p-6 text-center relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <ArrowUpRight className="h-8 w-8 text-white" />
+              <div className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => setActiveTab('operations')}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-lg flex items-center justify-center">
+                    <ArrowUpRight className="h-5 w-5 text-red-500" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2 text-slate-900">Saque</h3>
-                  <p className="text-sm text-slate-600 mb-4">Retire seus fundos</p>
-                  <Button 
-                    onClick={() => setActiveTab('operations')}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
-                    size="sm"
-                  >
-                    Sacar
-                  </Button>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="font-medium text-foreground">Saque</h3>
+                    <p className="text-sm text-muted-foreground">Retirar fundos</p>
+                  </div>
+                </div>
+              </div>
 
               {/* Transferir */}
-              <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
-                <CardContent className="p-6 text-center relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Send className="h-8 w-8 text-white" />
+              <div className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => setActiveTab('operations')}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
+                    <Send className="h-5 w-5 text-blue-500" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2 text-slate-900">Transferir</h3>
-                  <p className="text-sm text-slate-600 mb-4">Envie dinheiro para outros usuários</p>
-                  <Button 
-                    onClick={() => setActiveTab('operations')}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
-                    size="sm"
-                  >
-                    Transferir
-                  </Button>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="font-medium text-foreground">Transferir</h3>
+                    <p className="text-sm text-muted-foreground">Enviar dinheiro</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -497,9 +503,9 @@ const ModelV2BankPage = () => {
           <TabsContent value="operations" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Depósito */}
-              <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <ArrowDownLeft className="h-5 w-5" />
                     Depósito
                   </CardTitle>
@@ -529,7 +535,7 @@ const ModelV2BankPage = () => {
                   <Button 
                     onClick={handleDeposit}
                     disabled={isProcessing}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     {isProcessing ? 'Processando...' : 'Depositar'}
                   </Button>
@@ -537,9 +543,9 @@ const ModelV2BankPage = () => {
               </Card>
 
               {/* Saque */}
-              <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <ArrowUpRight className="h-5 w-5" />
                     Saque
                   </CardTitle>
@@ -569,7 +575,7 @@ const ModelV2BankPage = () => {
                   <Button 
                     onClick={handleWithdraw}
                     disabled={isProcessing}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     {isProcessing ? 'Processando...' : 'Sacar'}
                   </Button>
@@ -577,9 +583,9 @@ const ModelV2BankPage = () => {
               </Card>
 
               {/* Transferência */}
-              <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <Send className="h-5 w-5" />
                     Transferir
                   </CardTitle>
@@ -618,7 +624,7 @@ const ModelV2BankPage = () => {
                   <Button 
                     onClick={handleTransfer}
                     disabled={isProcessing}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     {isProcessing ? 'Processando...' : 'Transferir'}
                   </Button>
@@ -629,9 +635,9 @@ const ModelV2BankPage = () => {
 
           {/* History Tab */}
           <TabsContent value="history" className="space-y-6">
-            <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-900">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <Receipt className="h-5 w-5" />
                   Histórico de Transações
                 </CardTitle>
@@ -640,20 +646,20 @@ const ModelV2BankPage = () => {
                 {transactions && transactions.length > 0 ? (
                   <div className="space-y-4">
                     {transactions.map((transaction: any) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-slate-200">
+                      <div key={transaction.id} className="flex items-center justify-between p-4 bg-accent/20 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
-                            <Receipt className="h-5 w-5 text-slate-600" />
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
+                            <Receipt className="h-5 w-5 text-blue-500" />
                           </div>
                           <div>
-                            <p className="font-medium text-slate-900">{transaction.description}</p>
-                            <p className="text-sm text-slate-500">
+                            <p className="font-medium text-foreground">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
                               {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-slate-900">
+                          <p className="font-bold text-foreground">
                             {transaction.amount > 0 ? '+' : ''}
                             P$ {transaction.amount.toFixed(2)}
                           </p>
@@ -663,8 +669,8 @@ const ModelV2BankPage = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Receipt className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <p className="text-slate-500">Nenhuma transação encontrada</p>
+                    <Receipt className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                    <p className="text-muted-foreground">Nenhuma transação encontrada</p>
                   </div>
                 )}
               </CardContent>
