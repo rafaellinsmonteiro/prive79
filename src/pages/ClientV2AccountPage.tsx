@@ -30,6 +30,45 @@ export default function ClientV2AccountPage() {
   return (
     <V2VipModel title="Minha Conta" subtitle="Gerencie todas as configurações da sua conta" activeId="account">
       <div className="p-6">
+        {/* Texto explicativo e módulos */}
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <p className="text-lg text-muted-foreground">
+              Nossa plataforma é perfeita para suas necessidades. Os módulos e recursos funcionam de maneira separada ou integrada, oferecendo máxima flexibilidade.
+            </p>
+          </div>
+
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold mb-4">Módulos Principais</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium text-green-600 mb-3">Ativos em sua conta:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {["Prive Account", "Prive Model", "Prive Bank", "Prive Chat", "Prive ServiceBooking", "Prive Cloud"].map((module) => (
+                      <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-green-50 border-green-200">
+                        <span className="text-sm font-medium text-green-700">{module}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-orange-600 mb-3">Ainda não disponíveis:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {["Prive Date", "Prive Delivery", "Prive Trust", "Prive Intelligence"].map((module) => (
+                      <div key={module} className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors bg-orange-50 border-orange-200">
+                        <span className="text-sm font-medium text-orange-700">{module}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="personal" className="flex items-center gap-2">
