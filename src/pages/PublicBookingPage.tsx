@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +15,36 @@ import { ptBR } from "date-fns/locale";
 
 type BookingStep = "models" | "services" | "datetime" | "client" | "confirmation";
 
-export default function PublicBookingPage() {
-  const [currentStep, setCurrentStep] = useState<BookingStep>("models");
+interface PublicBookingPageProps {
+  preSelectedModelId?: string;
+  requireAccount?: boolean;
+  modelName?: string;
+}
+
+export default function PublicBookingPage({ 
+  preSelectedModelId, 
+  requireAccount = false,
+  modelName 
+}: PublicBookingPageProps = {}) {
+  const [currentStep, setCurrentStep] = useState<BookingStep>(
+    preSelectedModelId ? "services" : "models"
+  );
   const [selectedModel, setSelectedModel] = useState<PublicModel | null>(null);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
 
   const { data: models, isLoading } = usePublicModels();
+  
+  // Se uma modelo específica foi pré-selecionada, encontrá-la nos dados
+  useEffect(() => {
+    if (preSelectedModelId && models && !selectedModel) {
+      const preSelected = models.find(m => m.id === preSelectedModelId);
+      if (preSelected) {
+        setSelectedModel(preSelected);
+      }
+    }
+  }, [preSelectedModelId, models, selectedModel]);
   const createBooking = usePublicBooking();
 
   const handleModelSelect = (modelId: string) => {
@@ -74,6 +96,10 @@ export default function PublicBookingPage() {
   const handleBack = () => {
     switch (currentStep) {
       case "services":
+        // Se há uma modelo pré-selecionada, não podemos voltar para seleção de modelo
+        if (preSelectedModelId) {
+          return;
+        }
         setCurrentStep("models");
         setSelectedModel(null);
         break;
@@ -90,12 +116,17 @@ export default function PublicBookingPage() {
   };
 
   const renderStepIndicator = () => {
-    const steps = [
+    let steps = [
       { key: "models", label: "Modelo", icon: User },
       { key: "services", label: "Serviço", icon: Calendar },
       { key: "datetime", label: "Data/Hora", icon: Clock },
       { key: "client", label: "Dados", icon: User }
     ];
+
+    // Se há uma modelo pré-selecionada, remover o passo de seleção de modelo
+    if (preSelectedModelId) {
+      steps = steps.filter(step => step.key !== "models");
+    }
 
     const currentIndex = steps.findIndex(step => step.key === currentStep);
 
@@ -204,7 +235,7 @@ export default function PublicBookingPage() {
           {renderStepIndicator()}
 
           {/* Back Button */}
-          {currentStep !== "models" && (
+          {currentStep !== "models" && (!preSelectedModelId || currentStep !== "services") && (
             <Button
               variant="ghost"
               onClick={handleBack}

@@ -38,6 +38,7 @@ import ModelV2ReviewsPage from "./pages/ModelV2ReviewsPage";
 import ModelV2GoalsPage from "./pages/ModelV2GoalsPage";
 import ComponentsDocumentationPage from "./pages/ComponentsDocumentationPage";
 import PublicBookingPage from "./pages/PublicBookingPage";
+import PublicModelBookingPage from "./pages/PublicModelBookingPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -217,6 +218,9 @@ const AppContent = () => {
           <Route path="/admin-design-test/chat" element={<AdminDesignTestChat />} />
           <Route path="/admin-design-test/appointments" element={<AdminDesignTestAppointments />} />
           <Route path="/admin-design-test/settings" element={<AdminDesignTestSettings />} />
+          
+          {/* Agendamento público por slug - deve vir antes do catch-all */}
+          <Route path="/:slug" element={<PublicModelBookingPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
