@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 
 export interface Client {
   id: string;
-  model_id: string;
   name: string;
   phone?: string;
   email?: string;
@@ -37,7 +36,6 @@ export const useClients = () => {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('model_id', profile.model_id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -46,25 +44,10 @@ export const useClients = () => {
   });
 
   const createClient = useMutation({
-    mutationFn: async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'model_id'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const { data: profile } = await supabase
-        .from('model_profiles')
-        .select('model_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
-
-      if (!profile) throw new Error('Perfil de modelo não encontrado');
-
+    mutationFn: async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('clients')
-        .insert({
-          ...clientData,
-          model_id: profile.model_id,
-        })
+        .insert(clientData)
         .select()
         .single();
 

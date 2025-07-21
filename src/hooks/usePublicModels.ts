@@ -41,8 +41,7 @@ export const usePublicModels = (cityFilter?: string) => {
           )
         `)
         .eq("is_active", true)
-        .eq("services.is_active", true)
-        .eq("services.allow_online_booking", true);
+        .eq("services.is_active", true);
 
       if (cityFilter) {
         query = query.eq("city", cityFilter);
