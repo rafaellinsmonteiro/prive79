@@ -289,9 +289,10 @@ export default function PublicBookingPage() {
             </div>
           )}
 
-          {currentStep === "client" && (
+          {currentStep === "client" && selectedService && (
             <div className="max-w-2xl mx-auto">
               <ClientDetailsForm
+                service={selectedService}
                 onSubmit={handleClientSubmit}
                 isLoading={createBooking.isPending}
               />

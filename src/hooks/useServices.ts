@@ -8,8 +8,8 @@ export interface Service {
   description?: string;
   price: number;
   duration: number;
+  max_people: number;
   is_active: boolean;
-  allow_online_booking: boolean;
   model_id: string;
   created_at: string;
   updated_at: string;

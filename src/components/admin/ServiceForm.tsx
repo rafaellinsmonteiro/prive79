@@ -17,8 +17,8 @@ const serviceSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0, 'Preço deve ser positivo'),
   duration: z.number().min(1, 'Duração deve ser pelo menos 1 minuto'),
+  max_people: z.number().min(1, 'Máximo de pessoas deve ser pelo menos 1').max(10, 'Máximo de 10 pessoas'),
   is_active: z.boolean(),
-  allow_online_booking: z.boolean().default(false),
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -45,8 +45,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       description: service?.description || '',
       price: service?.price || 0,
       duration: service?.duration || 60,
+      max_people: service?.max_people || 1,
       is_active: service?.is_active ?? true,
-      allow_online_booking: service?.allow_online_booking ?? false,
     },
   });
 
@@ -57,8 +57,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         description: service.description || '',
         price: service.price,
         duration: service.duration,
+        max_people: service.max_people,
         is_active: service.is_active,
-        allow_online_booking: service.allow_online_booking ?? false,
       });
     } else {
       form.reset({
@@ -66,8 +66,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         description: '',
         price: 0,
         duration: 60,
+        max_people: 1,
         is_active: true,
-        allow_online_booking: false,
       });
     }
   }, [service, form]);
@@ -90,8 +90,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           description: data.description || null,
           price: data.price,
           duration: data.duration,
+          max_people: data.max_people,
           is_active: data.is_active,
-          allow_online_booking: data.allow_online_booking,
         });
         toast({
           title: "Serviço criado",
@@ -218,21 +218,24 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
             <FormField
               control={form.control}
-              name="allow_online_booking"
+              name="max_people"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>Agendamento Online</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Permitir que clientes agendem este serviço online
-                    </div>
-                  </div>
+                <FormItem>
+                  <FormLabel>Máximo de Pessoas</FormLabel>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <Input 
+                      type="number" 
+                      placeholder="1" 
+                      min="1"
+                      max="10"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                     />
                   </FormControl>
+                  <div className="text-sm text-muted-foreground">
+                    Quantidade máxima de pessoas permitidas neste serviço
+                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />

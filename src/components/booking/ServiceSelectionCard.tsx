@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock } from "lucide-react";
+import { Clock, Users } from "lucide-react";
 import { PublicService } from "@/hooks/usePublicModels";
 
 interface ServiceSelectionCardProps {
@@ -20,9 +20,15 @@ export const ServiceSelectionCard = ({ service, onSelect, selected }: ServiceSel
             <CardTitle className="text-lg text-foreground">
               {service.name}
             </CardTitle>
-            <div className="flex items-center gap-1 text-muted-foreground text-sm">
-              <Clock className="h-3 w-3" />
-              <span>{service.duration} minutos</span>
+            <div className="flex items-center gap-3 text-muted-foreground text-sm">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>{service.duration} min</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                <span>Até {service.max_people} {service.max_people === 1 ? 'pessoa' : 'pessoas'}</span>
+              </div>
             </div>
           </div>
           <div className="text-right">

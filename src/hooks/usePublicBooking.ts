@@ -68,6 +68,7 @@ export const usePublicBooking = () => {
           price: service.price,
           status: "pending",
           payment_status: "pending",
+          booking_source: "public",
           created_by_admin: false
         })
         .select()

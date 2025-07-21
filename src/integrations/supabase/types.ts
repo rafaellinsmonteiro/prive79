@@ -122,6 +122,7 @@ export type Database = {
           admin_notes: string | null
           appointment_date: string
           appointment_time: string
+          booking_source: string
           client_id: string
           created_at: string
           created_by_admin: boolean | null
@@ -145,6 +146,7 @@ export type Database = {
           admin_notes?: string | null
           appointment_date: string
           appointment_time: string
+          booking_source?: string
           client_id: string
           created_at?: string
           created_by_admin?: boolean | null
@@ -168,6 +170,7 @@ export type Database = {
           admin_notes?: string | null
           appointment_date?: string
           appointment_time?: string
+          booking_source?: string
           client_id?: string
           created_at?: string
           created_by_admin?: boolean | null
@@ -1886,6 +1889,7 @@ export type Database = {
           duration: number
           id: string
           is_active: boolean
+          max_people: number
           model_id: string
           name: string
           price: number
@@ -1897,6 +1901,7 @@ export type Database = {
           duration?: number
           id?: string
           is_active?: boolean
+          max_people?: number
           model_id: string
           name: string
           price?: number
@@ -1908,6 +1913,7 @@ export type Database = {
           duration?: number
           id?: string
           is_active?: boolean
+          max_people?: number
           model_id?: string
           name?: string
           price?: number

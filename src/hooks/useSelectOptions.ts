@@ -20,7 +20,6 @@ export const useClientOptions = () => {
       const { data, error } = await supabase
         .from('clients')
         .select('id, name, phone')
-        .eq('model_id', profile.model_id)
         .eq('is_active', true)
         .order('name');
 

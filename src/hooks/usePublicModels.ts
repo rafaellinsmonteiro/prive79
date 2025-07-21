@@ -17,6 +17,7 @@ export interface PublicService {
   description?: string;
   price: number;
   duration: number;
+  max_people: number;
 }
 
 export const usePublicModels = (cityFilter?: string) => {
@@ -37,7 +38,8 @@ export const usePublicModels = (cityFilter?: string) => {
             name,
             description,
             price,
-            duration
+            duration,
+            max_people
           )
         `)
         .eq("is_active", true)

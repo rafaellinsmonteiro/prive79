@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2 } from "lucide-react";
 import { ClientData } from "@/hooks/usePublicBooking";
+import { PublicService } from "@/hooks/usePublicModels";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
@@ -24,11 +25,12 @@ interface ExtendedClientData extends ClientData {
 }
 
 interface ClientDetailsFormProps {
+  service: PublicService;
   onSubmit: (clientData: ExtendedClientData) => void;
   isLoading?: boolean;
 }
 
-export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProps) => {
+export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetailsFormProps) => {
   const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
   
@@ -99,6 +101,12 @@ export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProp
     
     if (formData.phone && !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.phone)) {
       newErrors.phone = "Telefone deve estar no formato (00) 00000-0000";
+    }
+
+    // Validar número total de pessoas contra o limite do serviço
+    const totalPeople = 1 + formData.guests.length; // 1 (usuário principal) + convidados
+    if (totalPeople > service.max_people) {
+      newErrors.hasGuests = `Este serviço permite no máximo ${service.max_people} ${service.max_people === 1 ? 'pessoa' : 'pessoas'}. Você tem ${totalPeople} pessoas no total.` as any;
     }
 
     // Validar convidados se necessário
@@ -210,11 +218,19 @@ export const ClientDetailsForm = ({ onSubmit, isLoading }: ClientDetailsFormProp
               />
               <Label htmlFor="hasGuests">Levar convidados</Label>
             </div>
+            {errors.hasGuests && (
+              <p className="text-sm text-destructive">{errors.hasGuests}</p>
+            )}
 
             {formData.hasGuests && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Convidados</h4>
+                  <div>
+                    <h4 className="text-sm font-medium">Convidados</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Este serviço permite até {service.max_people} {service.max_people === 1 ? 'pessoa' : 'pessoas'} no total (incluindo você)
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
