@@ -2,14 +2,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  LayoutDashboard, 
+  Home, 
+  Search, 
+  Rss, 
   MessageSquare, 
-  Image, 
-  User, 
-  Calendar,
-  Star,
-  Users,
   CreditCard,
+  Star,
+  User,
   Sun,
   Moon
 } from 'lucide-react';
@@ -28,8 +27,20 @@ const DarkSidebar: React.FC<DarkSidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     {
       title: 'Dashboard',
-      path: '/v2/model/dashboard',
-      icon: LayoutDashboard,
+      path: '/v2/client/dashboard',
+      icon: Home,
+      badge: null,
+    },
+    {
+      title: 'Buscar',
+      path: '/v2/client/search',
+      icon: Search,
+      badge: null,
+    },
+    {
+      title: 'Feed',
+      path: '/v2/client/feed',
+      icon: Rss,
       badge: null,
     },
     {
@@ -39,39 +50,21 @@ const DarkSidebar: React.FC<DarkSidebarProps> = ({ isOpen, onClose }) => {
       badge: 5,
     },
     {
-      title: 'Mídias',
-      path: '/v2/model/media',
-      icon: Image,
+      title: 'PriveBank',
+      path: '/v2/bank',
+      icon: CreditCard,
       badge: null,
     },
     {
-      title: 'Perfil',
-      path: '/v2/model/profile',
-      icon: User,
-      badge: null,
-    },
-    {
-      title: 'Agenda',
-      path: '/v2/model/appointments',
-      icon: Calendar,
-      badge: null,
-    },
-    {
-      title: 'Serviços',
-      path: '/v2/model/services',
+      title: 'Avaliações',
+      path: '/v2/client/reviews',
       icon: Star,
       badge: null,
     },
     {
-      title: 'Clientes',
-      path: '/v2/model/clients',
-      icon: Users,
-      badge: null,
-    },
-    {
-      title: 'PriveBank',
-      path: '/v2/bank',
-      icon: CreditCard,
+      title: 'Minha Conta',
+      path: '/v2/client/account',
+      icon: User,
       badge: null,
     },
   ];
