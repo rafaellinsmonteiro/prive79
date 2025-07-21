@@ -74,25 +74,34 @@ export default function ClientV2AccountPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome Completo</Label>
-                    <Input id="name" placeholder="Seu nome completo" />
+                    <Label htmlFor="fullname">Nome Completo</Label>
+                    <Input id="fullname" placeholder="Seu nome completo" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname">Como Podemos Te Chamar</Label>
+                    <Input id="nickname" placeholder="Seu apelido ou nome preferido" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">E-mail</Label>
                     <Input id="email" type="email" placeholder="seu@email.com" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input id="phone" placeholder="(11) 99999-9999" />
+                    <Label htmlFor="whatsapp">WhatsApp</Label>
+                    <Input id="whatsapp" placeholder="(11) 99999-9999" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="birth">Data de Nascimento</Label>
-                    <Input id="birth" type="date" />
+                    <Label htmlFor="birthdate">Data de Nascimento</Label>
+                    <Input id="birthdate" type="date" />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" placeholder="Conte um pouco sobre você..." />
+                  <div className="space-y-2">
+                    <Label htmlFor="profile-photo">Foto de Perfil</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="profile-photo" type="file" accept="image/*" />
+                      <Button variant="outline" size="sm">
+                        Alterar Foto
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <Button>Salvar Alterações</Button>
               </CardContent>
