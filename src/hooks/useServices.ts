@@ -18,23 +18,20 @@ export interface Service {
 export const useServices = () => {
   const queryClient = useQueryClient();
 
-  const { data: services = [], isLoading, error } = useQuery({
+  const { data: services = [], isLoading } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      console.log('useServices: Starting query...');
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('useServices: User data:', user);
       if (!user) throw new Error('Usuário não autenticado');
 
       // Buscar model_id do usuário
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('model_profiles')
         .select('model_id')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .single();
 
-      console.log('useServices: Profile data:', profile, 'Error:', profileError);
       if (!profile) throw new Error('Perfil de modelo não encontrado');
 
       const { data, error } = await supabase
@@ -43,13 +40,10 @@ export const useServices = () => {
         .eq('model_id', profile.model_id)
         .order('created_at', { ascending: false });
 
-      console.log('useServices: Services data:', data, 'Error:', error);
       if (error) throw error;
       return data as Service[];
     },
   });
-
-  console.log('useServices: Final state - services:', services, 'isLoading:', isLoading, 'error:', error);
 
   const createService = useMutation({
     mutationFn: async (serviceData: Omit<Service, 'id' | 'created_at' | 'updated_at' | 'model_id'>) => {
