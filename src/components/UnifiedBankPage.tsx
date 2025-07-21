@@ -267,7 +267,7 @@ const UnifiedBankPage = () => {
               className="w-full flex items-center justify-between p-4 bg-card border-border hover:bg-accent/50 transition-colors"
             >
               <span className="text-sm font-medium text-foreground">
-                {menuExpanded ? 'Fechar menu' : 'Abrir menu completo'}
+                {menuExpanded ? 'Fechar menu' : 'Mostrar todas as soluções'}
               </span>
               {menuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
