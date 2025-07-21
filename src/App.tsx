@@ -42,6 +42,15 @@ import ComponentsDocumentationPage from "./pages/ComponentsDocumentationPage";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import PublicModelBookingPage from "./pages/PublicModelBookingPage";
 
+// Client V2 Pages
+import ClientV2DashboardPage from "./pages/ClientV2DashboardPage";
+import ClientV2SearchPage from "./pages/ClientV2SearchPage";
+import ClientV2FeedPage from "./pages/ClientV2FeedPage";
+import ClientV2ChatPage from "./pages/ClientV2ChatPage";
+import ClientV2PriveBankPage from "./pages/ClientV2PriveBankPage";
+import ClientV2ReviewsPage from "./pages/ClientV2ReviewsPage";
+import ClientV2AccountPage from "./pages/ClientV2AccountPage";
+
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -74,7 +83,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/bank', '/buscar'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/bank', '/v2/client/dashboard', '/v2/client/search', '/v2/client/feed', '/v2/client/chat', '/v2/client/privebank', '/v2/client/reviews', '/v2/client/account', '/buscar'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
   const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
@@ -129,6 +138,16 @@ const AppContent = () => {
           <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/bank" element={user ? <ModelV2BankPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/bank/:product" element={user ? <ModelV2BankProductPage /> : <Navigate to="/login" replace />} />
+          
+          {/* Client V2 Routes */}
+          <Route path="/v2/client/dashboard" element={user ? <ClientV2DashboardPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/search" element={user ? <ClientV2SearchPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/feed" element={user ? <ClientV2FeedPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/chat" element={user ? <ClientV2ChatPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/privebank" element={user ? <ClientV2PriveBankPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/reviews" element={user ? <ClientV2ReviewsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/account" element={user ? <ClientV2AccountPage /> : <Navigate to="/login" replace />} />
+          
           <Route path="/components-documentation" element={user ? <ComponentsDocumentationPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
