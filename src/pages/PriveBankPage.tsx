@@ -255,94 +255,106 @@ const PriveBankPage = () => {
       subtitle="Seu banco digital privado"
       activeId="privebank"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Status Badge */}
         <div className="flex justify-end">
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
+          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
             <Shield className="h-3 w-3 mr-1" />
             Conta Ativa
           </Badge>
         </div>
 
         {/* Balance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* P-Coins Balance */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white">
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-blue-100 text-sm font-medium">P-Coins</p>
+                  <p className="text-blue-600 text-sm font-semibold flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    P-Coins
+                  </p>
                   <div className="flex items-center gap-2">
                     {showBalance ? (
-                      <p className="text-3xl font-bold">
+                      <p className="text-3xl font-bold text-blue-900 animate-fade-in">
                         P$ {Number(account.balance || 0).toFixed(2)}
                       </p>
                     ) : (
-                      <p className="text-3xl font-bold">P$ ••••••</p>
+                      <p className="text-3xl font-bold text-blue-900">P$ ••••••</p>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowBalance(!showBalance)}
-                      className="h-6 w-6 p-0 text-blue-100 hover:text-white hover:bg-blue-400/20"
+                      className="h-6 w-6 p-0 text-blue-600 hover:text-blue-900 hover:bg-blue-200/50"
                     >
                       {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-6 w-6" />
+                <div className="w-14 h-14 bg-blue-200/50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <CreditCard className="h-7 w-7 text-blue-600" />
                 </div>
               </div>
-              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-400/10 rounded-full"></div>
+              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-200/20 rounded-full blur-xl group-hover:bg-blue-200/30 transition-colors duration-300"></div>
+              <div className="absolute -right-12 -bottom-12 w-24 h-24 bg-blue-300/20 rounded-full"></div>
             </CardContent>
           </Card>
 
           {/* BRL Balance */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 border-0 text-white">
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-green-100 text-sm font-medium">Reais</p>
+                  <p className="text-emerald-600 text-sm font-semibold flex items-center gap-2">
+                    <Banknote className="h-4 w-4" />
+                    Reais
+                  </p>
                   <div className="flex items-center gap-2">
                     {showBalance ? (
-                      <p className="text-3xl font-bold">
+                      <p className="text-3xl font-bold text-emerald-900 animate-fade-in">
                         R$ {Number(account.balance_brl || 0).toFixed(2)}
                       </p>
                     ) : (
-                      <p className="text-3xl font-bold">R$ ••••••</p>
+                      <p className="text-3xl font-bold text-emerald-900">R$ ••••••</p>
                     )}
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
-                  <Banknote className="h-6 w-6" />
+                <div className="w-14 h-14 bg-emerald-200/50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Banknote className="h-7 w-7 text-emerald-600" />
                 </div>
               </div>
-              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-green-400/10 rounded-full"></div>
+              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-200/20 rounded-full blur-xl group-hover:bg-emerald-200/30 transition-colors duration-300"></div>
+              <div className="absolute -right-12 -bottom-12 w-24 h-24 bg-emerald-300/20 rounded-full"></div>
             </CardContent>
           </Card>
 
           {/* Account ID */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 text-white">
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6">
-              <div className="space-y-2">
-                <p className="text-purple-100 text-sm font-medium">ID da Carteira</p>
+              <div className="space-y-3">
+                <p className="text-purple-600 text-sm font-semibold flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  ID da Carteira
+                </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-mono truncate">
+                  <p className="text-sm font-mono text-purple-900 bg-purple-200/50 px-2 py-1 rounded truncate">
                     {account.id.substring(0, 8)}...{account.id.substring(-4)}
                   </p>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(account.id)}
-                    className="h-6 w-6 p-0 text-purple-100 hover:text-white hover:bg-purple-400/20"
+                    className="h-8 w-8 p-0 text-purple-600 hover:text-purple-900 hover:bg-purple-200/50 group-hover:scale-110 transition-all duration-200"
                   >
-                    <Copy className="h-3 w-3" />
+                    <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-purple-200">Clique para copiar o ID completo</p>
+                <p className="text-xs text-purple-600">Clique para copiar o ID completo</p>
               </div>
-              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-400/10 rounded-full"></div>
+              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-purple-200/20 rounded-full blur-xl group-hover:bg-purple-200/30 transition-colors duration-300"></div>
+              <div className="absolute -right-12 -bottom-12 w-24 h-24 bg-purple-300/20 rounded-full"></div>
             </CardContent>
           </Card>
         </div>
@@ -367,76 +379,84 @@ const PriveBankPage = () => {
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <ArrowDownLeft className="h-6 w-6 text-blue-600" />
+              {/* Depósito Rápido */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+                <CardContent className="p-6 text-center relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <ArrowDownLeft className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-2">Depósito Rápido</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Adicione fundos à sua conta</p>
+                  <h3 className="font-bold text-lg mb-2 text-blue-900">Depósito Rápido</h3>
+                  <p className="text-sm text-blue-600 mb-4">Adicione fundos à sua conta</p>
                   <Button 
                     onClick={() => setActiveTab('operations')}
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
+                    className="w-full bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-200"
+                    size="sm"
                   >
                     Depositar
                   </Button>
                 </CardContent>
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-blue-300/20 rounded-full blur-2xl group-hover:bg-blue-300/30 transition-colors duration-300"></div>
+                <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-400/10 rounded-full"></div>
               </Card>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <ArrowUpRight className="h-6 w-6 text-red-600" />
+              {/* Saque Rápido */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100 border border-red-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+                <CardContent className="p-6 text-center relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <ArrowUpRight className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-2">Saque Rápido</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Retire seus fundos</p>
+                  <h3 className="font-bold text-lg mb-2 text-red-900">Saque Rápido</h3>
+                  <p className="text-sm text-red-600 mb-4">Retire seus fundos</p>
                   <Button 
                     onClick={() => setActiveTab('operations')}
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
+                    className="w-full bg-red-600 hover:bg-red-700 shadow-md hover:shadow-lg transition-all duration-200"
+                    size="sm"
                   >
                     Sacar
                   </Button>
                 </CardContent>
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-red-300/20 rounded-full blur-2xl group-hover:bg-red-300/30 transition-colors duration-300"></div>
+                <div className="absolute -right-4 -top-4 w-20 h-20 bg-red-400/10 rounded-full"></div>
               </Card>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Send className="h-6 w-6 text-green-600" />
+              {/* Transferir */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+                <CardContent className="p-6 text-center relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Send className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-2">Transferir</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Envie para outros usuários</p>
+                  <h3 className="font-bold text-lg mb-2 text-emerald-900">Transferir</h3>
+                  <p className="text-sm text-emerald-600 mb-4">Envie para outros usuários</p>
                   <Button 
                     onClick={() => setActiveTab('operations')}
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all duration-200"
+                    size="sm"
                   >
                     Transferir
                   </Button>
                 </CardContent>
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-300/20 rounded-full blur-2xl group-hover:bg-emerald-300/30 transition-colors duration-300"></div>
+                <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-400/10 rounded-full"></div>
               </Card>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Receipt className="h-6 w-6 text-purple-600" />
+              {/* Histórico */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+                <CardContent className="p-6 text-center relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Receipt className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-2">Histórico</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Veja suas transações</p>
+                  <h3 className="font-bold text-lg mb-2 text-purple-900">Histórico</h3>
+                  <p className="text-sm text-purple-600 mb-4">Veja suas transações</p>
                   <Button 
                     onClick={() => setActiveTab('history')}
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
+                    className="w-full bg-purple-600 hover:bg-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
+                    size="sm"
                   >
                     Ver Histórico
                   </Button>
                 </CardContent>
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl group-hover:bg-purple-300/30 transition-colors duration-300"></div>
+                <div className="absolute -right-4 -top-4 w-20 h-20 bg-purple-400/10 rounded-full"></div>
               </Card>
             </div>
 
