@@ -36,10 +36,10 @@ const Index = () => {
       return;
     }
     
-    // Redirecionar clientes para a página de busca
+    // Redirecionar clientes para o dashboard V2
     if (user && !modelProfile && !profileLoading) {
-      console.log('🏠 Index: Client user detected, redirecting to search page');
-      navigate('/buscar', { replace: true });
+      console.log('🏠 Index: Client user detected, redirecting to dashboard');
+      navigate('/v2/client/dashboard', { replace: true });
     }
   }, [user, modelProfile, profileLoading, navigate]);
 
