@@ -24,8 +24,6 @@ export const usePublicModels = (cityFilter?: string) => {
   return useQuery({
     queryKey: ["public-models", cityFilter],
     queryFn: async () => {
-      console.log('usePublicModels: Starting query...');
-      
       let query = supabase
         .from("models")
         .select(`
@@ -53,8 +51,6 @@ export const usePublicModels = (cityFilter?: string) => {
 
       const { data, error } = await query;
 
-      console.log('usePublicModels: Raw data:', data, 'Error:', error);
-
       if (error) {
         console.error("Error fetching public models:", error);
         throw error;
@@ -76,7 +72,6 @@ export const usePublicModels = (cityFilter?: string) => {
         };
       }).filter(model => model.services.length > 0) || []; // Only return models that have active services
 
-      console.log('usePublicModels: Transformed models:', models);
       return models;
     },
   });
