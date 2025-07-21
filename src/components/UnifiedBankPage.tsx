@@ -269,7 +269,7 @@ const UnifiedBankPage = () => {
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500/30 to-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
                       <TrendingUp className="h-4 w-4 text-blue-400" />
                     </div>
-                    <h3 className="text-sm font-semibold text-blue-100">GERAL</h3>
+                    <h3 className="text-sm font-semibold text-blue-100">CONTA</h3>
                   </CardContent>
                 </Card>
                 
@@ -306,7 +306,7 @@ const UnifiedBankPage = () => {
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 to-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
                       <TrendingUp className="h-6 w-6 text-blue-400" />
                     </div>
-                    <h3 className="font-semibold text-blue-100">GERAL</h3>
+                    <h3 className="font-semibold text-blue-100">CONTA</h3>
                   </CardContent>
                 </Card>
 
@@ -349,8 +349,32 @@ const UnifiedBankPage = () => {
             )}
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="dashboard" 
+                className="rounded-md text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="operations" 
+                className="rounded-md text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Operações
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="rounded-md text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Histórico
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard" className="mt-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* P-Coins Balance */}
             <Card className="bg-card border-border shadow-sm">
               <CardContent className="p-4">
@@ -434,62 +458,44 @@ const UnifiedBankPage = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Account Info */}
-          <Card className="bg-card border-border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Informações da Conta</h2>
-                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Conta Premium Ativa
-                </Badge>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-accent/20 rounded-lg">
-                  <Hash className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">ID da Conta</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-mono text-foreground">
-                        {account.id.substring(0, 8)}...{account.id.substring(-4)}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(account.id)}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
+
+              {/* Account Info */}
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-foreground">Informações da Conta</h2>
+                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Conta Premium Ativa
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-accent/20 rounded-lg">
+                      <Hash className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">ID da Conta</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-mono text-foreground">
+                            {account.id.substring(0, 8)}...{account.id.substring(-4)}
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(account.id)}
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Main Content */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="operations" className="flex items-center gap-2">
-                <ArrowRightLeft className="h-4 w-4" />
-                Operações
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-2">
-                <Receipt className="h-4 w-4" />
-                Histórico
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Dashboard Tab */}
-            <TabsContent value="dashboard" className="space-y-6">
+              {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Depósito */}
                 <div className="flex items-center justify-between p-4 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => setActiveTab('operations')}>
@@ -532,8 +538,7 @@ const UnifiedBankPage = () => {
               </div>
             </TabsContent>
 
-            {/* Operations Tab */}
-            <TabsContent value="operations" className="space-y-6">
+            <TabsContent value="operations" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Depósito */}
                 <Card className="bg-card border-border">
@@ -691,8 +696,7 @@ const UnifiedBankPage = () => {
               </div>
             </TabsContent>
 
-            {/* History Tab */}
-            <TabsContent value="history" className="space-y-6">
+            <TabsContent value="history" className="mt-6">
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-foreground">Histórico de Transações</CardTitle>
