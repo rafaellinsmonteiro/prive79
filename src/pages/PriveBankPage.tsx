@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import V2VipModel from '@/components/V2VipModel';
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -200,20 +201,30 @@ const PriveBankPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Carregando sua conta PriveBank...</p>
+      <V2VipModel 
+        title="PriveBank" 
+        subtitle="Seu banco digital privado"
+        activeId="privebank"
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-muted-foreground">Carregando sua conta PriveBank...</p>
+          </div>
         </div>
-      </div>
+      </V2VipModel>
     );
   }
 
   if (!account || !account.is_active) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto text-center space-y-6 mt-20">
+      <V2VipModel 
+        title="PriveBank" 
+        subtitle="Seu banco digital privado"
+        activeId="privebank"
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="max-w-md mx-auto text-center space-y-6">
             <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center mx-auto">
               <Wallet className="h-10 w-10 text-primary-foreground" />
             </div>
@@ -228,7 +239,7 @@ const PriveBankPage = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </V2VipModel>
     );
   }
 
@@ -239,25 +250,18 @@ const PriveBankPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center">
-                <Wallet className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">PriveBank</h1>
-                <p className="text-muted-foreground">Seu banco digital privado</p>
-              </div>
-            </div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              <Shield className="h-3 w-3 mr-1" />
-              Conta Ativa
-            </Badge>
-          </div>
+    <V2VipModel 
+      title="PriveBank" 
+      subtitle="Seu banco digital privado"
+      activeId="privebank"
+    >
+      <div className="space-y-6">
+        {/* Status Badge */}
+        <div className="flex justify-end">
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <Shield className="h-3 w-3 mr-1" />
+            Conta Ativa
+          </Badge>
         </div>
 
         {/* Balance Cards */}
@@ -691,7 +695,7 @@ const PriveBankPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </V2VipModel>
   );
 };
 
