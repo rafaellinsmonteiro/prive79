@@ -24,6 +24,8 @@ export const usePublicModels = (cityFilter?: string) => {
   return useQuery({
     queryKey: ["public-models", cityFilter],
     queryFn: async () => {
+      console.log('usePublicModels: Starting query...');
+      
       let query = supabase
         .from("models")
         .select(`
@@ -32,18 +34,18 @@ export const usePublicModels = (cityFilter?: string) => {
           description,
           neighborhood,
           city,
-          model_photos!inner(photo_url),
-          services!inner(
+          model_photos(photo_url),
+          services(
             id,
             name,
             description,
             price,
             duration,
-            max_people
+            max_people,
+            is_active
           )
         `)
-        .eq("is_active", true)
-        .eq("services.is_active", true);
+        .eq("is_active", true);
 
       if (cityFilter) {
         query = query.eq("city", cityFilter);
@@ -51,22 +53,30 @@ export const usePublicModels = (cityFilter?: string) => {
 
       const { data, error } = await query;
 
+      console.log('usePublicModels: Raw data:', data, 'Error:', error);
+
       if (error) {
         console.error("Error fetching public models:", error);
         throw error;
       }
 
-      // Transform data to match our interface
-      const models: PublicModel[] = data?.map(model => ({
-        id: model.id,
-        name: model.name,
-        description: model.description,
-        neighborhood: model.neighborhood,
-        city: model.city,
-        photo_url: model.model_photos?.[0]?.photo_url,
-        services: model.services || []
-      })) || [];
+      // Transform data to match our interface and filter models with active services
+      const models: PublicModel[] = data?.map(model => {
+        // Filter only active services
+        const activeServices = model.services?.filter(service => service.is_active) || [];
+        
+        return {
+          id: model.id,
+          name: model.name,
+          description: model.description,
+          neighborhood: model.neighborhood,
+          city: model.city,
+          photo_url: model.model_photos?.[0]?.photo_url,
+          services: activeServices
+        };
+      }).filter(model => model.services.length > 0) || []; // Only return models that have active services
 
+      console.log('usePublicModels: Transformed models:', models);
       return models;
     },
   });
