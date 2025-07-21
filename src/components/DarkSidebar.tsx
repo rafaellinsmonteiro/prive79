@@ -63,7 +63,7 @@ const DarkSidebar: React.FC<DarkSidebarProps> = ({ isOpen, onClose }) => {
     },
     {
       title: 'Minha Conta',
-      path: '/v2/client/account',
+      path: '/v2/account',
       icon: User,
       badge: null,
     },

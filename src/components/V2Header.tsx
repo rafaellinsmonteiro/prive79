@@ -142,7 +142,7 @@ const V2Header = ({
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/v2/profile')}>
+                  <DropdownMenuItem onClick={() => navigate('/v2/account')}>
                     <UserCircle className="mr-2 h-4 w-4" />
                     <span>Editar perfil</span>
                   </DropdownMenuItem>

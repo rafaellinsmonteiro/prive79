@@ -34,7 +34,7 @@ export function V2ClientLayout({ title, subtitle, children, activeId }: V2Client
     { icon: MessageCircle, label: 'Chat', id: 'chat', link: '/v2/chat', badge: null },
     { icon: CreditCard, label: 'PriveBank', id: 'privebank', link: '/v2/bank', badge: null },
     { icon: Star, label: 'Avaliações', id: 'reviews', link: '/v2/client/reviews', badge: null },
-    { icon: User, label: 'Minha Conta', id: 'account', link: '/v2/client/account', badge: null },
+    { icon: User, label: 'Minha Conta', id: 'account', link: '/v2/account', badge: null },
   ];
 
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
