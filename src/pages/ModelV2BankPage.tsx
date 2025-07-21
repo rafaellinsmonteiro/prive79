@@ -33,7 +33,9 @@ import {
   Shield,
   Star,
   PiggyBank,
-  TrendingDown
+  TrendingDown,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 const ModelV2BankPage = () => {
@@ -55,6 +57,7 @@ const ModelV2BankPage = () => {
   // Estados para UI
   const [showBalance, setShowBalance] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [menuExpanded, setMenuExpanded] = useState(false);
   
   // Filtros para transações
   const [filters, setFilters] = useState({
@@ -254,52 +257,67 @@ const ModelV2BankPage = () => {
       activeId="bank"
     >
       <div className="space-y-6">
-        {/* Top Menu Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <TrendingUp className="h-6 w-6 text-blue-500" />
-              </div>
-              <h3 className="font-semibold text-foreground">GERAL</h3>
-            </CardContent>
-          </Card>
+        {/* Collapsible Top Menu */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setMenuExpanded(!menuExpanded)}
+            className="w-full flex items-center justify-between p-4 bg-card border-border hover:bg-accent/50 transition-colors"
+          >
+            <span className="text-sm font-medium text-foreground">
+              {menuExpanded ? 'Fechar menu' : 'Abrir menu completo'}
+            </span>
+            {menuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+          
+          {menuExpanded && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 animate-fade-in">
+              <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">GERAL</h3>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setActiveTab('history')}>
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Receipt className="h-6 w-6 text-green-500" />
-              </div>
-              <h3 className="font-semibold text-foreground">HISTÓRICO</h3>
-            </CardContent>
-          </Card>
+              <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setActiveTab('history')}>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <Receipt className="h-6 w-6 text-green-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">HISTÓRICO</h3>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('privecard')}>
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <CreditCard className="h-6 w-6 text-purple-500" />
-              </div>
-              <h3 className="font-semibold text-foreground">CARTÕES</h3>
-            </CardContent>
-          </Card>
+              <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('privecard')}>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <CreditCard className="h-6 w-6 text-purple-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">CARTÕES</h3>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('emprestimos')}>
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <PiggyBank className="h-6 w-6 text-orange-500" />
-              </div>
-              <h3 className="font-semibold text-foreground">EMPRÉSTIMOS</h3>
-            </CardContent>
-          </Card>
+              <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('emprestimos')}>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <PiggyBank className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">EMPRÉSTIMOS</h3>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('investimentos')}>
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <TrendingUp className="h-6 w-6 text-red-500" />
-              </div>
-              <h3 className="font-semibold text-foreground">INVESTIMENTOS</h3>
-            </CardContent>
-          </Card>
+              <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => handleProductClick('investimentos')}>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="h-6 w-6 text-red-500" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">INVESTIMENTOS</h3>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* Stats Cards */}
