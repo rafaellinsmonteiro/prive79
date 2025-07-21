@@ -149,13 +149,12 @@ const UnifiedBankProductPage = () => {
                 </Badge>
               </div>
               <p className="text-amber-700 leading-relaxed">
-                Este produto ainda não está disponível para sua conta específica. Nossa equipe está trabalhando para 
-                disponibilizá-lo em breve com todas as funcionalidades premium que você merece.
+                Este produto ainda não está disponível para sua conta. Continue evoluindo sua conta para desbloquear um universo de vantagens.
               </p>
               <div className="flex items-center gap-2 mt-4">
                 <Shield className="h-4 w-4 text-amber-600" />
                 <span className="text-sm text-amber-600 font-medium">
-                  Você será notificado assim que estiver disponível
+                  Você será notificado assim que estiver disponível. Mas se for uma prioridade para você, confirme seu interesse no botão ao final da página.
                 </span>
               </div>
             </div>
