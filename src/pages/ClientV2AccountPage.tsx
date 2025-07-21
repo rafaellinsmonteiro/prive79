@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { V2ClientLayout } from '@/components/V2ClientLayout';
+import V2VipModel from '@/components/V2VipModel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export default function ClientV2AccountPage() {
   const [activeTab, setActiveTab] = useState('personal');
 
   return (
-    <V2ClientLayout title="Minha Conta" subtitle="Gerencie todas as configurações da sua conta" activeId="account">
+    <V2VipModel title="Minha Conta" subtitle="Gerencie todas as configurações da sua conta" activeId="account">
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-7 w-full">
@@ -409,6 +409,6 @@ export default function ClientV2AccountPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </V2ClientLayout>
+    </V2VipModel>
   );
 }
