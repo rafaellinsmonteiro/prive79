@@ -51,6 +51,7 @@ import ClientV2AccountPage from "./pages/ClientV2AccountPage";
 // Unified Components
 import UnifiedChatPage from "@/components/UnifiedChatPage";
 import UnifiedBankPage from "@/components/UnifiedBankPage";
+import UnifiedBankProductPage from "./pages/UnifiedBankProductPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -136,7 +137,7 @@ const AppContent = () => {
           <Route path="/v2/clients" element={user ? <ModelV2ClientsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/reviews" element={user ? <ModelV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/bank/:product" element={user ? <ModelV2BankProductPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/bank/:product" element={user ? <UnifiedBankProductPage /> : <Navigate to="/login" replace />} />
           
           {/* Client V2 Routes */}
           <Route path="/v2/client/dashboard" element={user ? <ClientV2DashboardPage /> : <Navigate to="/login" replace />} />
@@ -144,6 +145,7 @@ const AppContent = () => {
           <Route path="/v2/client/feed" element={user ? <ClientV2FeedPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/reviews" element={user ? <ClientV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/account" element={user ? <ClientV2AccountPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/client/privebank/:product" element={user ? <UnifiedBankProductPage /> : <Navigate to="/login" replace />} />
           
           {/* Unified Routes - Work for both models and clients */}
           <Route path="/v2/chat" element={user ? <UnifiedChatPage /> : <Navigate to="/login" replace />} />

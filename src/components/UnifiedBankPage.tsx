@@ -220,7 +220,13 @@ const UnifiedBankPage = () => {
   };
 
   const handleProductClick = (product: string) => {
-    navigate(`/v2/bank/${product}`);
+    if (userType === 'modelo') {
+      navigate(`/v2/bank/${product}`);
+    } else if (userType === 'cliente') {
+      navigate(`/v2/client/privebank/${product}`);
+    } else {
+      navigate(`/v2/bank/${product}`);
+    }
   };
 
   if (!userType) {
