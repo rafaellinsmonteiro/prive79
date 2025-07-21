@@ -16,6 +16,7 @@ export interface Appointment {
   location?: string;
   observations?: string;
   created_by_admin?: boolean;
+  booking_source?: string;
   created_at: string;
   updated_at: string;
   // Dados relacionados

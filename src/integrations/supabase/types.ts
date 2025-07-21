@@ -980,6 +980,36 @@ export type Database = {
         }
         Relationships: []
       }
+      model_online_booking_settings: {
+        Row: {
+          created_at: string
+          custom_slug: string | null
+          id: string
+          is_enabled: boolean
+          model_id: string
+          require_account: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_slug?: string | null
+          id?: string
+          is_enabled?: boolean
+          model_id: string
+          require_account?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_slug?: string | null
+          id?: string
+          is_enabled?: boolean
+          model_id?: string
+          require_account?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       model_photos: {
         Row: {
           allowed_plan_ids: string[] | null

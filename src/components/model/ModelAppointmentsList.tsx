@@ -29,6 +29,7 @@ import { usePayments } from '@/hooks/usePayments';
 import { ModelAppointmentForm } from './ModelAppointmentForm';
 import ModelWorkingHours from './ModelWorkingHours';
 import ModelOnlineToggle from './ModelOnlineToggle';
+import ModelOnlineBookingSettings from './ModelOnlineBookingSettings';
 
 const ModelAppointmentsList = () => {
   const { appointments, isLoading, deleteAppointment } = useAppointments();
@@ -103,6 +104,9 @@ const ModelAppointmentsList = () => {
   const getCreatorTag = (appointment: Appointment) => {
     if (appointment.created_by_admin) {
       return { text: 'Criado pelo admin', color: 'bg-purple-500' };
+    }
+    if (appointment.booking_source === 'public') {
+      return { text: 'Agendamento online', color: 'bg-blue-500' };
     }
     return { text: 'Criado por mim', color: 'bg-green-600' };
   };
@@ -180,6 +184,9 @@ const ModelAppointmentsList = () => {
     <div className="space-y-6">
       {/* Online Status Toggle */}
       <ModelOnlineToggle />
+      
+      {/* Online Booking Settings */}
+      <ModelOnlineBookingSettings />
       
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
