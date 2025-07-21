@@ -1,5 +1,5 @@
 import React from 'react';
-import { V2ClientLayout } from '@/components/V2ClientLayout';
+import DarkLayout from '@/components/DarkLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,7 @@ export default function ClientV2DashboardPage() {
   ];
 
   return (
-    <V2ClientLayout title="Dashboard" subtitle="Bem-vindo de volta!" activeId="dashboard">
+    <DarkLayout title="Dashboard">
       <div className="p-6 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -156,6 +156,6 @@ export default function ClientV2DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </V2ClientLayout>
+    </DarkLayout>
   );
 }
