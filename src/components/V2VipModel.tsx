@@ -68,8 +68,8 @@ const V2VipModel = ({ title, subtitle, children, activeId }: V2VipModelProps) =>
   }, {
     icon: Wallet,
     label: 'PriveBank',
-    id: 'privebank',
-    link: '/privebank'
+    id: 'bank',
+    link: '/v2/bank'
   }];
 
   const renderNavItem = (item: any) => (

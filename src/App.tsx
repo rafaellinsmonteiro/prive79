@@ -36,6 +36,8 @@ import ModelV2ServicesPage from "./pages/ModelV2ServicesPage";
 import ModelV2ClientsPage from "./pages/ModelV2ClientsPage";
 import ModelV2ReviewsPage from "./pages/ModelV2ReviewsPage";
 import ModelV2GoalsPage from "./pages/ModelV2GoalsPage";
+import ModelV2BankPage from "./pages/ModelV2BankPage";
+import ModelV2BankProductPage from "./pages/ModelV2BankProductPage";
 import ComponentsDocumentationPage from "./pages/ComponentsDocumentationPage";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import PublicModelBookingPage from "./pages/PublicModelBookingPage";
@@ -72,7 +74,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/buscar'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/bank', '/buscar'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
   const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
@@ -125,6 +127,8 @@ const AppContent = () => {
           <Route path="/v2/clients" element={user ? <ModelV2ClientsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/reviews" element={user ? <ModelV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/bank" element={user ? <ModelV2BankPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/bank/:product" element={user ? <ModelV2BankProductPage /> : <Navigate to="/login" replace />} />
           <Route path="/components-documentation" element={user ? <ComponentsDocumentationPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/client-dashboard" element={user ? <ClientDashboard /> : <Navigate to="/login" replace />} />
