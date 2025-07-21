@@ -1,3 +1,4 @@
+
 import React, { useState, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -30,8 +31,8 @@ export function V2ClientLayout({ title, subtitle, children, activeId }: V2Client
     { icon: Home, label: 'Dashboard', id: 'dashboard', link: '/v2/client/dashboard', badge: null },
     { icon: Search, label: 'Buscar', id: 'search', link: '/v2/client/search', badge: null },
     { icon: Rss, label: 'Feed', id: 'feed', link: '/v2/client/feed', badge: null },
-    { icon: MessageCircle, label: 'Chat', id: 'chat', link: '/v2/client/chat', badge: null },
-    { icon: CreditCard, label: 'PriveBank', id: 'privebank', link: '/v2/client/privebank', badge: null },
+    { icon: MessageCircle, label: 'Chat', id: 'chat', link: '/v2/chat', badge: null },
+    { icon: CreditCard, label: 'PriveBank', id: 'privebank', link: '/v2/bank', badge: null },
     { icon: Star, label: 'Avaliações', id: 'reviews', link: '/v2/client/reviews', badge: null },
     { icon: User, label: 'Minha Conta', id: 'account', link: '/v2/client/account', badge: null },
   ];

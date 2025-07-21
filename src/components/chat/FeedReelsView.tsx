@@ -1,291 +1,310 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Contact } from '@/hooks/useContactsUpdates';
-import { ChevronLeft, ChevronRight, MessageCircle, User, MapPin, Heart, Share } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Heart, 
+  MessageSquare, 
+  Share2, 
+  Play, 
+  Pause, 
+  Volume2, 
+  VolumeX, 
+  MoreHorizontal, 
+  Eye 
+} from 'lucide-react';
 import { useCreateConversation } from '@/hooks/useChat';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FeedReelsViewProps {
-  contacts: Contact[];
+  reels: Array<{
+    id: string;
+    model_id: string;
+    model_name: string;
+    model_photo?: string;
+    media_url: string;
+    media_type: 'video' | 'image';
+    caption?: string;
+    likes_count?: number;
+    comments_count?: number;
+    views_count?: number;
+    is_liked?: boolean;
+    created_at: string;
+    is_online?: boolean;
+  }>;
+  onLike?: (reelId: string) => void;
+  onComment?: (reelId: string) => void;
+  onShare?: (reelId: string) => void;
 }
 
-const FeedReelsView: React.FC<FeedReelsViewProps> = ({ contacts }) => {
-  const [currentContactIndex, setCurrentContactIndex] = useState(0);
-  const [currentUpdateIndex, setCurrentUpdateIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+const FeedReelsView: React.FC<FeedReelsViewProps> = ({
+  reels,
+  onLike,
+  onComment,
+  onShare
+}) => {
   const navigate = useNavigate();
   const createConversation = useCreateConversation();
-  const isMobile = useIsMobile();
+  const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
+  const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
 
-  // Filtrar apenas contatos que têm atualizações
-  const contactsWithUpdates = contacts.filter(contact => contact.updates.length > 0);
-
-  const currentContact = contactsWithUpdates[currentContactIndex];
-  const currentUpdate = currentContact?.updates[currentUpdateIndex];
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !currentUpdate || currentUpdate.media_type !== 'video') return;
-
-    const handleVideoPlay = () => setIsPlaying(true);
-    const handleVideoPause = () => setIsPlaying(false);
-    const handleVideoEnded = () => {
-      video.currentTime = 0;
-      video.play().catch(console.error);
-    };
-
-    video.addEventListener('play', handleVideoPlay);
-    video.addEventListener('pause', handleVideoPause);
-    video.addEventListener('ended', handleVideoEnded);
-
-    // Auto-play vídeo quando ativo
-    video.currentTime = 0;
-    video.play().catch(console.error);
-
-    return () => {
-      video.removeEventListener('play', handleVideoPlay);
-      video.removeEventListener('pause', handleVideoPause);
-      video.removeEventListener('ended', handleVideoEnded);
-    };
-  }, [currentContact, currentUpdate]);
-
-  const handleNext = () => {
-    if (!currentContact) return;
-    
-    if (currentUpdateIndex < currentContact.updates.length - 1) {
-      setCurrentUpdateIndex(prev => prev + 1);
-    } else if (currentContactIndex < contactsWithUpdates.length - 1) {
-      setCurrentContactIndex(prev => prev + 1);
-      setCurrentUpdateIndex(0);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (!currentContact) return;
-    
-    if (currentUpdateIndex > 0) {
-      setCurrentUpdateIndex(prev => prev - 1);
-    } else if (currentContactIndex > 0) {
-      setCurrentContactIndex(prev => prev - 1);
-      const prevContact = contactsWithUpdates[currentContactIndex - 1];
-      setCurrentUpdateIndex(prevContact.updates.length - 1);
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartY(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const endY = e.changedTouches[0].clientY;
-    const diff = startY - endY;
-    
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        handleNext();
+  const toggleVideoPlay = (reelId: string) => {
+    setPlayingVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reelId)) {
+        newSet.delete(reelId);
       } else {
-        handlePrevious();
+        newSet.add(reelId);
       }
-    }
+      return newSet;
+    });
   };
 
-  const handleVideoClick = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-    } else {
-      video.play().catch(console.error);
-    }
+  const toggleVideoMute = (reelId: string) => {
+    setMutedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reelId)) {
+        newSet.delete(reelId);
+      } else {
+        newSet.add(reelId);
+      }
+      return newSet;
+    });
   };
 
-  const handleOpenChat = async () => {
+  const handleOpenChat = async (modelId: string) => {
+    const currentContact = reels.find(r => r.model_id === modelId);
     if (!currentContact) return;
     
+    const { data: conversations } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('model_id', modelId)
+      .eq('user_id', user?.id)
+      .eq('is_active', true);
+
     try {
-      const conversation = await createConversation.mutateAsync(currentContact.model_id);
-      navigate(`/v2/client/chat?conversation=${conversation.id}`);
+      const existingConversation = conversations?.[0];
+
+      if (existingConversation) {
+        // Se já existe uma conversa, navegar para ela
+        navigate(`/v2/chat?conversation=${existingConversation.id}`);
+      } else {
+        // Se não existe, criar uma nova conversa
+        const conversation = await createConversation.mutateAsync(currentContact.model_id);
+        navigate(`/v2/chat?conversation=${conversation.id}`);
+      }
     } catch (error) {
       console.error('Error creating conversation:', error);
     }
   };
 
-  const formatTime = (date: string) => {
-    return formatDistanceToNow(new Date(date), { 
-      addSuffix: true, 
-      locale: ptBR 
-    });
+  const handleViewProfile = (modelId: string) => {
+    navigate(`/modelo/${modelId}`);
   };
 
-  if (!currentContact || !currentUpdate) {
-    return (
-      <div className="h-[calc(100vh-200px)] flex items-center justify-center bg-black">
-        <div className="text-center text-white">
-          <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="text-zinc-400">Nenhuma atualização disponível</p>
-          <p className="text-zinc-500 text-sm mt-2">
-            Converse com alguém para ver as atualizações aqui
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Agora';
+    if (diffInHours < 24) return `${diffInHours}h`;
+    return `${Math.floor(diffInHours / 24)}d`;
+  };
 
   return (
-    <div 
-      ref={containerRef} 
-      className={`h-[calc(100vh-200px)] bg-black relative snap-start flex items-center justify-center ${
-        !isMobile ? 'max-w-md mx-auto' : ''
-      }`}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Media Content */}
-      {currentUpdate.media_type === 'photo' ? (
-        <img
-          src={currentUpdate.media_url}
-          alt="Update"
-          className={`absolute inset-0 w-full h-full ${
-            isMobile ? 'object-cover' : 'object-contain'
-          }`}
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.svg';
-          }}
-        />
-      ) : (
-        <video
-          ref={videoRef}
-          src={currentUpdate.media_url}
-          poster={currentUpdate.thumbnail_url}
-          className={`absolute inset-0 w-full h-full ${
-            isMobile ? 'object-cover' : 'object-contain'
-          }`}
-          loop
-          muted
-          playsInline
-          onClick={handleVideoClick}
-        />
-      )}
-
-      {/* Overlay escuro para melhor legibilidade */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-
-      {/* Header */}
-      <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="flex items-center gap-3 mb-3">
-          <img
-            src={currentContact.model_photo}
-            alt={currentContact.model_name}
-            className="w-10 h-10 rounded-full object-cover border-2 border-white"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg';
-            }}
-          />
-          <div className="flex-1">
-            <p className="text-white font-medium">{currentContact.model_name}</p>
-            <p className="text-zinc-300 text-sm">{formatTime(currentUpdate.created_at)}</p>
+    <div className="space-y-6">
+      {reels.map((reel) => (
+        <Card key={reel.id} className="bg-zinc-900 border-zinc-700 overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <img
+                  src={reel.model_photo || '/placeholder.svg'}
+                  alt={reel.model_name}
+                  className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                  onClick={() => handleViewProfile(reel.model_id)}
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+                {reel.is_online && (
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+                )}
+              </div>
+              
+              <div>
+                <button
+                  onClick={() => handleViewProfile(reel.model_id)}
+                  className="font-semibold text-white hover:text-pink-400 transition-colors"
+                >
+                  {reel.model_name}
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-400">
+                    {formatDate(reel.created_at)}
+                  </span>
+                  {reel.is_online && (
+                    <Badge className="bg-green-500 text-white border-0 text-xs px-2 py-0.5">
+                      Online
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleOpenChat(reel.model_id)}
+                className="text-pink-400 hover:text-pink-300 hover:bg-zinc-800"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-        
-        {/* Progress bars */}
-        <div className="flex gap-1">
-          {currentContact.updates.map((_, index) => (
-            <div
-              key={index}
-              className={`h-0.5 flex-1 rounded-full transition-colors ${
-                index === currentUpdateIndex ? 'bg-white' : 'bg-white/30'
+
+          {/* Media */}
+          <div className="relative aspect-[9/16] bg-black overflow-hidden">
+            {reel.media_type === 'video' ? (
+              <>
+                <video
+                  src={reel.media_url}
+                  className="w-full h-full object-cover"
+                  loop
+                  muted={mutedVideos.has(reel.id)}
+                  autoPlay={playingVideos.has(reel.id)}
+                  onError={(e) => {
+                    console.error('Video error:', e);
+                  }}
+                />
+                
+                {/* Video Controls */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={() => toggleVideoPlay(reel.id)}
+                    className="bg-black/50 hover:bg-black/70 text-white rounded-full p-4"
+                  >
+                    {playingVideos.has(reel.id) ? (
+                      <Pause className="h-8 w-8" />
+                    ) : (
+                      <Play className="h-8 w-8" />
+                    )}
+                  </Button>
+                </div>
+                
+                {/* Mute Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleVideoMute(reel.id)}
+                  className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                >
+                  {mutedVideos.has(reel.id) ? (
+                    <VolumeX className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </>
+            ) : (
+              <img
+                src={reel.media_url}
+                alt="Reel"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+              />
+            )}
+          </div>
+
+          {/* Caption and Stats */}
+          <CardContent className="p-4">
+            {reel.caption && (
+              <p className="text-white mb-3 text-sm">{reel.caption}</p>
+            )}
+            
+            {/* Stats */}
+            <div className="flex items-center justify-between text-zinc-400 text-sm">
+              <div className="flex items-center gap-4">
+                {reel.views_count && (
+                  <div className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    <span>{reel.views_count}</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-1">
+                  <Heart className="h-4 w-4" />
+                  <span>{reel.likes_count || 0}</span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>{reel.comments_count || 0}</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onShare?.(reel.id)}
+                className="text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800 p-1"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+
+          {/* Action Buttons */}
+          <div className="flex border-t border-zinc-700">
+            <Button
+              variant="ghost"
+              className={`flex-1 py-3 rounded-none ${
+                reel.is_liked ? 'text-pink-400' : 'text-zinc-400 hover:text-pink-400'
               }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Navigation Arrows */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePrevious}
-          className="text-white hover:bg-black/50 bg-black/30"
-          disabled={currentContactIndex === 0 && currentUpdateIndex === 0}
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-      </div>
-
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNext}
-          className="text-white hover:bg-black/50 bg-black/30"
-          disabled={
-            currentContactIndex === contactsWithUpdates.length - 1 && 
-            currentUpdateIndex === currentContact.updates.length - 1
-          }
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
-      </div>
-
-      {/* Ações (canto inferior direito) */}
-      <div className={`absolute bottom-20 flex flex-col space-y-4 z-10 ${
-        isMobile ? 'right-4' : 'right-8'
-      }`}>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
-        >
-          <Heart className="w-6 h-6" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-12 h-12 rounded-full bg-blue-500/80 hover:bg-blue-500 text-white"
-          onClick={handleOpenChat}
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
-        >
-          <Share className="w-6 h-6" />
-        </Button>
-      </div>
-
-      {/* Footer com botão de comentar */}
-      <div className="absolute bottom-4 left-4 right-4 z-10">
-        <Button
-          onClick={handleOpenChat}
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          disabled={createConversation.isPending}
-        >
-          <MessageCircle className="h-4 w-4 mr-2" />
-          {createConversation.isPending ? 'Abrindo...' : 'Comentar'}
-        </Button>
-      </div>
-
-      {/* Indicador de play/pause para vídeos */}
-      {!isPlaying && currentUpdate.media_type === 'video' && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-            <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
+              onClick={() => onLike?.(reel.id)}
+            >
+              <Heart className={`h-4 w-4 mr-2 ${reel.is_liked ? 'fill-current' : ''}`} />
+              Curtir
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="flex-1 py-3 rounded-none text-zinc-400 hover:text-zinc-300"
+              onClick={() => onComment?.(reel.id)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Comentar
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="flex-1 py-3 rounded-none text-zinc-400 hover:text-zinc-300"
+              onClick={() => onShare?.(reel.id)}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Compartilhar
+            </Button>
           </div>
-        </div>
-      )}
+        </Card>
+      ))}
     </div>
   );
 };

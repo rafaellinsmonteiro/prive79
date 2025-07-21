@@ -28,7 +28,6 @@ import DesignTestUserProfile from "./pages/DesignTestUserProfile";
 import DesignTestModelDashboard from "./pages/DesignTestModelDashboard";
 import ModelV2DashboardPage from "./pages/ModelV2DashboardPage";
 import ModelV2FeedPage from "./pages/ModelV2FeedPage";
-import ModelV2ChatPage from "./pages/ModelV2ChatPage";
 import ModelV2ProfilePage from "./pages/ModelV2ProfilePage";
 import ModelV2MediaPage from "./pages/ModelV2MediaPage";
 import ModelV2AppointmentsPage from "./pages/ModelV2AppointmentsPage";
@@ -46,10 +45,12 @@ import PublicModelBookingPage from "./pages/PublicModelBookingPage";
 import ClientV2DashboardPage from "./pages/ClientV2DashboardPage";
 import ClientV2SearchPage from "./pages/ClientV2SearchPage";
 import ClientV2FeedPage from "./pages/ClientV2FeedPage";
-import ClientV2ChatPage from "./pages/ClientV2ChatPage";
-import ClientV2PriveBankPage from "./pages/ClientV2PriveBankPage";
 import ClientV2ReviewsPage from "./pages/ClientV2ReviewsPage";
 import ClientV2AccountPage from "./pages/ClientV2AccountPage";
+
+// Unified Components
+import UnifiedChatPage from "@/components/UnifiedChatPage";
+import UnifiedBankPage from "@/components/UnifiedBankPage";
 
 // Legacy Pages (will be gradually replaced)
 import Login from "./pages/Login";
@@ -83,7 +84,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Rotas onde o header deve ser ocultado
-  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/bank', '/v2/client/dashboard', '/v2/client/search', '/v2/client/feed', '/v2/client/chat', '/v2/client/privebank', '/v2/client/reviews', '/v2/client/account', '/buscar'];
+  const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/bank', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/client/dashboard', '/v2/client/search', '/v2/client/feed', '/v2/client/reviews', '/v2/client/account', '/buscar'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
   const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard'].includes(location.pathname);
@@ -128,7 +129,6 @@ const AppContent = () => {
           {/* Model V2 Routes */}
           <Route path="/v2/dashboard" element={user ? <ModelV2DashboardPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/feed" element={user ? <ModelV2FeedPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/chat" element={user ? <ModelV2ChatPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/profile" element={user ? <ModelV2ProfilePage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/media" element={user ? <ModelV2MediaPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/appointments" element={user ? <ModelV2AppointmentsPage /> : <Navigate to="/login" replace />} />
@@ -136,17 +136,18 @@ const AppContent = () => {
           <Route path="/v2/clients" element={user ? <ModelV2ClientsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/reviews" element={user ? <ModelV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/goals" element={user ? <ModelV2GoalsPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/bank" element={user ? <ModelV2BankPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/bank/:product" element={user ? <ModelV2BankProductPage /> : <Navigate to="/login" replace />} />
           
           {/* Client V2 Routes */}
           <Route path="/v2/client/dashboard" element={user ? <ClientV2DashboardPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/search" element={user ? <ClientV2SearchPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/feed" element={user ? <ClientV2FeedPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/client/chat" element={user ? <ClientV2ChatPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/client/privebank" element={user ? <ClientV2PriveBankPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/reviews" element={user ? <ClientV2ReviewsPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/account" element={user ? <ClientV2AccountPage /> : <Navigate to="/login" replace />} />
+          
+          {/* Unified Routes - Work for both models and clients */}
+          <Route path="/v2/chat" element={user ? <UnifiedChatPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/bank" element={user ? <UnifiedBankPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/components-documentation" element={user ? <ComponentsDocumentationPage /> : <Navigate to="/login" replace />} />
           
