@@ -144,7 +144,7 @@ const AppContent = () => {
           <Route path="/v2/client/search" element={user ? <ClientV2SearchPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/feed" element={user ? <ClientV2FeedPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/reviews" element={user ? <ClientV2ReviewsPage /> : <Navigate to="/login" replace />} />
-          <Route path="/v2/client/account" element={user ? <ClientV2AccountPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/account" element={user ? <ClientV2AccountPage /> : <Navigate to="/login" replace />} />
           <Route path="/v2/client/privebank/:product" element={user ? <UnifiedBankProductPage /> : <Navigate to="/login" replace />} />
           
           {/* Unified Routes - Work for both models and clients */}
