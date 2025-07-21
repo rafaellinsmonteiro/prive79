@@ -62,14 +62,10 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
   };
 
   return (
-    <div className={`h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide ${
-      !isMobile ? 'flex justify-center bg-black' : ''
-    }`}>
+    <div className="h-[calc(100vh-3.5rem)] overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-zinc-950">
       <div 
         ref={containerRef}
-        className={`${
-          isMobile ? 'h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide' : 'w-full max-w-md h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide'
-        }`}
+        className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {models.map((model, index) => {
@@ -80,7 +76,7 @@ const ReelsFeed = ({ models, settings }: ReelsFeedProps) => {
             return (
               <div 
                 key={model.id} 
-                className="h-screen w-full snap-start bg-black flex items-center justify-center"
+                className="h-[calc(100vh-3.5rem)] w-full snap-start bg-zinc-950 flex items-center justify-center"
               >
                 <div className="text-white">Carregando...</div>
               </div>

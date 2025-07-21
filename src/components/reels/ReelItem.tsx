@@ -131,11 +131,12 @@ const ReelItem: React.FC<ReelItemProps> = ({
   };
 
   return (
-    <Card 
-      className="bg-zinc-900 border-zinc-700 overflow-hidden relative h-full"
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
-    >
+    <div className="h-[calc(100vh-3.5rem)] w-full snap-start bg-zinc-950 relative">
+      <Card 
+        className="bg-zinc-900 border-zinc-700 overflow-hidden relative h-full"
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
+      >
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
         <div className="flex items-center justify-between">
@@ -186,7 +187,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
       </div>
 
       {/* Media */}
-      <div className="relative aspect-[9/16] bg-black overflow-hidden">
+      <div className="relative h-full bg-black overflow-hidden">
         {reel.media_type === 'video' ? (
           <>
             <video
@@ -311,7 +312,8 @@ const ReelItem: React.FC<ReelItemProps> = ({
           )}
         </div>
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 };
 
