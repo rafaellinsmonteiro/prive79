@@ -48,7 +48,7 @@ const UnifiedBankPage = () => {
   // States for bank functionality
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showBalance, setShowBalance] = useState(true);
-  const [menuExpanded, setMenuExpanded] = useState(false);
+  const [menuExpanded, setMenuExpanded] = useState(window.innerWidth >= 768);
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
@@ -261,25 +261,52 @@ const UnifiedBankPage = () => {
         <div className="space-y-6">
           {/* Collapsible Top Menu */}
           <div className="mb-6">
-            <Button
-              variant="outline"
-              onClick={() => setMenuExpanded(!menuExpanded)}
-              className="w-full flex items-center justify-between p-4 bg-card border-border hover:bg-accent/50 transition-colors"
-            >
-              <span className="text-sm font-medium text-foreground">
-                {menuExpanded ? 'Fechar menu' : 'Mostrar todas as soluções'}
-              </span>
-              {menuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
+            {/* Mobile Layout */}
+            <div className="block md:hidden">
+              <div className="flex gap-3 mb-4">
+                <Card className="bg-gradient-to-br from-blue-500/20 to-blue-500/10 border-blue-500/30 flex-1">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500/30 to-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <TrendingUp className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-blue-100">GERAL</h3>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer flex-1" onClick={() => setMenuExpanded(!menuExpanded)}>
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-muted/20 to-muted/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      {menuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">MENU</h3>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:block">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">PriveBank - Soluções</h2>
+                <Button
+                  variant="ghost"
+                  onClick={() => setMenuExpanded(!menuExpanded)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  {menuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <span className="ml-2">{menuExpanded ? 'Minimizar' : 'Expandir'}</span>
+                </Button>
+              </div>
+            </div>
             
             {menuExpanded && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 animate-fade-in">
-                <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
+                <Card className="bg-gradient-to-br from-blue-500/20 to-blue-500/10 border-blue-500/30 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
                   <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                      <TrendingUp className="h-6 w-6 text-blue-500" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 to-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <TrendingUp className="h-6 w-6 text-blue-400" />
                     </div>
-                    <h3 className="font-semibold text-foreground">MINHA CONTA</h3>
+                    <h3 className="font-semibold text-blue-100">GERAL</h3>
                   </CardContent>
                 </Card>
 
