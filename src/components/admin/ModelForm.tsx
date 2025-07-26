@@ -227,6 +227,22 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         
         // Para atualização, vamos fazer a operação diretamente no Supabase
         // para ter mais controle sobre os dados que estão sendo enviados
+        
+        // Log da autenticação atual
+        const { data: currentSession, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔐 Current session check:', { 
+          hasSession: !!currentSession.session,
+          isExpired: currentSession.session ? new Date(currentSession.session.expires_at || 0) < new Date() : true,
+          userId: currentSession.session?.user?.id
+        });
+        
+        if (sessionError || !currentSession.session) {
+          throw new Error('Sessão inválida. Faça login novamente.');
+        }
+        
+        console.log('📝 About to update model with data:', JSON.stringify(modelData, null, 2));
+        console.log('📝 Model ID to update:', modelId);
+        
         const { data: updatedModel, error: updateError } = await supabase
           .from('models')
           .update(modelData)
@@ -240,10 +256,12 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
           console.error('💥 Error message:', updateError.message);
           console.error('💥 Error details:', updateError.details);
           console.error('💥 Error hint:', updateError.hint);
+          console.error('💥 Full error object:', JSON.stringify(updateError, null, 2));
           throw updateError;
         }
         
         console.log('✅ Direct update success:', updatedModel);
+        console.log('✅ Rows affected:', updatedModel ? 'Model updated' : 'No model returned');
         modelResult = updatedModel;
         
         toast({ title: "Sucesso", description: "Modelo atualizada com sucesso!" });
