@@ -21,7 +21,14 @@ export default function ChatAppLayout() {
 
   const renderMainContent = () => {
     if (activeTab === 'contacts') {
-      return <ContactsView />;
+      return (
+        <ContactsView 
+          onStartConversation={(conversationId) => {
+            setSelectedConversationId(conversationId);
+            setActiveTab('conversations');
+          }}
+        />
+      );
     }
 
     if (activeTab === 'settings') {

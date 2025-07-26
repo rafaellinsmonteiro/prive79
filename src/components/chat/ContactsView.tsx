@@ -1,10 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, UserPlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, Plus, UserPlus, MessageSquare } from 'lucide-react';
+import { useCreateConversation } from '@/hooks/useChat';
+import { toast } from '@/hooks/use-toast';
 
-const ContactsView: React.FC = () => {
+interface ContactsViewProps {
+  onStartConversation?: (conversationId: string) => void;
+}
+
+const ContactsView: React.FC<ContactsViewProps> = ({ onStartConversation }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [modelId, setModelId] = useState('');
+  const createConversation = useCreateConversation();
+
+  const handleCreateConversation = async () => {
+    if (!modelId.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um ID de modelo válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync(modelId);
+      setIsDialogOpen(false);
+      setModelId('');
+      
+      toast({
+        title: "Sucesso",
+        description: "Conversa iniciada com sucesso!",
+      });
+
+      // Notificar o componente pai para navegar para a conversa
+      if (onStartConversation) {
+        onStartConversation(conversation.id);
+      }
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao iniciar conversa. Verifique o ID do modelo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Mock data para demonstração
   const contacts = [
     {
@@ -36,9 +81,53 @@ const ContactsView: React.FC = () => {
       <div className="border-b border-zinc-800 p-4 bg-zinc-900">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Contatos</h2>
-          <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
-            <UserPlus className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-zinc-900 border-zinc-800">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Iniciar Nova Conversa</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-2 block">
+                      ID do Modelo
+                    </label>
+                    <Input
+                      value={modelId}
+                      onChange={(e) => setModelId(e.target.value)}
+                      placeholder="Insira o ID do modelo..."
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="text-zinc-400 hover:text-white"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleCreateConversation}
+                      disabled={createConversation.isPending}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    >
+                      {createConversation.isPending ? 'Criando...' : 'Iniciar Conversa'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+              <UserPlus className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
         
         <div className="relative">
