@@ -637,13 +637,13 @@ const UnifiedBankPage = () => {
                       className="w-full" 
                       disabled={isProcessing}
                     >
-                      {isProcessing ? (
+                      {isProcessing || pixLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processando...
+                          {depositCurrency === 'BRL' ? 'Gerando PIX...' : 'Processando...'}
                         </>
                       ) : (
-                        'Depositar'
+                        depositCurrency === 'BRL' ? 'Gerar QRCode PIX' : 'Depositar'
                       )}
                     </Button>
                   </CardContent>
