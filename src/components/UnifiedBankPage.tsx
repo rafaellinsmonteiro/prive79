@@ -54,13 +54,12 @@ const UnifiedBankPage = () => {
   
   // Debug: Log pixDeposits changes
   React.useEffect(() => {
-    console.log('🔄 PIX Deposits atualizados no UnifiedBankPage:', pixDeposits?.map(d => ({
-      id: d.id,
-      status: d.status,
-      processed: d.processed,
-      amount: d.amount,
-      pix_id: d.pix_id.substring(0, 8)
-    })));
+    if (pixDeposits) {
+      console.log('🔄 PIX Deposits atualizados no UnifiedBankPage (total:', pixDeposits.length, ')');
+      pixDeposits.forEach((d, index) => {
+        console.log(`   ${index + 1}. PIX ${d.pix_id.substring(0, 12)} - Status: ${d.status} - Processed: ${d.processed} - Amount: R$ ${d.amount}`);
+      });
+    }
   }, [pixDeposits]);
   
   // States for bank functionality
