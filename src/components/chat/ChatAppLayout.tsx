@@ -19,7 +19,8 @@ export default function ChatAppLayout() {
     // Remove a marca do chat-app login e redireciona para a tela de login do chat
     localStorage.removeItem('chat-app-login');
     await signOut();
-    window.location.href = '/chat-app';
+    // No chat-app standalone, apenas recarrega a página para ir para /login
+    window.location.reload();
   };
 
   const renderMainContent = () => {

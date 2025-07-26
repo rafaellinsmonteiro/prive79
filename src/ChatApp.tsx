@@ -19,8 +19,12 @@ function ChatAppRoutes() {
     );
   }
 
-  // Se usuário está logado e foi pelo chat-app, sempre vai para o chat
-  if (user && localStorage.getItem('chat-app-login')) {
+  // Para o chat-app standalone, sempre mostrar a interface de chat se logado
+  if (user) {
+    // Marca que o login foi feito pelo chat-app
+    if (!localStorage.getItem('chat-app-login')) {
+      localStorage.setItem('chat-app-login', 'true');
+    }
     return (
       <Routes>
         <Route path="*" element={<ChatAppLayout />} />
@@ -32,13 +36,13 @@ function ChatAppRoutes() {
     <Routes>
       <Route 
         path="/login" 
-        element={!user ? <ChatLogin /> : <Navigate to="/" replace />} 
+        element={<ChatLogin />} 
       />
       <Route 
         path="/" 
-        element={user ? <ChatAppLayout /> : <Navigate to="/login" replace />} 
+        element={<Navigate to="/login" replace />} 
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
