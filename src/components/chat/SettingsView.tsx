@@ -12,7 +12,10 @@ import {
   LogOut, 
   ChevronRight,
   Moon,
-  Volume2
+  Volume2,
+  Calendar,
+  Briefcase,
+  Users
 } from 'lucide-react';
 
 const SettingsView: React.FC = () => {
@@ -31,6 +34,45 @@ const SettingsView: React.FC = () => {
           label: 'Editar Perfil',
           description: 'Nome, foto e informações pessoais',
           hasArrow: true,
+          action: 'edit-profile',
+        },
+      ],
+    },
+    {
+      title: 'Mídias',
+      items: [
+        {
+          icon: Palette,
+          label: 'Gerenciar Mídias',
+          description: 'Fotos, vídeos e conteúdo',
+          hasArrow: true,
+          action: 'manage-media',
+        },
+      ],
+    },
+    {
+      title: 'Gestão',
+      items: [
+        {
+          icon: Calendar,
+          label: 'Agenda',
+          description: 'Compromissos e horários',
+          hasArrow: true,
+          action: 'appointments',
+        },
+        {
+          icon: Briefcase,
+          label: 'Serviços',
+          description: 'Gerenciar serviços oferecidos',
+          hasArrow: true,
+          action: 'services',
+        },
+        {
+          icon: Users,
+          label: 'Clientes',
+          description: 'Gerenciar clientes',
+          hasArrow: true,
+          action: 'clients',
         },
       ],
     },
@@ -42,13 +84,7 @@ const SettingsView: React.FC = () => {
           label: 'Privacidade',
           description: 'Configurações de privacidade e segurança',
           hasArrow: true,
-        },
-        {
-          icon: Bell,
-          label: 'Notificações',
-          description: 'Sons, vibração e notificações',
-          hasToggle: true,
-          enabled: true,
+          action: 'privacy',
         },
       ],
     },
@@ -56,35 +92,18 @@ const SettingsView: React.FC = () => {
       title: 'Aparência',
       items: [
         {
-          icon: Palette,
-          label: 'Tema',
-          description: 'Claro, escuro ou automático',
-          hasArrow: true,
-        },
-        {
           icon: Moon,
           label: 'Modo Escuro',
           description: 'Ativar tema escuro',
           hasToggle: true,
           enabled: true,
         },
-      ],
-    },
-    {
-      title: 'Outros',
-      items: [
         {
           icon: Volume2,
           label: 'Sons',
           description: 'Configurar sons do chat',
           hasToggle: true,
           enabled: true,
-        },
-        {
-          icon: HelpCircle,
-          label: 'Ajuda',
-          description: 'Central de ajuda e suporte',
-          hasArrow: true,
         },
       ],
     },
