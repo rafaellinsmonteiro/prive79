@@ -1,126 +1,148 @@
-import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Plus } from 'lucide-react';
-import { useConversations, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useDisguiseMode } from '@/hooks/useDisguiseMode';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MessageCircle, Plus, Search, MoreVertical, MessageSquare } from 'lucide-react';
+import { useConversations, useCreateConversation, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 
-const ConversationsList = () => {
-  const [search, setSearch] = useState('');
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const { data: conversations, isLoading, isError } = useConversations();
-  const [isModel, setIsModel] = useState(false);
-  const { getDisguisedContact } = useDisguiseMode();
+interface ConversationsListProps {
+  onSelectConversation: (conversationId: string) => void;
+  selectedConversationId?: string;
+}
 
-  useEffect(() => {
-    const checkIsModel = async () => {
-      if (user) {
-        // Check if the user has a model profile
-        const modelProfile = await fetch(`/api/model-profile?userId=${user.id}`);
-        const modelData = await modelProfile.json();
-        setIsModel(!!modelData.model_id);
-      }
-    };
+const ConversationsList = ({ onSelectConversation, selectedConversationId }: ConversationsListProps) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [modelId, setModelId] = useState('');
+  const { data: conversations = [] } = useConversations();
+  const { data: isModel = false } = useIsUserModel();
+  const createConversation = useCreateConversation();
 
-    checkIsModel();
-  }, [user]);
+  const handleCreateConversation = async () => {
+    if (!modelId.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um ID de modelo válido",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const onSelectConversation = (conversationId: string) => {
-    navigate(`/v2/chat?conversation=${conversationId}`);
+    try {
+      console.log('Creating conversation for model ID:', modelId);
+      const conversation = await createConversation.mutateAsync(modelId);
+      console.log('Conversation created successfully:', conversation);
+      
+      setIsDialogOpen(false);
+      setModelId('');
+      onSelectConversation(conversation.id);
+      
+      toast({
+        title: "Sucesso", 
+        description: `Conversa iniciada com ${conversation.models?.name || 'modelo'}!`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao criar conversa:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao iniciar conversa. Verifique o ID do modelo.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const onCreateConversation = () => {
-    navigate('/v2/new-chat');
+  const getLastMessageDisplay = (conversation: any) => {
+    if (!conversation.last_message_content) {
+      return 'Inicie uma conversa...';
+    }
+    return conversation.last_message_content;
   };
-
-  const getDisplayName = (conversation: any) => {
-    const originalName = isModel 
-      ? getConversationDisplayName(conversation, isModel)
-      : getConversationDisplayName(conversation, isModel);
-    
-    const disguised = getDisguisedContact(
-      conversation.id, 
-      originalName, 
-      getConversationDisplayPhoto(conversation, isModel)
-    );
-    
-    return disguised.name;
-  };
-
-  const getDisplayPhoto = (conversation: any) => {
-    const originalPhoto = getConversationDisplayPhoto(conversation, isModel);
-    const disguised = getDisguisedContact(
-      conversation.id, 
-      getConversationDisplayName(conversation, isModel), 
-      originalPhoto
-    );
-    
-    return disguised.photo;
-  };
-
-  const formatLastMessageTime = (timestamp?: string) => {
-    if (!timestamp) return '';
-    
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Agora';
-    if (diffInHours < 24) return `${diffInHours}h`;
-    return `${Math.floor(diffInHours / 24)}d`;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-zinc-400">Carregando conversas...</p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-red-500">Erro ao carregar conversas.</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="bg-zinc-900 h-full flex flex-col">
       <div className="border-b border-zinc-800 p-4 bg-zinc-900">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Conversas</h2>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Input
-                type="search"
-                placeholder="Buscar..."
-                className="bg-zinc-800 border-zinc-700 text-white focus-visible:ring-0 focus-visible:ring-offset-0"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Search className="absolute top-2.5 right-2 h-4 w-4 text-zinc-500" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <MessageCircle className="h-4 w-4 text-white" />
             </div>
-            <Button onClick={onCreateConversation} className="bg-pink-500 hover:bg-pink-600">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Conversa
+            <h2 className="text-lg font-semibold text-white">Conversas</h2>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+        
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+          <Input
+            placeholder="Pesquisar conversas..."
+            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 pl-10 rounded-lg h-10 focus:border-purple-500 transition-all duration-200"
+          />
         </div>
       </div>
 
       <div className="p-0 flex-1 overflow-hidden">
         {conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-zinc-400">Nenhuma conversa encontrada.</p>
-            <p className="text-zinc-500 text-sm mt-2">
-              Comece uma nova conversa para ver as mensagens aqui.
+          <div className="flex flex-col items-center justify-center h-full px-6 pb-20 sm:pb-0">
+            <div className="bg-zinc-800/50 rounded-2xl p-6 mb-4">
+              <MessageCircle className="h-12 w-12 text-zinc-400 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">Nenhuma conversa</h3>
+            <p className="text-zinc-400 text-center mb-6 text-sm">
+              Comece uma nova conversa com suas modelos favoritas
             </p>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg px-6 py-2 transition-all duration-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Conversa
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-zinc-900 border-zinc-800">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Iniciar Nova Conversa</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-2 block">
+                      ID do Modelo
+                    </label>
+                    <Input
+                      value={modelId}
+                      onChange={(e) => setModelId(e.target.value)}
+                      placeholder="Insira o ID do modelo..."
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="text-zinc-400 hover:text-white"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleCreateConversation}
+                      disabled={createConversation.isPending}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    >
+                      {createConversation.isPending ? 'Criando...' : 'Iniciar Conversa'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         ) : (
           <div className="relative overflow-y-auto h-full pb-20 sm:pb-0">
@@ -129,29 +151,36 @@ const ConversationsList = () => {
                 <button
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
-                  className="w-full p-4 flex items-center space-x-3 hover:bg-zinc-800/50 transition-colors text-left"
+                  className={`w-full p-4 flex items-center space-x-3 hover:bg-zinc-800/50 transition-all duration-200 group ${
+                    selectedConversationId === conversation.id ? 'bg-zinc-800 border-r-2 border-purple-500' : ''
+                  }`}
                 >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={getDisplayPhoto(conversation)} />
-                      <AvatarFallback className="bg-zinc-700 text-white">
-                        {getDisplayName(conversation).charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={getConversationDisplayPhoto(conversation, isModel)}
+                      alt={getConversationDisplayName(conversation, isModel)}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700 group-hover:border-purple-500/50 transition-colors"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
                   </div>
-                  <div className="flex-1 min-w-0">
+                  
+                  <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-white font-medium truncate">
-                        {getDisplayName(conversation)}
-                      </p>
-                      {conversation.last_message_at && (
-                        <span className="text-xs text-zinc-400">
-                          {formatLastMessageTime(conversation.last_message_at)}
-                        </span>
-                      )}
+                      <h4 className="text-white font-semibold truncate group-hover:text-purple-400 transition-colors">
+                        {getConversationDisplayName(conversation, isModel)}
+                      </h4>
+                      <span className="text-xs text-zinc-400 ml-2 flex-shrink-0">
+                        {conversation.last_message_at &&
+                          format(new Date(conversation.last_message_at), 'HH:mm', {
+                            locale: ptBR,
+                          })}
+                      </span>
                     </div>
-                    <p className="text-zinc-400 text-sm truncate">
-                      {conversation.last_message_content || 'Iniciar conversa...'}
+                    <p className="text-sm text-zinc-400 truncate">
+                      {getLastMessageDisplay(conversation)}
                     </p>
                   </div>
                 </button>
@@ -159,12 +188,49 @@ const ConversationsList = () => {
             </div>
 
             {/* Botão flutuante para nova conversa */}
-            <Button
-              onClick={onCreateConversation}
-              className="absolute bottom-4 right-4 bg-pink-500 hover:bg-pink-600 rounded-full shadow-lg"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            <div className="absolute bottom-20 right-4 sm:bottom-4">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-14 h-14 shadow-lg">
+                    <Plus className="h-6 w-6" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-zinc-900 border-zinc-800">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Iniciar Nova Conversa</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-2 block">
+                        ID do Modelo
+                      </label>
+                      <Input
+                        value={modelId}
+                        onChange={(e) => setModelId(e.target.value)}
+                        placeholder="Insira o ID do modelo..."
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setIsDialogOpen(false)}
+                        className="text-zinc-400 hover:text-white"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleCreateConversation}
+                        disabled={createConversation.isPending}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                      >
+                        {createConversation.isPending ? 'Criando...' : 'Iniciar Conversa'}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         )}
       </div>
