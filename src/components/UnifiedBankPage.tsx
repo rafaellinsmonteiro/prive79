@@ -37,7 +37,8 @@ import {
   PiggyBank,
   ChevronDown,
   ChevronUp,
-  Loader2
+  Loader2,
+  QrCode
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -796,7 +797,7 @@ const UnifiedBankPage = () => {
                   {((transactions && transactions.length > 0) || (pixDeposits && pixDeposits.length > 0)) ? (
                     <div className="space-y-4">
                       {/* PIX deposits */}
-                      {pixDeposits?.map((deposit) => (
+                       {pixDeposits?.map((deposit) => (
                         <div key={`pix-${deposit.id}`} className="flex items-center justify-between p-4 bg-accent/20 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-500/20">
@@ -810,20 +811,73 @@ const UnifiedBankPage = () => {
                               <p className="text-sm text-muted-foreground">PIX ID: {deposit.pix_id.substring(0, 8)}...</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-500">
-                              +R$ {Number(deposit.amount).toFixed(2)}
-                            </p>
-                            <Badge variant={
-                              deposit.status === 'PAID' ? 'default' : 
-                              deposit.status === 'PENDING' ? 'secondary' : 
-                              'destructive'
-                            }>
-                              {deposit.status === 'PAID' ? 'Pago' : 
-                               deposit.status === 'PENDING' ? 'Pendente' : 
-                               deposit.status === 'CANCELLED' ? 'Cancelado' : 
-                               'Expirado'}
-                            </Badge>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="font-bold text-green-500">
+                                +R$ {Number(deposit.amount).toFixed(2)}
+                              </p>
+                              <Badge variant={
+                                deposit.status === 'PAID' ? 'default' : 
+                                deposit.status === 'PENDING' ? 'secondary' : 
+                                'destructive'
+                              }>
+                                {deposit.status === 'PAID' ? 'Pago' : 
+                                 deposit.status === 'PENDING' ? 'Pendente' : 
+                                 deposit.status === 'CANCELLED' ? 'Cancelado' : 
+                                 'Expirado'}
+                              </Badge>
+                            </div>
+                            {/* Botão Ver QR Code para PIX pendentes */}
+                            {deposit.status === 'PENDING' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={async () => {
+                                  // Buscar dados atualizados do PIX via API
+                                  try {
+                                    const { data, error } = await supabase.functions.invoke('abacatepay-pix', {
+                                      body: {
+                                        action: 'status',
+                                        pixId: deposit.pix_id
+                                      }
+                                    });
+
+                                    if (!error && data) {
+                                      setPixData({
+                                        id: deposit.pix_id,
+                                        brCode: deposit.br_code,
+                                        brCodeBase64: data.brCodeBase64 || `data:image/png;base64,${deposit.br_code}`,
+                                        expiresAt: deposit.expires_at,
+                                        status: data.status || deposit.status
+                                      });
+                                    } else {
+                                      // Fallback para dados locais
+                                      setPixData({
+                                        id: deposit.pix_id,
+                                        brCode: deposit.br_code,
+                                        brCodeBase64: `data:image/png;base64,${deposit.br_code}`,
+                                        expiresAt: deposit.expires_at,
+                                        status: deposit.status
+                                      });
+                                    }
+                                  } catch (error) {
+                                    // Em caso de erro, usar dados locais
+                                    setPixData({
+                                      id: deposit.pix_id,
+                                      brCode: deposit.br_code,
+                                      brCodeBase64: `data:image/png;base64,${deposit.br_code}`,
+                                      expiresAt: deposit.expires_at,
+                                      status: deposit.status
+                                    });
+                                  }
+                                  setPixModalOpen(true);
+                                }}
+                                className="flex items-center gap-1"
+                              >
+                                <QrCode className="h-3 w-3" />
+                                Ver QR
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
