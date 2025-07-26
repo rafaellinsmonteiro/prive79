@@ -17,7 +17,10 @@ import {
   Volume2,
   Calendar,
   Briefcase,
-  Users
+  Users,
+  Wallet,
+  CreditCard,
+  History
 } from 'lucide-react';
 
 const SettingsView: React.FC = () => {
@@ -76,6 +79,25 @@ const SettingsView: React.FC = () => {
           description: 'Gerenciar clientes',
           hasArrow: true,
           action: 'clients',
+        },
+      ],
+    },
+    {
+      title: 'Banco',
+      items: [
+        {
+          icon: CreditCard,
+          label: 'Depósito',
+          description: 'Realizar depósitos na conta',
+          hasArrow: true,
+          action: 'deposit',
+        },
+        {
+          icon: History,
+          label: 'Histórico',
+          description: 'Histórico de transações',
+          hasArrow: true,
+          action: 'history',
         },
       ],
     },
