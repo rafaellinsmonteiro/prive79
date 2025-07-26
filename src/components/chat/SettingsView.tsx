@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import ChatMediaManager from './ChatMediaManager';
+import EditProfileView from './EditProfileView';
 import { 
   User, 
   Bell, 
@@ -21,7 +22,7 @@ import {
 
 const SettingsView: React.FC = () => {
   const { user, signOut } = useAuth();
-  const [currentView, setCurrentView] = useState<'main' | 'media'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'media' | 'edit-profile'>('main');
 
   const handleLogout = async () => {
     await signOut();
@@ -111,9 +112,13 @@ const SettingsView: React.FC = () => {
     },
   ];
 
-  // Renderizar a view de mídias se selecionada
+  // Renderizar diferentes views
   if (currentView === 'media') {
     return <ChatMediaManager onBack={() => setCurrentView('main')} />;
+  }
+
+  if (currentView === 'edit-profile') {
+    return <EditProfileView onBack={() => setCurrentView('main')} />;
   }
 
   return (
@@ -158,6 +163,8 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                       if (item.action === 'manage-media') {
                         setCurrentView('media');
+                      } else if (item.action === 'edit-profile') {
+                        setCurrentView('edit-profile');
                       }
                       // Adicionar outras ações conforme necessário
                     }}
