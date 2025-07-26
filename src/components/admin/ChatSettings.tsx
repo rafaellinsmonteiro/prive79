@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,8 @@ const ChatSettings = () => {
       enable_read_receipts: true,
       enable_file_upload: true,
       allowed_file_types: 'image/jpeg, image/png, image/gif, video/mp4, audio/mpeg, audio/wav',
+      disguise_mode_enabled: false,
+      disguise_mode_type: 'women',
     },
   });
 
@@ -37,6 +38,8 @@ const ChatSettings = () => {
         enable_read_receipts: settings.enable_read_receipts || true,
         enable_file_upload: settings.enable_file_upload || true,
         allowed_file_types: settings.allowed_file_types?.join(', ') || 'image/jpeg, image/png, image/gif, video/mp4, audio/mpeg, audio/wav',
+        disguise_mode_enabled: settings.disguise_mode_enabled || false,
+        disguise_mode_type: settings.disguise_mode_type || 'women',
       });
     }
   }, [settings, reset]);
@@ -45,6 +48,7 @@ const ChatSettings = () => {
   const enableTypingIndicators = watch('enable_typing_indicators');
   const enableReadReceipts = watch('enable_read_receipts');
   const enableFileUpload = watch('enable_file_upload');
+  const disguiseModeEnabled = watch('disguise_mode_enabled');
 
   const onSubmit = async (data: any) => {
     if (!settings?.id) return;
@@ -59,6 +63,8 @@ const ChatSettings = () => {
         enable_read_receipts: data.enable_read_receipts,
         enable_file_upload: data.enable_file_upload,
         allowed_file_types: data.allowed_file_types.split(',').map((type: string) => type.trim()),
+        disguise_mode_enabled: data.disguise_mode_enabled,
+        disguise_mode_type: data.disguise_mode_type,
         updated_at: new Date().toISOString(),
       });
       
@@ -116,6 +122,71 @@ const ChatSettings = () => {
                 Mensagens serão deletadas automaticamente após este período
               </p>
             </div>
+          </div>
+
+          {/* Privacidade e Segurança */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-white border-b border-zinc-700 pb-2">
+              Privacidade e Segurança
+            </h3>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="disguise_mode_enabled"
+                checked={disguiseModeEnabled}
+                onCheckedChange={(checked) => setValue('disguise_mode_enabled', checked)}
+              />
+              <Label htmlFor="disguise_mode_enabled" className="text-white">
+                Modo Disfarce
+              </Label>
+            </div>
+            <p className="text-zinc-400 text-sm">
+              Transforma a imagem e nome de todos os contatos para maior privacidade
+            </p>
+
+            {disguiseModeEnabled && (
+              <div className="space-y-2 ml-6">
+                <Label className="text-white">Tipo de Disfarce</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="disguise_women"
+                      value="women"
+                      {...register('disguise_mode_type')}
+                      className="text-purple-500"
+                    />
+                    <Label htmlFor="disguise_women" className="text-zinc-300">
+                      Todos os contatos serão mulheres
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="disguise_men"
+                      value="men"
+                      {...register('disguise_mode_type')}
+                      className="text-purple-500"
+                    />
+                    <Label htmlFor="disguise_men" className="text-zinc-300">
+                      Todos os contatos serão homens
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="disguise_stores"
+                      value="stores"
+                      {...register('disguise_mode_type')}
+                      className="text-purple-500"
+                    />
+                    <Label htmlFor="disguise_stores" className="text-zinc-300">
+                      Todos os contatos serão lojas aleatórias
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Funcionalidades */}
