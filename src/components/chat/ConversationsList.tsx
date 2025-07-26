@@ -33,20 +33,23 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
     }
 
     try {
+      console.log('Creating conversation for model ID:', modelId);
       const conversation = await createConversation.mutateAsync(modelId);
+      console.log('Conversation created successfully:', conversation);
+      
       setIsDialogOpen(false);
       setModelId('');
       onSelectConversation(conversation.id);
       
       toast({
         title: "Sucesso", 
-        description: "Conversa iniciada com sucesso!",
+        description: `Conversa iniciada com ${conversation.models?.name || 'modelo'}!`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar conversa:', error);
       toast({
         title: "Erro",
-        description: "Erro ao iniciar conversa. Verifique o ID do modelo.",
+        description: error.message || "Erro ao iniciar conversa. Verifique o ID do modelo.",
         variant: "destructive",
       });
     }

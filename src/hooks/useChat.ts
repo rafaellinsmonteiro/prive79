@@ -225,31 +225,66 @@ export const useCreateConversation = () => {
     mutationFn: async (modelId: string) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Primeiro, verificar se já existe uma conversa para este usuário e modelo
+      // Validar se o modelo existe e está ativo
       if (modelId) {
+        const { data: modelExists, error: modelError } = await supabase
+          .from('models')
+          .select('id, name, is_active')
+          .eq('id', modelId)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (modelError) {
+          console.error('Error checking model:', modelError);
+          throw new Error('Erro ao verificar modelo');
+        }
+
+        if (!modelExists) {
+          throw new Error('Modelo não encontrado ou inativo');
+        }
+
+        // Verificar se já existe uma conversa para este usuário e modelo
         const { data: existingConversation } = await supabase
           .from('conversations')
-          .select('id')
+          .select(`
+            id,
+            *,
+            models (
+              *,
+              photos:model_photos(*)
+            )
+          `)
           .eq('user_id', user.id)
           .eq('model_id', modelId)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         if (existingConversation) {
           return existingConversation;
         }
       }
 
+      // Criar nova conversa
       const { data, error } = await supabase
         .from('conversations')
         .insert({
           user_id: user.id,
           model_id: modelId || null,
         })
-        .select()
+        .select(`
+          *,
+          models (
+            *,
+            photos:model_photos(*)
+          )
+        `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating conversation:', error);
+        throw error;
+      }
+      
       return data;
     },
     onSuccess: () => {
