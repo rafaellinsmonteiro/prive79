@@ -300,47 +300,27 @@ const EditProfileView: React.FC<EditProfileViewProps> = ({ onBack }) => {
               </div>
             </form>
           </div>
-
-          {/* Plan Info Card */}
-          <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 p-6">
-            <div className="space-y-2">
-              <Label className="text-zinc-300 text-sm font-medium">
-                Plano Ativo
-              </Label>
-              <div className="bg-zinc-800/70 border border-zinc-700 rounded-lg px-4 py-3">
-                {currentUser?.plan ? (
-                  <span className="text-green-400 font-medium">
-                    {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
-                  </span>
-                ) : currentUser ? (
-                  <span className="text-yellow-400 font-medium">Nenhum plano ativo</span>
-                ) : (
-                  <span className="text-zinc-500">Carregando...</span>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* Fixed Actions Bar */}
-      <div className="border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-sm p-4">
-        <div className="flex space-x-3">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium shadow-lg"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-          <Button
-            onClick={handleCancel}
-            variant="outline"
-            className="border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+        {/* Actions Section - Not Fixed */}
+        <div className="px-6 pb-6">
+          <div className="flex space-x-3">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium shadow-lg"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+            <Button
+              onClick={handleCancel}
+              variant="outline"
+              className="border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
