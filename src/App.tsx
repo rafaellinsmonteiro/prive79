@@ -128,6 +128,7 @@ const AppContent = () => {
           {/* Protected routes - redirect to login if not authenticated */}
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={user ? <AdminDesignTestDashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/admin/models" element={user ? <AdminDesignTestModels /> : <Navigate to="/login" replace />} />
           <Route path="/model-dashboard" element={user ? <DesignTestModelDashboard /> : <Navigate to="/login" replace />} />
           
           {/* Model V2 Routes */}
