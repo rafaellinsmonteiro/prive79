@@ -104,9 +104,9 @@ const BankLogsManager = () => {
                   <TableCell>
                     {getActionBadge(log.action_type, log.success)}
                   </TableCell>
-                  <TableCell className="text-zinc-300">
-                    {log.ip_address || 'N/A'}
-                  </TableCell>
+                   <TableCell className="text-zinc-300">
+                     {log.ip_address?.toString() || 'N/A'}
+                   </TableCell>
                   <TableCell className="text-zinc-300 max-w-xs truncate">
                     {log.user_agent || 'N/A'}
                   </TableCell>

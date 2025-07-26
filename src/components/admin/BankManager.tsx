@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Users, FileText, BarChart3, Settings } from 'lucide-react';
+import { DollarSign, Users, FileText, BarChart3, Settings, Puzzle } from 'lucide-react';
 import BankAccountsManager from './BankAccountsManager';
 import BankTransactionsManager from './BankTransactionsManager';
 import BankLogsManager from './BankLogsManager';
 import BankStatsManager from './BankStatsManager';
 import BankSettingsManager from './BankSettingsManager';
+import BankIntegrationsManager from './BankIntegrationsManager';
 
 const BankManager = () => {
   return (
     <div>
       {/* Tabs Navigation */}
       <Tabs defaultValue="accounts" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800 mb-6">
+        <TabsList className="grid w-full grid-cols-6 bg-zinc-900 border-zinc-800 mb-6">
           <TabsTrigger 
             value="accounts" 
             className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
@@ -48,6 +49,13 @@ const BankManager = () => {
             <Settings className="h-4 w-4 mr-2" />
             Configurações
           </TabsTrigger>
+          <TabsTrigger 
+            value="integrations"
+            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+          >
+            <Puzzle className="h-4 w-4 mr-2" />
+            Integrações
+          </TabsTrigger>
         </TabsList>
 
         {/* Tab Contents */}
@@ -69,6 +77,10 @@ const BankManager = () => {
 
         <TabsContent value="settings" className="mt-0">
           <BankSettingsManager />
+        </TabsContent>
+
+        <TabsContent value="integrations" className="mt-0">
+          <BankIntegrationsManager />
         </TabsContent>
       </Tabs>
     </div>
