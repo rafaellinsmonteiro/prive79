@@ -16,7 +16,10 @@ export default function ChatAppLayout() {
   const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
+    // Remove a marca do chat-app login e redireciona para a tela de login do chat
+    localStorage.removeItem('chat-app-login');
     await signOut();
+    window.location.href = '/chat-app';
   };
 
   const renderMainContent = () => {

@@ -19,6 +19,15 @@ function ChatAppRoutes() {
     );
   }
 
+  // Se usuário está logado e foi pelo chat-app, sempre vai para o chat
+  if (user && localStorage.getItem('chat-app-login')) {
+    return (
+      <Routes>
+        <Route path="*" element={<ChatAppLayout />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route 
