@@ -34,6 +34,12 @@ const Login = () => {
   useEffect(() => {
     if (authComplete && user && !authLoading && !profileLoading) {
       console.log('🔄 Login: Auth complete, user:', user.email, 'isAdmin:', isAdmin, 'modelProfile:', !!modelProfile);
+      
+      // Se estiver no chat-app (chat.prive.click), não fazer redirecionamentos automáticos
+      if (window.location.hostname === 'chat.prive.click') {
+        return;
+      }
+      
       // Small delay to ensure state is stable
       const timeoutId = setTimeout(() => {
         if (isAdmin) {
