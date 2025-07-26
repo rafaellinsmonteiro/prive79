@@ -45,6 +45,7 @@ export default function ClientV2AccountPage() {
     email: '',
     name: '',
     whatsapp: '',
+    cpf: '',
     password: '',
     confirmPassword: ''
   });
@@ -56,6 +57,7 @@ export default function ClientV2AccountPage() {
         email: user.email || '',
         name: user.user_metadata?.name || '',
         whatsapp: user.user_metadata?.whatsapp || '',
+        cpf: user.user_metadata?.cpf || '',
         password: '',
         confirmPassword: ''
       });
@@ -91,7 +93,8 @@ export default function ClientV2AccountPage() {
       const updateData: any = {
         data: {
           name: userInfo.name,
-          whatsapp: userInfo.whatsapp
+          whatsapp: userInfo.whatsapp,
+          cpf: userInfo.cpf
         }
       };
 
@@ -140,6 +143,7 @@ export default function ClientV2AccountPage() {
       email: user?.email || '',
       name: user?.user_metadata?.name || '',
       whatsapp: user?.user_metadata?.whatsapp || '',
+      cpf: user?.user_metadata?.cpf || '',
       password: '',
       confirmPassword: ''
     });
@@ -247,6 +251,22 @@ export default function ClientV2AccountPage() {
                       placeholder="(11) 99999-9999"
                       className="disabled:opacity-60"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="cpf"
+                      type="text"
+                      value={userInfo.cpf}
+                      onChange={(e) => setUserInfo({ ...userInfo, cpf: e.target.value })}
+                      disabled={!isEditing}
+                      placeholder="000.000.000-00"
+                      className="disabled:opacity-60"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      CPF obrigatório para transações PIX
+                    </p>
                   </div>
 
                   {isEditing && (
@@ -467,17 +487,15 @@ export default function ClientV2AccountPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cpf">CPF</Label>
-                    <Input id="cpf" placeholder="000.000.000-00" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="pix">Chave PIX</Label>
-                    <Input id="pix" placeholder="Sua chave PIX" />
+                    <Label htmlFor="pix">Chave PIX (opcional)</Label>
+                    <Input id="pix" placeholder="Sua chave PIX preferida" />
+                    <p className="text-xs text-muted-foreground">
+                      Para receber pagamentos via PIX
+                    </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="bank">Dados Bancários</Label>
+                    <Label htmlFor="bank">Dados Bancários (opcional)</Label>
                     <Textarea id="bank" placeholder="Banco, agência, conta..." />
                   </div>
                 </div>

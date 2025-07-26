@@ -95,6 +95,20 @@ serve(async (req) => {
         );
       }
 
+      // Validar CPF obrigatório
+      if (!body.customer?.taxId || body.customer.taxId === '000.000.000-00') {
+        return new Response(
+          JSON.stringify({ 
+            error: 'CPF obrigatório', 
+            message: 'CPF é obrigatório para gerar PIX. Cadastre seu CPF em Minha Conta > Dados Pessoais.'
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
       // Criar PIX QR Code
       const pixPayload = {
         amount: Math.round(body.amount * 100), // AbacatePay usa centavos

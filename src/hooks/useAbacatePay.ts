@@ -47,22 +47,42 @@ export const useAbacatePay = () => {
 
       if (error) {
         console.error('Erro ao criar PIX QR Code:', error);
+        
+        // Tratar erros específicos
+        if (error.message?.includes('CPF obrigatório')) {
+          toast({
+            title: "CPF obrigatório",
+            description: "CPF é obrigatório para gerar PIX. Cadastre seu CPF em Minha Conta > Dados Pessoais.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível gerar o código PIX. Tente novamente.",
+            variant: "destructive"
+          });
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('Erro ao criar PIX QR Code:', error);
+      
+      // Tratar erros específicos
+      if (error.message?.includes('CPF obrigatório')) {
+        toast({
+          title: "CPF obrigatório", 
+          description: "CPF é obrigatório para gerar PIX. Cadastre seu CPF em Minha Conta > Dados Pessoais.",
+          variant: "destructive"
+        });
+      } else {
         toast({
           title: "Erro",
           description: "Não foi possível gerar o código PIX. Tente novamente.",
           variant: "destructive"
         });
-        return null;
       }
-
-      return data;
-    } catch (error) {
-      console.error('Erro ao criar PIX QR Code:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o código PIX. Tente novamente.",
-        variant: "destructive"
-      });
       return null;
     } finally {
       setIsLoading(false);

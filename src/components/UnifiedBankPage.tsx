@@ -105,6 +105,17 @@ const UnifiedBankPage = () => {
       return;
     }
 
+    // Verificar se o CPF está cadastrado
+    const userCpf = user?.user_metadata?.cpf;
+    if (!userCpf) {
+      toast({
+        title: "CPF obrigatório",
+        description: "Para gerar PIX é necessário cadastrar seu CPF. Acesse 'Minha Conta' > 'Dados Pessoais' para cadastrar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setPixData(null);
     setPixModalOpen(true);
 
@@ -112,8 +123,10 @@ const UnifiedBankPage = () => {
       const pixResult = await createPixQrCode({
         amount: parseFloat(depositAmount),
         description: `Depósito PriveBank - R$ ${depositAmount}`,
-        customerName: user?.user_metadata?.name,
-        customerEmail: user?.email
+        customerName: user?.user_metadata?.name || 'Cliente PriveBank',
+        customerEmail: user?.email,
+        customerPhone: user?.user_metadata?.whatsapp,
+        customerTaxId: userCpf
       });
 
       if (pixResult) {
