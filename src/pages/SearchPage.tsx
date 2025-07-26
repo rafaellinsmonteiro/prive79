@@ -69,7 +69,7 @@ const SearchPage = () => {
               <Input
                 value={filters.searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Buscar modelos..."
+                placeholder="Buscar profissionais..."
                 className="pl-10 bg-zinc-800 border-zinc-600 text-white"
               />
             </div>
@@ -141,7 +141,7 @@ const SearchPage = () => {
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-white">
-            {loading ? 'Buscando...' : `${results.length} modelos encontradas`}
+            {loading ? 'Buscando...' : `${results.length} profissionais encontradas`}
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-sm text-zinc-400">Ordenar por:</span>
@@ -296,7 +296,7 @@ const SearchPage = () => {
         {results.length > 0 && !loading && (
           <div className="text-center mt-8">
             <Button variant="outline" className="border-zinc-600 text-zinc-300">
-              Carregar mais modelos
+              Carregar mais profissionais
             </Button>
           </div>
         )}
@@ -306,7 +306,7 @@ const SearchPage = () => {
           <div className="text-center py-12">
             <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">
-              Nenhuma modelo encontrada
+              Nenhuma profissional encontrada
             </h3>
             <p className="text-zinc-400 mb-4">
               Tente ajustar seus filtros ou termo de busca
