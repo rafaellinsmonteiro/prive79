@@ -289,6 +289,7 @@ export type Database = {
           is_active: boolean
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           chat_display_name?: string | null
@@ -297,6 +298,7 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           chat_display_name?: string | null
@@ -305,6 +307,7 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -1575,6 +1578,30 @@ export type Database = {
           },
         ]
       }
+      pinned_conversations: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          pinned_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          pinned_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          pinned_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pix_deposits: {
         Row: {
           amount: number
@@ -2270,8 +2297,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_by_username: {
+        Args: { username_to_find: string }
+        Returns: {
+          id: string
+          user_id: string
+          chat_display_name: string
+          username: string
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_username_available: {
+        Args: { username_to_check: string }
         Returns: boolean
       }
       update_model_online_status: {
