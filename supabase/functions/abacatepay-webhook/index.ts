@@ -7,20 +7,28 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log(`Received ${req.method} request to: ${req.url}`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Returning CORS preflight response');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log('Webhook received from AbacatePay');
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
     
     // Validar o secret do webhook
-    const webhookSecret = new URL(req.url).searchParams.get('webhookSecret');
+    const url = new URL(req.url);
+    const webhookSecret = url.searchParams.get('webhookSecret');
     const expectedSecret = Deno.env.get('ABACATEPAY_WEBHOOK_SECRET');
     
+    console.log('Webhook secret from URL:', webhookSecret ? 'present' : 'missing');
+    console.log('Expected secret configured:', expectedSecret ? 'yes' : 'no');
+    
     if (!webhookSecret || webhookSecret !== expectedSecret) {
-      console.error('Invalid webhook secret');
+      console.error('Invalid webhook secret. Received:', webhookSecret, 'Expected:', expectedSecret);
       return new Response(
         JSON.stringify({ error: 'Invalid webhook secret' }),
         { 
@@ -29,6 +37,8 @@ serve(async (req) => {
         }
       );
     }
+    
+    console.log('Webhook secret validation passed');
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -169,9 +179,16 @@ serve(async (req) => {
       );
     }
 
-    // Outros tipos de webhook
+    // Outros tipos de webhook - log para debugging
+    console.log('Webhook received but not processed - event type:', body.event);
+    console.log('Available data keys:', Object.keys(body.data || {}));
+    
     return new Response(
-      JSON.stringify({ message: 'Webhook received but not processed' }),
+      JSON.stringify({ 
+        message: 'Webhook received but not processed',
+        event: body.event,
+        timestamp: new Date().toISOString()
+      }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -179,11 +196,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('Webhook error details:', {
+      message: error.message,
+      stack: error.stack,
+      url: req.url,
+      method: req.method
+    });
+    
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        message: error.message 
+        message: error.message,
+        timestamp: new Date().toISOString()
       }),
       { 
         status: 500, 
