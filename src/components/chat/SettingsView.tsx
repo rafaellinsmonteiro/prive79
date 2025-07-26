@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserBalance } from '@/hooks/useUserBalance';
 import ChatMediaManager from './ChatMediaManager';
 import EditProfileView from './EditProfileView';
 import { 
@@ -25,6 +26,7 @@ import {
 
 const SettingsView: React.FC = () => {
   const { user, signOut } = useAuth();
+  const { data: balance } = useUserBalance();
   const [currentView, setCurrentView] = useState<'main' | 'media' | 'edit-profile'>('main');
 
   const handleLogout = async () => {
@@ -83,7 +85,7 @@ const SettingsView: React.FC = () => {
       ],
     },
     {
-      title: 'Banco',
+      title: `Banco - R$ ${balance?.balance_brl?.toFixed(2) || '0,00'} | P$ ${balance?.balance?.toFixed(0) || '0'}`,
       items: [
         {
           icon: CreditCard,
