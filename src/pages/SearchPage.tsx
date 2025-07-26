@@ -149,20 +149,10 @@ const SearchPage = () => {
       {/* Results */}
       <div className="max-w-6xl mx-auto p-4">
         {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <h2 className="text-xl font-semibold text-white">
             {loading ? 'Buscando...' : `${results.length} profissionais encontradas`}
           </h2>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-zinc-400">Ordenar por:</span>
-            <select className="bg-zinc-800 border border-zinc-600 text-white text-sm rounded px-2 py-1">
-              <option>Relevância</option>
-              <option>Mais Recentes</option>
-              <option>Melhor Avaliação</option>
-              <option>Menor Preço</option>
-              <option>Maior Preço</option>
-            </select>
-          </div>
         </div>
 
         {/* Models Grid */}
