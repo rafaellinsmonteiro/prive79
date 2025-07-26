@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, Star, MapPin, Calendar, Heart, Share2 } from 'lucide-react';
+import { MessageSquare, Star, MapPin, Calendar, Heart, Share2, ArrowLeft } from 'lucide-react';
 import { useCreateConversation } from '@/hooks/useChat';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,6 +66,18 @@ export const ModelProfile: React.FC<ModelProfileProps> = ({ model, onBooking }) 
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      {/* Botão de Voltar */}
+      <div className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </Button>
+      </div>
+      
       <Card className="bg-zinc-900 border-zinc-700 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Foto Principal */}
