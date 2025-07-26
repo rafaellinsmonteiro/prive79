@@ -52,6 +52,17 @@ const UnifiedBankPage = () => {
   const { toast } = useToast();
   const { data: pixDeposits } = useUserPixDeposits();
   
+  // Debug: Log pixDeposits changes
+  React.useEffect(() => {
+    console.log('🔄 PIX Deposits atualizados no UnifiedBankPage:', pixDeposits?.map(d => ({
+      id: d.id,
+      status: d.status,
+      processed: d.processed,
+      amount: d.amount,
+      pix_id: d.pix_id.substring(0, 8)
+    })));
+  }, [pixDeposits]);
+  
   // States for bank functionality
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showBalance, setShowBalance] = useState(true);
