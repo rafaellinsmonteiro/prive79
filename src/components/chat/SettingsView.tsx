@@ -21,7 +21,9 @@ import {
   Users,
   Wallet,
   CreditCard,
-  History
+  History,
+  ArrowRightLeft,
+  HandCoins
 } from 'lucide-react';
 
 const SettingsView: React.FC = () => {
@@ -93,6 +95,20 @@ const SettingsView: React.FC = () => {
           description: 'Realizar depósitos na conta',
           hasArrow: true,
           action: 'deposit',
+        },
+        {
+          icon: ArrowRightLeft,
+          label: 'Transferência',
+          description: 'Transferir valores entre contas',
+          hasArrow: true,
+          action: 'transfer',
+        },
+        {
+          icon: HandCoins,
+          label: 'Empréstimo',
+          description: 'Solicitar empréstimo',
+          hasArrow: true,
+          action: 'loan',
         },
         {
           icon: History,
