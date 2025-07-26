@@ -82,13 +82,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Verificar se é um evento de PIX pago via billing.paid
+    // Verificar se é um evento de PIX pago via billing.paid (formato da documentação oficial)
+    console.log(`[${timestamp}] Event type:`, body.event);
+    console.log(`[${timestamp}] Data structure:`, Object.keys(body.data || {}));
+    
     if (body.event === 'billing.paid' && body.data?.pixQrCode && body.data.pixQrCode.status === 'PAID') {
       const pixId = body.data.pixQrCode.id;
       const status = body.data.pixQrCode.status;
       const amount = body.data.pixQrCode.amount / 100; // AbacatePay envia em centavos
       
-      console.log(`PIX ${pixId} foi pago. Status: ${status}, Valor: R$ ${amount}`);
+      console.log(`[${timestamp}] PIX ${pixId} foi pago. Status: ${status}, Valor: R$ ${amount}`);
 
       // Buscar o PIX deposit no banco
       const { data: pixDeposit, error: pixError } = await supabase
