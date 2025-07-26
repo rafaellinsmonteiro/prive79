@@ -156,8 +156,138 @@ const ModelsList = ({ models, loading, onEdit, selectedModels, onSelectionChange
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, model.id)}
         >
-          <CardContent className="p-6">
-            <div className="flex items-center gap-6">
+          <CardContent className="p-4 md:p-6">
+            {/* Layout Mobile */}
+            <div className="block md:hidden">
+              <div className="flex items-start gap-3">
+                {bulkMode && (
+                  <Checkbox
+                    checked={selectedModels.includes(model.id)}
+                    onCheckedChange={(checked) => handleSelectModel(model.id, !!checked)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-1"
+                  />
+                )}
+                
+                <div className="flex-shrink-0">
+                  {model.photos[0] ? (
+                    <div className="relative">
+                      <img
+                        src={model.photos[0].photo_url}
+                        alt={model.name}
+                        className="w-20 h-20 object-cover rounded-xl ring-2 ring-border group-hover:ring-primary/20 transition-all duration-200"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center ring-2 ring-card">
+                        <Images className="w-2.5 h-2.5 text-primary-foreground" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 bg-accent rounded-xl flex items-center justify-center ring-2 ring-border">
+                      <User className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-base font-semibold text-foreground truncate pr-2">{model.name}</h3>
+                    <Badge 
+                      variant={model.is_active ? "default" : "secondary"}
+                      className={`text-xs ${model.is_active ? 
+                        "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm" : 
+                        "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {model.is_active ? "Ativa" : "Inativa"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-1 text-sm text-muted-foreground mb-3">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>{model.age} anos</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      <span className="truncate">{model.location || 'Localização não informada'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Images className="w-3 h-3" />
+                        <span>{model.photos.length} foto(s)</span>
+                      </div>
+                      <span>•</span>
+                      <span>Ordem: {model.display_order || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleActive(model.id, model.is_active || false)}
+                      className="h-8 px-2 hover:bg-accent transition-colors"
+                    >
+                      {model.is_active ? (
+                        <Eye className="h-3 w-3 text-primary" />
+                      ) : (
+                        <EyeOff className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(model.id)}
+                      className="h-8 px-2 hover:bg-accent transition-colors"
+                    >
+                      <Edit className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDuplicate(model.id, model.name)}
+                      className="h-8 px-2 hover:bg-accent transition-colors"
+                      disabled={duplicateModel.isPending}
+                    >
+                      <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-card border-border">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-foreground">Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription className="text-muted-foreground">
+                            Tem certeza que deseja excluir a modelo {model.name}? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="hover:bg-accent">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(model.id)}
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Layout Desktop */}
+            <div className="hidden md:flex items-center gap-6">
               <div className="flex items-center gap-4">
                 {bulkMode && (
                   <Checkbox

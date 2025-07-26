@@ -52,8 +52,111 @@ const BulkActionsBar = ({
 
   return (
     <Card className="bg-primary/10 border-primary/20 sticky top-0 z-10 shadow-lg">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-4">
+      <CardContent className="p-3 md:p-4">
+        {/* Layout Mobile */}
+        <div className="block md:hidden space-y-3">
+          <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="gap-1 text-xs">
+              <Users className="w-3 h-3" />
+              {selectedCount} de {totalCount}
+            </Badge>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearSelection}
+              className="gap-1 h-7 px-2 text-xs"
+            >
+              <X className="w-3 h-3" />
+              Limpar
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={isAllSelected ? onClearSelection : onSelectAll}
+              className="gap-1 h-7 text-xs"
+            >
+              {isAllSelected ? (
+                <CheckSquare className="w-3 h-3" />
+              ) : (
+                <Square className="w-3 h-3" />
+              )}
+              {isAllSelected ? 'Desmarcar' : 'Sel. todos'}
+            </Button>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onBulkActivate}
+                className="gap-1 h-7 px-2 text-xs hover:bg-green-50 hover:border-green-200"
+              >
+                <Eye className="w-3 h-3" />
+                Ativar
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onBulkDeactivate}
+                className="gap-1 h-7 px-2 text-xs hover:bg-yellow-50 hover:border-yellow-200"
+              >
+                <EyeOff className="w-3 h-3" />
+                Desativar
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 h-7 px-2 text-xs text-destructive hover:bg-destructive/10 hover:border-destructive"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Excluir
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="w-[95vw] max-w-md">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-base">Confirmar exclusão</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm">
+                      Excluir {selectedCount} modelo(s)? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={onBulkDelete}
+                      className="w-full sm:w-auto bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    >
+                      Excluir {selectedCount}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Visibilidade:</span>
+            <Select onValueChange={onBulkVisibilityChange}>
+              <SelectTrigger className="h-7 text-xs flex-1">
+                <SelectValue placeholder="Alterar visibilidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Pública</SelectItem>
+                <SelectItem value="private">Privada</SelectItem>
+                <SelectItem value="plan_restricted">Restrita por Plano</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Layout Desktop */}
+        <div className="hidden md:flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Button

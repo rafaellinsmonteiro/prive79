@@ -247,23 +247,26 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
   return (
     <div className="space-y-6">
       {/* Header com botão de nova modelo */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestão de Modelos</h2>
-          <p className="text-muted-foreground">Gerencie os perfis das modelos do sistema</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Gestão de Modelos</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie os perfis das modelos do sistema</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             variant={bulkMode ? "secondary" : "outline"}
             onClick={toggleBulkMode}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto text-sm"
+            size="sm"
           >
             <CheckSquare className="w-4 h-4" />
-            {bulkMode ? 'Sair do modo seleção' : 'Selecionar múltiplas'}
+            <span className="hidden sm:inline">{bulkMode ? 'Sair do modo seleção' : 'Selecionar múltiplas'}</span>
+            <span className="sm:hidden">{bulkMode ? 'Sair seleção' : 'Selecionar'}</span>
           </Button>
           <Button
             onClick={handleOpenNew}
-            className="gap-2 bg-primary hover:bg-primary/90"
+            className="gap-2 bg-primary hover:bg-primary/90 w-full sm:w-auto text-sm"
+            size="sm"
           >
             <Plus className="w-4 h-4" />
             Nova Modelo
@@ -280,9 +283,9 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
 
       {/* Dialog para formulário */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingModelId ? 'Editar Modelo' : 'Nova Modelo'}
             </DialogTitle>
           </DialogHeader>
