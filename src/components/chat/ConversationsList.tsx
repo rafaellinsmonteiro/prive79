@@ -35,47 +35,47 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
   };
 
   return (
-    <Card className="bg-card border-border h-[600px] flex flex-col shadow-lg">
-      <CardHeader className="border-b border-border pb-4 bg-gradient-to-r from-accent/5 to-accent/10">
+    <div className="bg-zinc-900 h-full flex flex-col">
+      <div className="border-b border-zinc-800 p-4 bg-zinc-900">
         <div className="flex items-center justify-between mb-4">
-          <CardTitle className="text-foreground flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-[0_4px_20px_hsl(var(--primary))_/_0.3]">
-              <MessageCircle className="h-4 w-4 text-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <MessageCircle className="h-4 w-4 text-white" />
             </div>
-            Conversas
-          </CardTitle>
+            <h2 className="text-lg font-semibold text-white">Conversas</h2>
+          </div>
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl">
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
               <Search className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl">
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
         </div>
         
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Pesquisar conversas..."
-            className="bg-accent/50 border-border text-foreground placeholder:text-muted-foreground pl-10 rounded-xl h-10 focus:border-primary transition-all duration-200"
+            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 pl-10 rounded-lg h-10 focus:border-purple-500 transition-all duration-200"
           />
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-0 flex-1 overflow-hidden">
+      <div className="p-0 flex-1 overflow-hidden">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6">
-            <div className="bg-gradient-to-br from-accent to-accent/60 rounded-2xl p-6 mb-4 shadow-lg">
-              <MessageCircle className="h-12 w-12 text-muted-foreground" />
+            <div className="bg-zinc-800/50 rounded-2xl p-6 mb-4">
+              <MessageCircle className="h-12 w-12 text-zinc-400 mx-auto" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma conversa</h3>
-            <p className="text-muted-foreground text-center mb-6 text-sm">
+            <h3 className="text-lg font-semibold text-white mb-2">Nenhuma conversa</h3>
+            <p className="text-zinc-400 text-center mb-6 text-sm">
               Comece uma nova conversa com suas modelos favoritas
             </p>
             <Button
               onClick={() => handleCreateConversation('')}
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary))_/_0.3] rounded-xl px-6 py-2 transition-all duration-200"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg px-6 py-2 transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Nova Conversa
@@ -83,40 +83,40 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
           </div>
         ) : (
           <div className="overflow-y-auto h-full">
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-zinc-800">
               {conversations.map((conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
-                  className={`w-full p-4 flex items-center space-x-3 hover:bg-accent/50 transition-all duration-200 group ${
-                    selectedConversationId === conversation.id ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-r-2 border-primary shadow-lg' : ''
+                  className={`w-full p-4 flex items-center space-x-3 hover:bg-zinc-800/50 transition-all duration-200 group ${
+                    selectedConversationId === conversation.id ? 'bg-zinc-800 border-r-2 border-purple-500' : ''
                   }`}
                 >
                   <div className="relative flex-shrink-0">
                     <img
                       src={getConversationDisplayPhoto(conversation, isModel)}
                       alt={getConversationDisplayName(conversation, isModel)}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-border shadow-md group-hover:border-primary/50 transition-colors"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700 group-hover:border-purple-500/50 transition-colors"
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder.svg';
                       }}
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-card shadow-sm"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
                   </div>
                   
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-foreground font-semibold truncate group-hover:text-primary transition-colors">
+                      <h4 className="text-white font-semibold truncate group-hover:text-purple-400 transition-colors">
                         {getConversationDisplayName(conversation, isModel)}
                       </h4>
-                      <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                      <span className="text-xs text-zinc-400 ml-2 flex-shrink-0">
                         {conversation.last_message_at &&
                           format(new Date(conversation.last_message_at), 'HH:mm', {
                             locale: ptBR,
                           })}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-sm text-zinc-400 truncate">
                       {getLastMessageDisplay(conversation)}
                     </p>
                   </div>
@@ -125,8 +125,8 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
