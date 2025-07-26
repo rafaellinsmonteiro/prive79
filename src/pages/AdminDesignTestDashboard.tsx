@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import ModelsListContainer from '@/components/admin/ModelsListContainer';
 
 const AdminDesignTestDashboard = () => {
   const isMobile = useIsMobile();
@@ -17,6 +18,7 @@ const AdminDesignTestDashboard = () => {
   const [isDark, setIsDark] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('dashboard');
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -28,8 +30,11 @@ const AdminDesignTestDashboard = () => {
   const navigationItems = [{
     icon: LayoutDashboard,
     label: 'Dashboard',
-    id: 'dashboard',
-    active: true
+    id: 'dashboard'
+  }, {
+    icon: Users,
+    label: 'Modelos',
+    id: 'models'
   }, {
     icon: Users,
     label: 'Usuários',
@@ -100,6 +105,111 @@ const AdminDesignTestDashboard = () => {
     },
   ];
 
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'models':
+        return <ModelsListContainer />;
+      case 'dashboard':
+      default:
+        return (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <Card key={stat.title} className="bg-card border-border hover:shadow-lg transition-all duration-200 group">
+                    <CardContent className="flex items-center p-3 lg:p-6">
+                      <div className={`rounded-full p-2 ${stat.bgColor} mr-2 lg:mr-4 group-hover:scale-110 transition-transform duration-200`}>
+                        <Icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs lg:text-sm font-medium text-muted-foreground truncate">
+                          {stat.title}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg lg:text-2xl font-bold text-foreground truncate">{stat.value}</p>
+                          <span className={`text-xs font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
+                            {stat.change}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Dashboard Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Atividade Recente
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-foreground">Novo usuário cadastrado</p>
+                        <p className="text-sm text-muted-foreground">há 5 minutos</p>
+                      </div>
+                      <Badge variant="secondary">Novo</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-foreground">Chat reportado</p>
+                        <p className="text-sm text-muted-foreground">há 15 minutos</p>
+                      </div>
+                      <Badge variant="destructive">Urgente</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-foreground">Modelo aprovado</p>
+                        <p className="text-sm text-muted-foreground">há 1 hora</p>
+                      </div>
+                      <Badge variant="default">Aprovado</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Estatísticas do Sistema
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Taxa de Conversão</span>
+                      <span className="font-bold text-foreground">12.5%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Satisfação</span>
+                      <span className="font-bold text-foreground">4.8/5</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Tempo Médio de Resposta</span>
+                      <span className="font-bold text-foreground">2.3min</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Uptime</span>
+                      <span className="font-bold text-green-600">99.9%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        );
+    }
+  };
+
   return (
     <div className={`min-h-screen flex w-full ${isDark ? 'dark' : ''} bg-background text-foreground`}>
       {/* Mobile Overlay */}
@@ -158,10 +268,14 @@ const AdminDesignTestDashboard = () => {
             <nav className="space-y-2">
               {navigationItems.map(item => (
                 <div key={item.id} className="relative group" onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)}>
-                  <Button variant="ghost" className={`
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setActiveSection(item.id)}
+                    className={`
                       w-full justify-start px-3 py-3 h-12 rounded-xl transition-all duration-200
-                      ${item.active ? 'bg-gradient-to-r from-primary/20 to-primary/30 text-primary shadow-lg border border-primary/20' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
-                    `}>
+                      ${activeSection === item.id ? 'bg-gradient-to-r from-primary/20 to-primary/30 text-primary shadow-lg border border-primary/20' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
+                    `}
+                  >
                     <item.icon className="w-5 h-5 shrink-0" />
                     {(isExpanded || isMobileMenuOpen) && (
                       <>
@@ -267,10 +381,12 @@ const AdminDesignTestDashboard = () => {
               
               <div>
                 <h1 className="text-xl lg:text-3xl font-bold text-primary mb-1">
-                  Dashboard Admin
+                  {activeSection === 'models' ? 'Gerenciar Modelos' : 'Dashboard Admin'}
                 </h1>
                 <p className="text-sm lg:text-base text-muted-foreground hidden sm:block">
-                  Visão geral do sistema e estatísticas principais
+                  {activeSection === 'models' 
+                    ? 'Gerencie modelos, perfis e configurações' 
+                    : 'Visão geral do sistema e estatísticas principais'}
                 </p>
               </div>
             </div>
@@ -300,98 +416,7 @@ const AdminDesignTestDashboard = () => {
 
         {/* Content Area */}
         <main className="p-4 lg:p-8 overflow-y-auto">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <Card key={stat.title} className="bg-card border-border hover:shadow-lg transition-all duration-200 group">
-                  <CardContent className="flex items-center p-3 lg:p-6">
-                    <div className={`rounded-full p-2 ${stat.bgColor} mr-2 lg:mr-4 group-hover:scale-110 transition-transform duration-200`}>
-                      <Icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs lg:text-sm font-medium text-muted-foreground truncate">
-                        {stat.title}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-lg lg:text-2xl font-bold text-foreground truncate">{stat.value}</p>
-                        <span className={`text-xs font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
-                          {stat.change}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Dashboard Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Atividade Recente
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">Novo usuário cadastrado</p>
-                      <p className="text-sm text-muted-foreground">há 5 minutos</p>
-                    </div>
-                    <Badge variant="secondary">Novo</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">Chat reportado</p>
-                      <p className="text-sm text-muted-foreground">há 15 minutos</p>
-                    </div>
-                    <Badge variant="destructive">Urgente</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">Modelo aprovado</p>
-                      <p className="text-sm text-muted-foreground">há 1 hora</p>
-                    </div>
-                    <Badge variant="default">Aprovado</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Estatísticas do Sistema
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Taxa de Conversão</span>
-                    <span className="font-bold text-foreground">12.5%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Satisfação</span>
-                    <span className="font-bold text-foreground">4.8/5</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Tempo Médio de Resposta</span>
-                    <span className="font-bold text-foreground">2.3min</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Uptime</span>
-                    <span className="font-bold text-green-600">99.9%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {renderContent()}
         </main>
       </div>
     </div>
