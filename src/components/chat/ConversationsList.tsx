@@ -207,7 +207,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                       <Input
                         value={modelId}
                         onChange={(e) => setModelId(e.target.value)}
-                        placeholder="Insira o ID do modelo..."
+                        placeholder="Insira o ID do usuário..."
                         className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                       />
                     </div>
