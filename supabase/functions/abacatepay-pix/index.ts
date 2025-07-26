@@ -197,8 +197,8 @@ serve(async (req) => {
       }
 
     } else if (body.action === 'status') {
-      // Verificar status do PIX
-      const abacateResponse = await fetch(`https://api.abacatepay.com/v1/pixQrCode/${body.pixId}`, {
+      // Verificar status do PIX usando a rota correta da documentação
+      const abacateResponse = await fetch(`https://api.abacatepay.com/v1/pixQrCode/check?id=${body.pixId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${abacatePayToken}`,
