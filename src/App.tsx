@@ -68,6 +68,7 @@ import ChatPage from "./pages/ChatPage";
 import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ClientDashboard from "./pages/ClientDashboard";
+import AdminChatPage from "./pages/AdminChatPage";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -246,6 +247,9 @@ const AppContent = () => {
           <Route path="/admin-design-test/chat" element={<AdminDesignTestChat />} />
           <Route path="/admin-design-test/appointments" element={<AdminDesignTestAppointments />} />
           <Route path="/admin-design-test/settings" element={<AdminDesignTestSettings />} />
+          
+          {/* Admin Chat Management */}
+          <Route path="/admin/chat" element={user ? <AdminChatPage /> : <Navigate to="/login" replace />} />
           
           {/* Agendamento público por slug - deve vir antes do catch-all */}
           <Route path="/:slug" element={<PublicModelBookingPage />} />
