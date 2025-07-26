@@ -226,30 +226,34 @@ serve(async (req) => {
       if (pixStatus === 'PAID') {
         console.log('PIX foi pago! Processando...');
         
-         // Buscar o PIX deposit no banco
+        // Buscar o PIX deposit no banco com verificação de não processado
         const { data: pixDeposit, error: pixError } = await supabaseClient
           .from('pix_deposits')
           .select('*')
           .eq('pix_id', body.pixId)
-          .eq('status', 'PENDING')
+          .eq('processed', false) // Usar processed como controle principal
           .single();
 
         if (pixError) {
           console.error('Erro ao buscar PIX deposit:', pixError);
           return new Response(
-            JSON.stringify({ error: 'PIX deposit não encontrado' }),
+            JSON.stringify({ 
+              status: pixStatus,
+              processed: false,
+              error: 'PIX deposit não encontrado ou já processado' 
+            }),
             { 
-              status: 404, 
+              status: 200, // Não é erro fatal, apenas retorna status
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
             }
           );
         }
 
-        if (pixDeposit && !pixDeposit.processed) {
+        if (pixDeposit) {
           const amount = Number(pixDeposit.amount);
           console.log(`Processando PIX de R$ ${amount} para usuário ${pixDeposit.user_id}`);
 
-          // Atualizar status do PIX deposit
+          // PRIMEIRA AÇÃO: Marcar como processado IMEDIATAMENTE para evitar processamento duplo
           const { error: updatePixError } = await supabaseClient
             .from('pix_deposits')
             .update({ 
@@ -257,10 +261,22 @@ serve(async (req) => {
               processed: true,
               updated_at: new Date().toISOString()
             })
-            .eq('id', pixDeposit.id);
+            .eq('id', pixDeposit.id)
+            .eq('processed', false); // Só atualiza se ainda não foi processado
 
           if (updatePixError) {
             console.error('Erro ao atualizar PIX deposit:', updatePixError);
+            return new Response(
+              JSON.stringify({ 
+                status: pixStatus,
+                processed: false,
+                error: 'Erro ao processar PIX' 
+              }),
+              { 
+                status: 500, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
           }
 
           // Buscar conta do usuário
