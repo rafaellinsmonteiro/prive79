@@ -91,7 +91,7 @@ const AppContent = () => {
   const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/chat-app', '/v2/bank', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/client/dashboard', '/v2/client/search', '/v2/client/feed', '/v2/client/reviews', '/v2/client/account', '/v2/account', '/buscar'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
-  const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard', '/admin/chat', '/admin/bank'].includes(location.pathname);
+  const isNewDashboardRoute = ['/admin', '/admin/models', '/model-dashboard', '/client-dashboard', '/admin/chat', '/admin/bank'].includes(location.pathname);
   const isModelRoute = location.pathname.startsWith('/modelo/');
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute || isNewDashboardRoute || isModelRoute;
   
