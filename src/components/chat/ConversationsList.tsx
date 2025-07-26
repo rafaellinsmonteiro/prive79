@@ -93,7 +93,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
 
       <div className="p-0 flex-1 overflow-hidden">
         {conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full px-6">
+          <div className="flex flex-col items-center justify-center h-full px-6 pb-20 sm:pb-0">
             <div className="bg-zinc-800/50 rounded-2xl p-6 mb-4">
               <MessageCircle className="h-12 w-12 text-zinc-400 mx-auto" />
             </div>
@@ -145,7 +145,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
             </Dialog>
           </div>
         ) : (
-          <div className="relative overflow-y-auto h-full">
+          <div className="relative overflow-y-auto h-full pb-20 sm:pb-0">
             <div className="divide-y divide-zinc-800">
               {conversations.map((conversation) => (
                 <button
@@ -188,7 +188,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
             </div>
 
             {/* Botão flutuante para nova conversa */}
-            <div className="absolute bottom-4 right-4">
+            <div className="absolute bottom-20 right-4 sm:bottom-4">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-14 h-14 shadow-lg">
