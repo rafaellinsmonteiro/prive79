@@ -178,9 +178,7 @@ const AdminDesignTestModels = () => {
               </div>
 
               {/* Models Manager Component */}
-              <div className="bg-card rounded-lg border border-border p-6">
-                <ModelsListContainer />
-              </div>
+              <ModelsListContainer />
             </div>
           </main>
         </div>
