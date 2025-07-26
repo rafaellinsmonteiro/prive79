@@ -10,21 +10,14 @@ import ChatLogsManager from './ChatLogsManager';
 
 const ChatManager = () => {
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <div className="p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Gerenciamento de Chat</h1>
-          <p className="text-zinc-400">Controle completo do sistema de chat e comunicações</p>
-        </div>
-
-        {/* Tabs Navigation */}
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800 mb-6">
-            <TabsTrigger 
-              value="users" 
-              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
-            >
+    <div>
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800 mb-6">
+          <TabsTrigger 
+            value="users" 
+            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+          >
               <Users className="h-4 w-4 mr-2" />
               Usuários
             </TabsTrigger>
@@ -79,7 +72,6 @@ const ChatManager = () => {
             <ChatSettings />
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 };
