@@ -69,6 +69,7 @@ import ChatFeedPage from "./pages/ChatFeedPage";
 import MobileChatPage from "./pages/MobileChatPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import AdminChatPage from "./pages/AdminChatPage";
+import AdminBankPage from "./pages/AdminBankPage";
 import AgendaPage from "./pages/AgendaPage";
 import ClientsPage from "./pages/ClientsPage";
 import ServicesPage from "./pages/ServicesPage";
@@ -90,7 +91,7 @@ const AppContent = () => {
   const hideHeaderRoutes = ['/reels', '/profile', '/chat-feed', '/mobile-chat', '/login', '/v2/dashboard', '/v2/feed', '/v2/chat', '/v2/chat-app', '/v2/bank', '/v2/profile', '/v2/media', '/v2/appointments', '/v2/services', '/v2/clients', '/v2/reviews', '/v2/goals', '/v2/client/dashboard', '/v2/client/search', '/v2/client/feed', '/v2/client/reviews', '/v2/client/account', '/v2/account', '/buscar'];
   const isDesignTestRoute = location.pathname.startsWith('/design-test');
   const isAdminDesignTestRoute = location.pathname.startsWith('/admin-design-test');
-  const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard', '/admin/chat'].includes(location.pathname);
+  const isNewDashboardRoute = ['/admin', '/model-dashboard', '/client-dashboard', '/admin/chat', '/admin/bank'].includes(location.pathname);
   const isModelRoute = location.pathname.startsWith('/modelo/');
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isDesignTestRoute || isAdminDesignTestRoute || isNewDashboardRoute || isModelRoute;
   
@@ -250,6 +251,9 @@ const AppContent = () => {
           
           {/* Admin Chat Management */}
           <Route path="/admin/chat" element={user ? <AdminChatPage /> : <Navigate to="/login" replace />} />
+          
+          {/* Admin Bank Management */}
+          <Route path="/admin/bank" element={user ? <AdminBankPage /> : <Navigate to="/login" replace />} />
           
           {/* Agendamento público por slug - deve vir antes do catch-all */}
           <Route path="/:slug" element={<PublicModelBookingPage />} />
