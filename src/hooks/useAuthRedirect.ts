@@ -11,16 +11,6 @@ export const useAuthRedirect = () => {
   useEffect(() => {
     if (!user || !authComplete) return;
     
-    // Se estiver no chat-app (chat.prive.click), não fazer redirecionamentos automáticos
-    if (window.location.hostname === 'chat.prive.click') {
-      return;
-    }
-    
-    // Se foi login pelo chat-app em outro hostname, também não redirecionar
-    if (localStorage.getItem('chat-app-login')) {
-      return;
-    }
-    
     // Não redirecionar se já estiver em uma rota V2, admin, login ou páginas específicas
     if (
       location.pathname.startsWith('/v2/') || 

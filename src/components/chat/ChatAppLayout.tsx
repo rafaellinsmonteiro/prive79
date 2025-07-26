@@ -11,19 +11,12 @@ import ContactsView from './ContactsView';
 import SettingsView from './SettingsView';
 
 export default function ChatAppLayout() {
-  console.log('🎯 ChatAppLayout: Rendering layout');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'contacts' | 'conversations' | 'settings'>('conversations');
   const { signOut, user } = useAuth();
-  
-  console.log('🎯 ChatAppLayout: User:', user?.email, 'ActiveTab:', activeTab);
 
   const handleLogout = async () => {
-    // Remove a marca do chat-app login e redireciona para a tela de login do chat
-    localStorage.removeItem('chat-app-login');
     await signOut();
-    // No chat-app standalone, apenas recarrega a página para ir para /login
-    window.location.reload();
   };
 
   const renderMainContent = () => {

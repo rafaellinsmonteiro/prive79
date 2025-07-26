@@ -28,13 +28,6 @@ export default function ChatLogin() {
           description: error.message,
           variant: "destructive"
         });
-      } else {
-        // Marca no localStorage que o login foi feito pelo chat-app
-        localStorage.setItem('chat-app-login', 'true');
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando para o chat...",
-        });
       }
     } catch (error) {
       toast({

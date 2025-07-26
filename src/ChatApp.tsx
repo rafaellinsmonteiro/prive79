@@ -10,11 +10,8 @@ const queryClient = new QueryClient();
 
 function ChatAppRoutes() {
   const { user, loading } = useAuth();
-  
-  console.log('🎯 ChatAppRoutes: user:', !!user, 'loading:', loading);
 
   if (loading) {
-    console.log('🎯 ChatAppRoutes: Still loading...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground">Carregando...</div>
@@ -22,31 +19,17 @@ function ChatAppRoutes() {
     );
   }
 
-  // Para o chat-app standalone, sempre mostrar a interface de chat se logado
-  if (user) {
-    console.log('🎯 ChatAppRoutes: User authenticated, showing ChatAppLayout');
-    // Marca que o login foi feito pelo chat-app
-    if (!localStorage.getItem('chat-app-login')) {
-      localStorage.setItem('chat-app-login', 'true');
-    }
-    return (
-      <Routes>
-        <Route path="*" element={<ChatAppLayout />} />
-      </Routes>
-    );
-  }
-
   return (
     <Routes>
       <Route 
         path="/login" 
-        element={<ChatLogin />} 
+        element={!user ? <ChatLogin /> : <Navigate to="/" replace />} 
       />
       <Route 
         path="/" 
-        element={<Navigate to="/login" replace />} 
+        element={user ? <ChatAppLayout /> : <Navigate to="/login" replace />} 
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
