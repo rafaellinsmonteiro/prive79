@@ -187,17 +187,33 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       // Processar TODOS os campos - incluindo campos personalizados
       const modelData: any = {};
       
+      // Campos numéricos que devem ser tratados especialmente
+      const numericFields = ['1hora', '2horas', '3horas', 'pernoite', 'diaria'];
+      
       // Primeiro adicionar todos os campos padrão do modelo
       Object.entries(formData).forEach(([key, value]) => {
+        let processedValue = value;
+        
+        // Tratar campos numéricos - converter string vazia para null
+        if (numericFields.includes(key) && (value === '' || value === undefined)) {
+          processedValue = null;
+        }
+        
         if (key.startsWith('custom_')) {
           // Campo personalizado - remover o prefixo custom_
           const fieldName = key.replace('custom_', '');
-          modelData[fieldName] = value;
-          console.log(`🔧 Custom field ${fieldName} = ${value}`);
+          
+          // Aplicar mesmo tratamento para campos personalizados numéricos
+          if (numericFields.includes(fieldName) && (value === '' || value === undefined)) {
+            processedValue = null;
+          }
+          
+          modelData[fieldName] = processedValue;
+          console.log(`🔧 Custom field ${fieldName} = ${processedValue}`);
         } else {
           // Campo padrão do modelo (incluindo campos integrados)
-          modelData[key] = value;
-          console.log(`🔧 Standard field ${key} = ${value}`);
+          modelData[key] = processedValue;
+          console.log(`🔧 Standard field ${key} = ${processedValue}`);
         }
       });
       
