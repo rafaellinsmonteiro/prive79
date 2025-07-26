@@ -10,6 +10,7 @@ import { usePrivaBankAccounts } from '@/hooks/usePrivaBank';
 import PrivaBankAccountForm from './PrivaBankAccountForm';
 import PrivaBankAccountsList from './PrivaBankAccountsList';
 import PrivaBankLogs from './PrivaBankLogs';
+import PrivaBankActivateAccount from './PrivaBankActivateAccount';
 
 const PrivaBankManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,6 +117,7 @@ const PrivaBankManager = () => {
         <TabsList className="bg-zinc-800 border-zinc-700">
           <TabsTrigger value="accounts">Contas</TabsTrigger>
           <TabsTrigger value="new">Nova Conta</TabsTrigger>
+          <TabsTrigger value="activate">Ativar por Email</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
 
@@ -151,6 +153,10 @@ const PrivaBankManager = () => {
             accountId={editingAccountId}
             onSuccess={handleCloseForm}
           />
+        </TabsContent>
+
+        <TabsContent value="activate">
+          <PrivaBankActivateAccount />
         </TabsContent>
 
         <TabsContent value="logs">
