@@ -294,16 +294,6 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Lista de modelos */}
-      <ModelsList
-        models={filteredModels}
-        loading={isLoading}
-        onEdit={handleEdit}
-        selectedModels={selectedModels}
-        onSelectionChange={handleSelectionChange}
-        bulkMode={bulkMode}
-      />
-
       {/* Barra de ações em massa */}
       <BulkActionsBar
         selectedCount={selectedModels.length}
@@ -315,6 +305,16 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
         onBulkDelete={handleBulkDelete}
         onBulkVisibilityChange={handleBulkVisibilityChange}
         isAllSelected={selectedModels.length === filteredModels.length && filteredModels.length > 0}
+      />
+
+      {/* Lista de modelos */}
+      <ModelsList
+        models={filteredModels}
+        loading={isLoading}
+        onEdit={handleEdit}
+        selectedModels={selectedModels}
+        onSelectionChange={handleSelectionChange}
+        bulkMode={bulkMode}
       />
     </div>
   );
