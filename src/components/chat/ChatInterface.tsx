@@ -206,7 +206,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
 
         {/* Media Upload dark */}
         {showMediaUpload && (
-          <div className="border-t border-zinc-800 p-4 bg-zinc-900">
+          <div className="border-t border-zinc-800 p-4 bg-zinc-900 sm:pb-4 pb-20">
             <MediaUpload
               onUpload={handleMediaUpload}
               onCancel={() => setShowMediaUpload(false)}
@@ -215,7 +215,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
         )}
 
         {/* Input Area dark melhorada */}
-        <div className="bg-zinc-900 px-4 py-4 border-t border-zinc-800">
+        <div className="bg-zinc-900 px-4 py-4 border-t border-zinc-800 sm:pb-4 pb-20">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
