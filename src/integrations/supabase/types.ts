@@ -368,6 +368,48 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          added_automatically: boolean
+          contact_chat_id: string | null
+          contact_name: string | null
+          contact_photo_url: string | null
+          contact_user_id: string
+          created_at: string
+          id: string
+          is_model: boolean
+          model_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          added_automatically?: boolean
+          contact_chat_id?: string | null
+          contact_name?: string | null
+          contact_photo_url?: string | null
+          contact_user_id: string
+          created_at?: string
+          id?: string
+          is_model?: boolean
+          model_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          added_automatically?: boolean
+          contact_chat_id?: string | null
+          contact_name?: string | null
+          contact_photo_url?: string | null
+          contact_user_id?: string
+          created_at?: string
+          id?: string
+          is_model?: boolean
+          model_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string

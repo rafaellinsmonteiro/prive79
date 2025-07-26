@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import { useAutoAddContact } from './useContacts';
 
 type Conversation = Tables<'conversations'> & {
   models?: (Tables<'models'> & {
@@ -263,6 +264,7 @@ export const useMessages = (conversationId: string) => {
 export const useCreateConversation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const autoAddContact = useAutoAddContact();
 
   return useMutation({
     mutationFn: async (modelId: string) => {
@@ -326,6 +328,30 @@ export const useCreateConversation = () => {
       if (error) {
         console.error('Error creating conversation:', error);
         throw error;
+      }
+      
+      console.log('✅ Conversation created successfully:', data);
+
+      // Auto-adicionar como contato se não for já (apenas para modelos válidos)
+      if (data.user_id && data.model_id) {
+        try {
+          // Buscar o user_id da modelo para adicionar como contato
+          const { data: modelProfile } = await supabase
+            .from('model_profiles')
+            .select('user_id')
+            .eq('model_id', data.model_id)
+            .eq('is_active', true)
+            .single();
+
+          if (modelProfile?.user_id) {
+            autoAddContact.mutate({ 
+              contactUserId: modelProfile.user_id, 
+              modelId: data.model_id 
+            });
+          }
+        } catch (error) {
+          console.log('Auto-add contact failed (non-critical):', error);
+        }
       }
       
       return data;
