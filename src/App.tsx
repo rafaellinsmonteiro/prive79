@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import ChatApp from "@/ChatApp";
 // New Design System Pages
 import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
 import AdminDesignTestModels from "./pages/AdminDesignTestModels";
@@ -149,6 +150,7 @@ const AppContent = () => {
           
           {/* Unified Routes - Work for both models and clients */}
           <Route path="/v2/chat" element={user ? <UnifiedChatPage /> : <Navigate to="/login" replace />} />
+          <Route path="/v2/chat-app" element={user ? <ChatApp /> : <Navigate to="/login" replace />} />
           <Route path="/v2/bank" element={user ? <UnifiedBankPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/components-documentation" element={user ? <ComponentsDocumentationPage /> : <Navigate to="/login" replace />} />
