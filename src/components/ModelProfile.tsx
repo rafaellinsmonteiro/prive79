@@ -32,6 +32,17 @@ interface ModelProfileProps {
     '3horas'?: number;
     pernoite?: number;
     diaria?: number;
+    beijo?: boolean;
+    oral2?: boolean;
+    vaginal2?: boolean;
+    anal?: boolean;
+    domicilio?: boolean;
+    com_local?: boolean;
+    hotel?: boolean;
+    motel?: boolean;
+    jantar?: boolean;
+    clube_swing?: boolean;
+    despedida_solteiro?: boolean;
   };
   onBooking?: (model: any) => void;
 }
@@ -192,6 +203,116 @@ export const ModelProfile: React.FC<ModelProfileProps> = ({ model, onBooking }) 
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-300">Diária</span>
                         <span className="text-pink-400 font-semibold">R$ {model.diaria}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Seção Atendimento Presencial */}
+            {(model.beijo || model.oral2 || model.vaginal2 || model.anal) && (
+              <Card className="bg-zinc-800 border-zinc-600 mb-6">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Presencial</h3>
+                  <div className="space-y-3">
+                    {model.beijo && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Beijos na boca</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.oral2 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Sexo oral</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.vaginal2 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Sexo vaginal</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.anal && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Sexo anal</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Seção Locais */}
+            {(model.domicilio || model.com_local || model.hotel || model.motel || model.jantar || model.clube_swing || model.despedida_solteiro) && (
+              <Card className="bg-zinc-800 border-zinc-600 mb-6">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Locais</h3>
+                  <div className="space-y-3">
+                    {model.domicilio && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">A domicílio</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.com_local && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Com local</span>
+                        <div className="w-10 h-5 bg-zinc-700 rounded-full flex items-center justify-start pl-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.hotel && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Hotel</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.motel && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Motel</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.jantar && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Jantar romântico</span>
+                        <div className="w-10 h-5 bg-zinc-700 rounded-full flex items-center justify-start pl-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.clube_swing && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Clube de swing</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    {model.despedida_solteiro && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Despedida de solteiro</span>
+                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
+                          <div className="w-4 h-4 bg-black rounded-full"></div>
+                        </div>
                       </div>
                     )}
                   </div>
