@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, Star, MapPin, Calendar, Heart, Share2, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Star, MapPin, Calendar, Heart, Share2, ArrowLeft, Check, Home, Building, Utensils, PartyPopper } from 'lucide-react';
 import { useCreateConversation } from '@/hooks/useChat';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -214,39 +214,30 @@ export const ModelProfile: React.FC<ModelProfileProps> = ({ model, onBooking }) 
             {(model.beijo || model.oral2 || model.vaginal2 || model.anal) && (
               <Card className="bg-zinc-800 border-zinc-600 mb-6">
                 <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Presencial</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-400" />
+                    Atendimento Presencial
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
                     {model.beijo && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Beijos na boca</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30">
+                        Beijos na boca
+                      </Badge>
                     )}
                     {model.oral2 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Sexo oral</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30">
+                        Sexo oral
+                      </Badge>
                     )}
                     {model.vaginal2 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Sexo vaginal</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30">
+                        Sexo vaginal
+                      </Badge>
                     )}
                     {model.anal && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Sexo anal</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30">
+                        Sexo anal
+                      </Badge>
                     )}
                   </div>
                 </CardContent>
@@ -257,63 +248,52 @@ export const ModelProfile: React.FC<ModelProfileProps> = ({ model, onBooking }) 
             {(model.domicilio || model.com_local || model.hotel || model.motel || model.jantar || model.clube_swing || model.despedida_solteiro) && (
               <Card className="bg-zinc-800 border-zinc-600 mb-6">
                 <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Locais</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-400" />
+                    Locais de Atendimento
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
                     {model.domicilio && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">A domicílio</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 flex items-center gap-1">
+                        <Home className="h-3 w-3" />
+                        A domicílio
+                      </Badge>
                     )}
                     {model.com_local && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Com local</span>
-                        <div className="w-10 h-5 bg-zinc-700 rounded-full flex items-center justify-start pl-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 flex items-center gap-1">
+                        <Building className="h-3 w-3" />
+                        Com local
+                      </Badge>
                     )}
                     {model.hotel && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Hotel</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 flex items-center gap-1">
+                        <Building className="h-3 w-3" />
+                        Hotel
+                      </Badge>
                     )}
                     {model.motel && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Motel</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 flex items-center gap-1">
+                        <Building className="h-3 w-3" />
+                        Motel
+                      </Badge>
                     )}
                     {model.jantar && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Jantar romântico</span>
-                        <div className="w-10 h-5 bg-zinc-700 rounded-full flex items-center justify-start pl-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 flex items-center gap-1">
+                        <Utensils className="h-3 w-3" />
+                        Jantar romântico
+                      </Badge>
                     )}
                     {model.clube_swing && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Clube de swing</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-pink-500/20 text-pink-400 border border-pink-500/30 hover:bg-pink-500/30 flex items-center gap-1">
+                        <PartyPopper className="h-3 w-3" />
+                        Clube de swing
+                      </Badge>
                     )}
                     {model.despedida_solteiro && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-300">Despedida de solteiro</span>
-                        <div className="w-10 h-5 bg-yellow-400 rounded-full flex items-center justify-end pr-1">
-                          <div className="w-4 h-4 bg-black rounded-full"></div>
-                        </div>
-                      </div>
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/30 flex items-center gap-1">
+                        <PartyPopper className="h-3 w-3" />
+                        Despedida de solteiro
+                      </Badge>
                     )}
                   </div>
                 </CardContent>
