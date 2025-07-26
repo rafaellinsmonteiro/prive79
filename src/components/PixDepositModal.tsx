@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Copy, QrCode, Clock, CheckCircle } from 'lucide-react';
+import { Copy, QrCode, Clock, CheckCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PixDepositModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface PixDepositModalProps {
 
 const PixDepositModal = ({ isOpen, onClose, amount, pixData }: PixDepositModalProps) => {
   const { toast } = useToast();
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   const copyPixCode = () => {
     if (pixData?.brCode) {
@@ -43,6 +45,49 @@ const PixDepositModal = ({ isOpen, onClose, amount, pixData }: PixDepositModalPr
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const checkPaymentStatus = async () => {
+    if (!pixData?.id) return;
+
+    setIsCheckingPayment(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('abacatepay-pix', {
+        body: {
+          action: 'status',
+          pixId: pixData.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.status === 'PAID') {
+        toast({
+          title: "Pagamento confirmado!",
+          description: "Seu depósito foi processado com sucesso."
+        });
+        
+        // Fechar modal e atualizar dados
+        onClose();
+        window.location.reload(); // Recarregar para atualizar saldo
+      } else {
+        toast({
+          title: "Pagamento ainda não identificado",
+          description: "Aguarde alguns instantes e tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+      toast({
+        title: "Erro ao verificar pagamento",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingPayment(false);
+    }
   };
 
   return (
@@ -129,6 +174,27 @@ const PixDepositModal = ({ isOpen, onClose, amount, pixData }: PixDepositModalPr
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">Gerando código PIX...</p>
             </div>
+          )}
+
+          {/* Check Payment Button */}
+          {pixData && pixData.status === 'PENDING' && (
+            <Button 
+              onClick={checkPaymentStatus}
+              disabled={isCheckingPayment}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isCheckingPayment ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  JÁ EFETUEI O PAGAMENTO
+                </>
+              )}
+            </Button>
           )}
 
           {/* Close Button */}
