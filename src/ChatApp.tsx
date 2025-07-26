@@ -34,6 +34,7 @@ function ChatAppRoutes() {
   );
 }
 
+// Standalone version with Router (for index-chat.html)
 function ChatApp() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -43,6 +44,32 @@ function ChatApp() {
           <Toaster />
         </div>
       </Router>
+    </QueryClientProvider>
+  );
+}
+
+// Nested version without Router (for use inside main app)
+export function ChatAppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <ChatLogin />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-background">
+        <ChatAppLayout />
+        <Toaster />
+      </div>
     </QueryClientProvider>
   );
 }
