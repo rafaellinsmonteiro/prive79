@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Mic, MicOff, Phone, Video, Paperclip, MoreVertical } from 'lucide-react';
+import { Send, Mic, MicOff, Paperclip, MoreVertical, ArrowLeft } from 'lucide-react';
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
@@ -154,10 +154,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
     <div className="bg-zinc-950 h-full flex flex-col">
       {/* Header dark melhorado */}
       <div className="border-b border-zinc-800 py-3 bg-zinc-900">
-        <div className="flex items-center justify-between px-4">
+        <div className="flex items-center px-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => window.history.back()}
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg mr-3"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          
           <button
             onClick={() => setShowContactInfo(true)}
-            className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-all duration-200 group"
+            className="flex items-center space-x-3 hover:bg-zinc-800 rounded-lg p-2 transition-all duration-200 group flex-1"
           >
             <div className="relative">
               <img
@@ -178,17 +187,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
             </div>
           </button>
 
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg">
-              <Video className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg">
-              <Phone className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
