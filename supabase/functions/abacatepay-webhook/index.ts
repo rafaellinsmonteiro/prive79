@@ -7,28 +7,50 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log(`Received ${req.method} request to: ${req.url}`);
+  const timestamp = new Date().toISOString();
+  const url = req.url;
+  const method = req.method;
+  
+  console.log(`[${timestamp}] Webhook RECEIVED - Method: ${method}, URL: ${url}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Returning CORS preflight response');
+    console.log(`[${timestamp}] Returning CORS preflight response`);
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Webhook received from AbacatePay');
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    // Log EVERYTHING that arrives
+    console.log(`[${timestamp}] Processing webhook request`);
+    console.log(`[${timestamp}] Headers:`, Object.fromEntries(req.headers.entries()));
     
-    // Validar o secret do webhook
-    const url = new URL(req.url);
-    const webhookSecret = url.searchParams.get('webhookSecret');
+    // Try to read body (if any)
+    let body = null;
+    try {
+      const rawBody = await req.text();
+      console.log(`[${timestamp}] Raw body:`, rawBody);
+      if (rawBody) {
+        body = JSON.parse(rawBody);
+        console.log(`[${timestamp}] Parsed body:`, JSON.stringify(body, null, 2));
+      }
+    } catch (bodyError) {
+      console.log(`[${timestamp}] Could not parse body:`, bodyError.message);
+    }
+    
+    // Validate webhook secret
+    const urlObj = new URL(req.url);
+    const webhookSecret = urlObj.searchParams.get('webhookSecret');
     const expectedSecret = Deno.env.get('ABACATEPAY_WEBHOOK_SECRET');
     
-    console.log('Webhook secret from URL:', webhookSecret ? 'present' : 'missing');
-    console.log('Expected secret configured:', expectedSecret ? 'yes' : 'no');
+    console.log(`[${timestamp}] Webhook secret validation:`, {
+      received: webhookSecret ? 'present' : 'missing',
+      expected: expectedSecret ? 'configured' : 'not configured',
+      match: webhookSecret === expectedSecret
+    });
     
+    // Validate webhook secret FIRST - without secret validation, return immediately  
     if (!webhookSecret || webhookSecret !== expectedSecret) {
-      console.error('Invalid webhook secret. Received:', webhookSecret, 'Expected:', expectedSecret);
+      console.log(`[${timestamp}] UNAUTHORIZED - Invalid webhook secret`);
       return new Response(
         JSON.stringify({ error: 'Invalid webhook secret' }),
         { 
@@ -38,15 +60,27 @@ serve(async (req) => {
       );
     }
     
-    console.log('Webhook secret validation passed');
+    console.log(`[${timestamp}] Secret validation PASSED`);
+    
+    // Return early if no body to process
+    if (!body) {
+      console.log(`[${timestamp}] No body to process`);
+      return new Response(
+        JSON.stringify({ 
+          message: 'Webhook received but no body',
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const body = await req.json();
-    console.log('Webhook payload:', JSON.stringify(body, null, 2));
 
     // Verificar se é um evento de PIX pago via billing.paid
     if (body.event === 'billing.paid' && body.data?.pixQrCode && body.data.pixQrCode.status === 'PAID') {
