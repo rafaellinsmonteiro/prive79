@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
 import { useCategories } from '@/hooks/useCategories';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,9 @@ const SearchPage = () => {
 
   const { results, loading, searchModels } = useSearch();
   const { data: categories = [] } = useCategories();
+
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
 
   const handleFilterToggle = (filterType: string) => {
     switch (filterType) {
@@ -39,10 +43,14 @@ const SearchPage = () => {
     setFilters(prev => ({ ...prev, searchTerm: value }));
   };
 
-  // Trigger search when filters change
+  // Trigger search when debounced filters change
   useEffect(() => {
-    searchModels(filters);
-  }, [filters, searchModels]);
+    const searchFilters = {
+      ...filters,
+      searchTerm: debouncedSearchTerm
+    };
+    searchModels(searchFilters);
+  }, [debouncedSearchTerm, filters.category, filters.onlineOnly, filters.showsFace]); // Remove searchModels from dependency
 
   // Handler functions
   const handleChat = (model: any) => {
