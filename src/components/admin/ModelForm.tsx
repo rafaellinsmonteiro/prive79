@@ -161,6 +161,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     console.log('📊 Raw form data:', data);
     
     if (!user || !session) {
+      console.log('❌ Authentication failed - no user or session');
       toast({
         title: "Erro de Autenticação",
         description: "Você precisa estar logado como admin para realizar esta operação.",
@@ -170,6 +171,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     }
 
     if (!isAdmin) {
+      console.log('❌ Authorization failed - not admin');
       toast({
         title: "Acesso Negado",
         description: "Apenas administradores podem gerenciar modelos.",
@@ -205,6 +207,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       
       if (modelId) {
         console.log('📝 UPDATING MODEL:', modelId);
+        console.log('📝 Update data being sent:', modelData);
         
         // Para atualização, vamos fazer a operação diretamente no Supabase
         // para ter mais controle sobre os dados que estão sendo enviados
@@ -217,6 +220,10 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         
         if (updateError) {
           console.error('💥 Direct update error:', updateError);
+          console.error('💥 Error code:', updateError.code);
+          console.error('💥 Error message:', updateError.message);
+          console.error('💥 Error details:', updateError.details);
+          console.error('💥 Error hint:', updateError.hint);
           throw updateError;
         }
         
@@ -227,6 +234,7 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
         
       } else {
         console.log('➕ CREATING NEW MODEL');
+        console.log('➕ Create data being sent:', modelData);
         modelResult = await createModel.mutateAsync(modelData as any);
         toast({ 
           title: "Modelo criada com sucesso!", 
@@ -280,6 +288,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
     } catch (error: any) {
       console.error('💥 FORM SUBMISSION ERROR');
       console.error('💥 Error details:', error);
+      console.error('💥 Error name:', error.name);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Error stack:', error.stack);
       
       let errorMessage = "Erro ao salvar modelo. Tente novamente.";
       
@@ -293,7 +304,9 @@ const ModelForm = ({ modelId, onSuccess, onCancel }: ModelFormProps) => {
       } else if (error.message?.includes('categories')) {
         errorMessage = "Erro ao configurar categorias. Modelo salvo com sucesso.";
       } else if (error.message?.includes('column') && error.message?.includes('does not exist')) {
-        errorMessage = "Erro: campo personalizado não reconhecido. Tente novamente.";
+        errorMessage = `Erro: campo "${error.message.match(/column "(\w+)"/)?.[1] || 'desconhecido'}" não encontrado na tabela. Contate o administrador do sistema.`;
+      } else if (error.code === 'PGRST204') {
+        errorMessage = `Erro de schema: ${error.message}. O campo pode estar mal configurado.`;
       }
       
       toast({
