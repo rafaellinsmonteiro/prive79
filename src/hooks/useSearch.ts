@@ -18,11 +18,11 @@ export interface SearchResult {
 
 export interface SearchFilters {
   searchTerm: string;
-  category: string;
   onlineOnly: boolean;
   showsFace: boolean;
-  myLocation?: boolean;
-  videoCall?: boolean;
+  cityId?: string;
+  minAge?: number;
+  maxAge?: number;
 }
 
 export const useSearch = () => {
@@ -70,6 +70,19 @@ export const useSearch = () => {
         query = query.eq('model_photos.show_in_profile', true);
       }
 
+      // Apply city filter
+      if (filters.cityId) {
+        query = query.eq('city_id', filters.cityId);
+      }
+
+      // Apply age filter
+      if (filters.minAge) {
+        query = query.gte('age', filters.minAge);
+      }
+      if (filters.maxAge) {
+        query = query.lte('age', filters.maxAge);
+      }
+
       const { data: models, error } = await query;
 
       if (error) {
@@ -103,16 +116,7 @@ export const useSearch = () => {
         };
       });
 
-      // Apply category filter
-      let filteredResults = searchResults;
-      if (filters.category === 'profiles') {
-        // Already filtered to models only
-      } else if (filters.category !== 'all') {
-        // For other categories, return empty for now since we're only searching models
-        filteredResults = [];
-      }
-
-      setResults(filteredResults);
+      setResults(searchResults);
     } catch (error) {
       console.error('Search error:', error);
       toast({

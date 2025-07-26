@@ -16,11 +16,11 @@ export default function ClientV2SearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     searchTerm: '',
-    category: 'all',
     onlineOnly: false,
     showsFace: false,
-    myLocation: false,
-    videoCall: false,
+    cityId: '',
+    minAge: 18,
+    maxAge: 65,
   });
 
   const handleSearch = () => {
@@ -94,20 +94,6 @@ export default function ClientV2SearchPage() {
                   <Switch
                     checked={filters.showsFace}
                     onCheckedChange={(checked) => setFilters(prev => ({ ...prev, showsFace: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">Na minha localização</label>
-                  <Switch
-                    checked={filters.myLocation}
-                    onCheckedChange={(checked) => setFilters(prev => ({ ...prev, myLocation: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">Aceita videochamada</label>
-                  <Switch
-                    checked={filters.videoCall}
-                    onCheckedChange={(checked) => setFilters(prev => ({ ...prev, videoCall: checked }))}
                   />
                 </div>
               </CardContent>

@@ -5,22 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useNavigate } from 'react-router-dom';
 import { useSearch, SearchFilters } from '@/hooks/useSearch';
-import { useCategories } from '@/hooks/useCategories';
+import { useCities } from '@/hooks/useCities';
 import { useDebounce } from '@/hooks/useDebounce';
 
 const SearchPage = () => {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<SearchFilters>({
+  const [filters, setFilters] = useState({
     searchTerm: '',
-    category: 'all',
     onlineOnly: false,
     showsFace: false,
+    cityId: '',
+    minAge: 18,
+    maxAge: 65,
   });
 
   const { results, loading, searchModels } = useSearch();
-  const { data: categories = [] } = useCategories();
+  const { data: cities = [] } = useCities();
 
   // Debounce search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
@@ -33,9 +37,6 @@ const SearchPage = () => {
       case 'verified':
         setFilters(prev => ({ ...prev, showsFace: !prev.showsFace }));
         break;
-      default:
-        // Handle category filters
-        setFilters(prev => ({ ...prev, category: prev.category === filterType ? 'all' : filterType }));
     }
   };
 
@@ -50,7 +51,7 @@ const SearchPage = () => {
       searchTerm: debouncedSearchTerm
     };
     searchModels(searchFilters);
-  }, [debouncedSearchTerm, filters.category, filters.onlineOnly, filters.showsFace]); // Remove searchModels from dependency
+  }, [debouncedSearchTerm, filters.onlineOnly, filters.showsFace, filters.cityId, filters.minAge, filters.maxAge]);
 
   // Handler functions
   const handleChat = (model: any) => {
@@ -96,25 +97,42 @@ const SearchPage = () => {
             </Badge>
           </div>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={filters.category === 'all' ? 'default' : 'outline'}
-              className="cursor-pointer border-zinc-600 text-zinc-300"
-              onClick={() => handleFilterToggle('all')}
-            >
-              Todas
-            </Badge>
-            {categories.map(category => (
-              <Badge
-                key={category.id}
-                variant={filters.category === category.id ? 'default' : 'outline'}
-                className="cursor-pointer border-zinc-600 text-zinc-300"
-                onClick={() => handleFilterToggle(category.id)}
-              >
-                {category.name}
-              </Badge>
-            ))}
+          {/* City and Age Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* City Filter */}
+            <div>
+              <label className="text-sm font-medium text-zinc-300 mb-2 block">Cidade</label>
+              <Select value={filters.cityId} onValueChange={(value) => setFilters(prev => ({ ...prev, cityId: value }))}>
+                <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white">
+                  <SelectValue placeholder="Todas as cidades" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as cidades</SelectItem>
+                  {cities.map(city => (
+                    <SelectItem key={city.id} value={city.id}>
+                      {city.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Age Filter */}
+            <div>
+              <label className="text-sm font-medium text-zinc-300 mb-2 block">
+                Idade: {filters.minAge} - {filters.maxAge} anos
+              </label>
+              <div className="space-y-2">
+                <Slider
+                  value={[filters.minAge, filters.maxAge]}
+                  onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minAge: min, maxAge: max }))}
+                  min={18}
+                  max={65}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -299,9 +317,11 @@ const SearchPage = () => {
               onClick={() => {
                 setFilters({
                   searchTerm: '',
-                  category: 'all',
                   onlineOnly: false,
                   showsFace: false,
+                  cityId: '',
+                  minAge: 18,
+                  maxAge: 65,
                 });
               }}
               className="border-zinc-600 text-zinc-300"
