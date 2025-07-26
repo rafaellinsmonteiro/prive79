@@ -7,9 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { 
   ArrowLeft, 
   Image, 
@@ -74,6 +75,8 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isAddTagOpen, setIsAddTagOpen] = useState(false);
+  const [selectedMediaItem, setSelectedMediaItem] = useState<any>(null);
+  const [isMediaDetailsOpen, setIsMediaDetailsOpen] = useState(false);
   
   // Estados para seleção múltipla
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -102,473 +105,221 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
     enabled: !!modelId,
   });
 
-  // Buscar todas as tags únicas
-  const { data: allTags = [] } = useQuery({
-    queryKey: ['model-tags', modelId],
+  // Buscar fotos
+  const { data: photos = [], refetch: refetchPhotos } = useQuery({
+    queryKey: ['model-photos', modelId],
     queryFn: async () => {
       if (!modelId) return [];
       
-      const [photosRes, videosRes] = await Promise.all([
-        supabase.from('model_photos').select('tags').eq('model_id', modelId),
-        supabase.from('model_videos').select('tags').eq('model_id', modelId)
-      ]);
+      const { data, error } = await supabase
+        .from('model_photos')
+        .select('*')
+        .eq('model_id', modelId)
+        .order('created_at', { ascending: false });
       
-      const allTagsSet = new Set<string>();
-      
-      [...(photosRes.data || []), ...(videosRes.data || [])]
-        .forEach(item => {
-          if (item.tags && Array.isArray(item.tags)) {
-            item.tags.forEach((tag: string) => allTagsSet.add(tag));
-          }
-        });
-      
-      return Array.from(allTagsSet).sort();
+      if (error) throw error;
+      return data;
     },
     enabled: !!modelId,
   });
 
-  // Buscar fotos com filtros
-  const { data: photos = [], isLoading: photosLoading, refetch: refetchPhotos } = useQuery({
-    queryKey: ['model-photos', modelId, filters],
+  // Buscar vídeos
+  const { data: videos = [], refetch: refetchVideos } = useQuery({
+    queryKey: ['model-videos', modelId],
     queryFn: async () => {
       if (!modelId) return [];
       
-      let query = supabase
-        .from('model_photos')
-        .select('*')
-        .eq('model_id', modelId);
-
-      if (filters.folder !== 'all') {
-        if (filters.folder === 'no-folder') {
-          query = query.is('folder_id', null);
-        } else {
-          query = query.eq('folder_id', filters.folder);
-        }
-      }
-
-      if (filters.stage !== 'all') {
-        query = query.eq('stage', filters.stage);
-      }
-
-      if (filters.tags.length > 0) {
-        query = query.overlaps('tags', filters.tags);
-      }
-
-      const { data, error } = await query.order('display_order', { ascending: true });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!modelId && (filters.contentType === 'all' || filters.contentType === 'photo'),
-  });
-
-  // Buscar vídeos com filtros
-  const { data: videos = [], isLoading: videosLoading, refetch: refetchVideos } = useQuery({
-    queryKey: ['model-videos', modelId, filters],
-    queryFn: async () => {
-      if (!modelId) return [];
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from('model_videos')
         .select('*')
-        .eq('model_id', modelId);
-
-      if (filters.folder !== 'all') {
-        if (filters.folder === 'no-folder') {
-          query = query.is('folder_id', null);
-        } else {
-          query = query.eq('folder_id', filters.folder);
-        }
-      }
-
-      if (filters.stage !== 'all') {
-        query = query.eq('stage', filters.stage);
-      }
-
-      if (filters.tags.length > 0) {
-        query = query.overlaps('tags', filters.tags);
-      }
-
-      const { data, error } = await query.order('display_order', { ascending: true });
-
+        .eq('model_id', modelId)
+        .order('created_at', { ascending: false });
+      
       if (error) throw error;
       return data;
     },
-    enabled: !!modelId && (filters.contentType === 'all' || filters.contentType === 'video'),
+    enabled: !!modelId,
   });
 
-  // Criar pasta
-  const createFolderMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const { data: user } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('model_media_folders')
-        .insert({
-          model_id: modelId,
-          name,
-          created_by_user_id: user.user?.id
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Pasta criada com sucesso!');
-      setNewFolderName('');
-      setIsCreateFolderOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['model-folders', modelId] });
-    },
-    onError: () => {
-      toast.error('Erro ao criar pasta');
-    }
-  });
-
-  // Upload de arquivos
+  // Upload de arquivo
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, type }: { file: File; type: 'photo' | 'video' }) => {
-      setUploading(true);
+    mutationFn: async (file: File) => {
+      if (!modelId) throw new Error('Model ID não encontrado');
+
+      const isVideo = file.type.startsWith('video/');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${modelId}_${Date.now()}.${fileExt}`;
+      const bucket = isVideo ? 'model-videos' : 'model-photos';
       
-      const bucketName = type === 'photo' ? 'model-photos' : 'model-videos';
-      const fileName = `${modelId}/${Date.now()}-${file.name}`;
-      
+      // Upload para Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucketName)
+        .from(bucket)
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucketName)
+      // Obter URL pública
+      const { data: urlData } = supabase.storage
+        .from(bucket)
         .getPublicUrl(fileName);
 
-      const baseData = {
-        model_id: modelId,
-        display_order: (type === 'photo' ? photos : videos).length,
-        stage: stages[0] || 'Organizar',
-        tags: [],
-        folder_id: filters.folder !== 'all' && filters.folder !== 'no-folder' ? filters.folder : null,
-        created_by_user_id: (await supabase.auth.getUser()).data.user?.id
-      };
-
-      if (type === 'photo') {
-        const { error: dbError } = await supabase
-          .from('model_photos')
-          .insert({
-            ...baseData,
-            photo_url: publicUrl,
-            is_primary: photos.length === 0
-          });
-        if (dbError) throw dbError;
-        refetchPhotos();
-      } else {
+      // Salvar no banco de dados
+      if (isVideo) {
         const { error: dbError } = await supabase
           .from('model_videos')
           .insert({
-            ...baseData,
-            video_url: publicUrl,
-            title: file.name.split('.')[0]
+            model_id: modelId,
+            video_url: urlData.publicUrl,
+            title: file.name.split('.')[0],
+            is_featured_in_reels: false,
+            show_in_profile: true,
+            show_in_gallery: true,
+            tags: [],
+            stage: stages[0]
           });
+        
         if (dbError) throw dbError;
-        refetchVideos();
+      } else {
+        const { error: dbError } = await supabase
+          .from('model_photos')
+          .insert({
+            model_id: modelId,
+            photo_url: urlData.publicUrl,
+            is_primary: false,
+            show_in_profile: true,
+            show_in_gallery: true,
+            tags: [],
+            stage: stages[0]
+          });
+        
+        if (dbError) throw dbError;
       }
+
+      return urlData.publicUrl;
     },
     onSuccess: () => {
-      toast.success('Arquivo enviado com sucesso!');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      toast.success('Upload realizado com sucesso!');
+      refetchPhotos();
+      refetchVideos();
     },
     onError: (error) => {
-      console.error('Upload error:', error);
-      toast.error('Erro ao enviar arquivo');
+      console.error('Erro no upload:', error);
+      toast.error('Erro ao fazer upload do arquivo');
     },
     onSettled: () => {
       setUploading(false);
-    }
+    },
   });
 
-  // Atualizar mídia
-  const updateMediaMutation = useMutation({
-    mutationFn: async ({ id, type, data }: { id: string; type: 'photo' | 'video'; data: any }) => {
-      const tableName = type === 'photo' ? 'model_photos' : 'model_videos';
-      const { error } = await supabase
-        .from(tableName)
-        .update(data)
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: (_, variables) => {
-      toast.success('Atualizado com sucesso!');
-      if (variables.type === 'photo') {
-        refetchPhotos();
-      } else {
-        refetchVideos();
-      }
-    },
-    onError: () => {
-      toast.error('Erro ao atualizar');
-    }
-  });
-
-  // Mutation para ações em massa
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async ({ items, updates }: { items: Array<{id: string, type: 'photo' | 'video'}>, updates: any }) => {
-      const photoUpdates = items.filter(item => item.type === 'photo');
-      const videoUpdates = items.filter(item => item.type === 'video');
-
-      if (photoUpdates.length > 0) {
-        const { error: photoError } = await supabase
-          .from('model_photos')
-          .update(updates)
-          .in('id', photoUpdates.map(item => item.id));
-        if (photoError) throw photoError;
-      }
-
-      if (videoUpdates.length > 0) {
-        const { error: videoError } = await supabase
-          .from('model_videos')
-          .update(updates)
-          .in('id', videoUpdates.map(item => item.id));
-        if (videoError) throw videoError;
-      }
-    },
-    onSuccess: () => {
-      toast.success('Itens atualizados com sucesso!');
-      refetchPhotos();
-      refetchVideos();
-      setSelectedItems(new Set());
-      setBulkActionMode(false);
-    },
-    onError: () => {
-      toast.error('Erro ao atualizar itens');
-    }
-  });
-
-  // Mutation para deletar em massa
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async ({ items }: { items: Array<{id: string, type: 'photo' | 'video', url: string}> }) => {
-      for (const item of items) {
-        const urlParts = item.url.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const filePath = `${modelId}/${fileName}`;
-        
-        const bucketName = item.type === 'photo' ? 'model-photos' : 'model-videos';
-        await supabase.storage
-          .from(bucketName)
-          .remove([filePath]);
-
-        const tableName = item.type === 'photo' ? 'model_photos' : 'model_videos';
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', item.id);
-
-        if (error) throw error;
-      }
-    },
-    onSuccess: (_, variables) => {
-      toast.success(`${variables.items.length} ${variables.items.length === 1 ? 'item deletado' : 'itens deletados'} com sucesso!`);
-      refetchPhotos();
-      refetchVideos();
-      setSelectedItems(new Set());
-      setBulkActionMode(false);
-    },
-    onError: () => {
-      toast.error('Erro ao deletar itens');
-    }
-  });
-
-  // Funções auxiliares
-  const toggleItemSelection = (itemId: string) => {
-    const newSelection = new Set(selectedItems);
-    if (newSelection.has(itemId)) {
-      newSelection.delete(itemId);
-    } else {
-      newSelection.add(itemId);
-    }
-    setSelectedItems(newSelection);
-  };
-
-  const selectAllVisibleItems = () => {
-    const allItems = [...photos.map(p => `photo-${p.id}`), ...videos.map(v => `video-${v.id}`)];
-    setSelectedItems(new Set(allItems));
-  };
-
-  const clearSelection = () => {
-    setSelectedItems(new Set());
-    setBulkActionMode(false);
-  };
-
-  const getSelectedItemsData = () => {
-    const items: Array<{id: string, type: 'photo' | 'video', url: string}> = [];
-    
-    selectedItems.forEach(itemId => {
-      if (itemId.startsWith('photo-')) {
-        const photoId = itemId.replace('photo-', '');
-        const photo = photos.find(p => p.id === photoId);
-        if (photo) {
-          items.push({
-            id: photo.id,
-            type: 'photo',
-            url: photo.photo_url
-          });
-        }
-      } else if (itemId.startsWith('video-')) {
-        const videoId = itemId.replace('video-', '');
-        const video = videos.find(v => v.id === videoId);
-        if (video) {
-          items.push({
-            id: video.id,
-            type: 'video',
-            url: video.video_url
-          });
-        }
-      }
-    });
-    
-    return items;
-  };
-
-  const handleBulkAction = (action: string, value?: string) => {
-    const items = getSelectedItemsData();
-    if (items.length === 0) return;
-
-    switch (action) {
-      case 'delete':
-        if (confirm(`Tem certeza que deseja deletar ${items.length} ${items.length === 1 ? 'item' : 'itens'}?`)) {
-          bulkDeleteMutation.mutate({ items });
-        }
-        break;
-      case 'stage':
-        if (value) {
-          bulkUpdateMutation.mutate({
-            items: items.map(item => ({ id: item.id, type: item.type })),
-            updates: { stage: value }
-          });
-        }
-        break;
-      case 'folder':
-        bulkUpdateMutation.mutate({
-          items: items.map(item => ({ id: item.id, type: item.type })),
-          updates: { folder_id: value === 'no-folder' ? null : value }
-        });
-        break;
-      case 'addTag':
-        if (value && value.trim()) {
-          // Adicionar tag aos itens selecionados
-          items.forEach(item => {
-            const currentItem = item.type === 'photo' 
-              ? photos.find(p => p.id === item.id)
-              : videos.find(v => v.id === item.id);
-            
-            if (currentItem) {
-              const currentTags = currentItem.tags || [];
-              const newTags = [...currentTags, value.trim()].filter((tag, index, arr) => arr.indexOf(tag) === index);
-              
-              updateMediaMutation.mutate({
-                id: item.id,
-                type: item.type,
-                data: { tags: newTags }
-              });
-            }
-          });
-        }
-        break;
-    }
-  };
-
-  const addTagToItem = (itemId: string, type: 'photo' | 'video', tag: string) => {
-    const currentItem = type === 'photo' 
-      ? photos.find(p => p.id === itemId)
-      : videos.find(v => v.id === itemId);
-    
-    if (currentItem) {
-      const currentTags = currentItem.tags || [];
-      const newTags = [...currentTags, tag].filter((tag, index, arr) => arr.indexOf(tag) === index);
-      
-      updateMediaMutation.mutate({
-        id: itemId,
-        type,
-        data: { tags: newTags }
-      });
-    }
-  };
-
-  const removeTagFromItem = (itemId: string, type: 'photo' | 'video', tagToRemove: string) => {
-    const currentItem = type === 'photo' 
-      ? photos.find(p => p.id === itemId)
-      : videos.find(v => v.id === itemId);
-    
-    if (currentItem) {
-      const newTags = (currentItem.tags || []).filter(tag => tag !== tagToRemove);
-      
-      updateMediaMutation.mutate({
-        id: itemId,
-        type,
-        data: { tags: newTags }
-      });
-    }
-  };
-
-  const filteredPhotos = filters.contentType === 'video' ? [] : photos;
-  const filteredVideos = filters.contentType === 'photo' ? [] : videos;
-
-  // Deletar mídia individual
+  // Deletar mídia
   const deleteMutation = useMutation({
     mutationFn: async ({ id, type, url }: { id: string; type: 'photo' | 'video'; url: string }) => {
-      const urlParts = url.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${modelId}/${fileName}`;
-      
-      const bucketName = type === 'photo' ? 'model-photos' : 'model-videos';
-      await supabase.storage
-        .from(bucketName)
-        .remove([filePath]);
+      // Deletar do storage
+      const fileName = url.split('/').pop();
+      if (fileName) {
+        const bucket = type === 'video' ? 'model-videos' : 'model-photos';
+        await supabase.storage.from(bucket).remove([fileName]);
+      }
 
-      const tableName = type === 'photo' ? 'model_photos' : 'model_videos';
+      // Deletar do banco
+      const table = type === 'video' ? 'model_videos' : 'model_photos';
       const { error } = await supabase
-        .from(tableName)
+        .from(table)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
     },
-    onSuccess: (_, variables) => {
-      toast.success(`${variables.type === 'photo' ? 'Foto' : 'Vídeo'} deletado com sucesso!`);
-      if (variables.type === 'photo') {
-        refetchPhotos();
-      } else {
-        refetchVideos();
-      }
+    onSuccess: () => {
+      toast.success('Mídia deletada com sucesso!');
+      refetchPhotos();
+      refetchVideos();
     },
-    onError: () => {
-      toast.error('Erro ao deletar arquivo');
-    }
+    onError: (error) => {
+      console.error('Erro ao deletar:', error);
+      toast.error('Erro ao deletar mídia');
+    },
+  });
+
+  // Atualizar configurações de mídia
+  const updateMediaMutation = useMutation({
+    mutationFn: async ({ id, type, data }: { id: string; type: 'photo' | 'video'; data: any }) => {
+      const table = type === 'video' ? 'model_videos' : 'model_photos';
+      const { error } = await supabase
+        .from(table)
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchPhotos();
+      refetchVideos();
+    },
+  });
+
+  // Criar pasta
+  const createFolderMutation = useMutation({
+    mutationFn: async (name: string) => {
+      if (!modelId) throw new Error('Model ID não encontrado');
+      
+      const { error } = await supabase
+        .from('model_media_folders')
+        .insert({
+          model_id: modelId,
+          name: name
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Pasta criada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['model-folders', modelId] });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar pasta:', error);
+      toast.error('Erro ao criar pasta');
+    },
+  });
+
+  // Deletar pasta
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (folderId: string) => {
+      const { error } = await supabase
+        .from('model_media_folders')
+        .delete()
+        .eq('id', folderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Pasta deletada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['model-folders', modelId] });
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar pasta:', error);
+      toast.error('Erro ao deletar pasta');
+    },
   });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-
-    if (!isImage && !isVideo) {
-      toast.error('Apenas imagens e vídeos são aceitos');
-      return;
+    if (file) {
+      setUploading(true);
+      uploadMutation.mutate(file);
     }
-
-    uploadMutation.mutate({
-      file,
-      type: isImage ? 'photo' : 'video'
-    });
   };
 
-  const togglePrimary = (id: string) => {
-    // Primeiro remover primary de todas as fotos
+  const togglePrimary = (photoId: string) => {
+    updateMediaMutation.mutate({
+      id: photoId,
+      type: 'photo',
+      data: { is_primary: true }
+    });
+
+    // Remover is_primary das outras fotos
     photos.forEach(photo => {
-      if (photo.is_primary && photo.id !== id) {
+      if (photo.id !== photoId && photo.is_primary) {
         updateMediaMutation.mutate({
           id: photo.id,
           type: 'photo',
@@ -576,324 +327,110 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
         });
       }
     });
-
-    // Então definir a foto selecionada como primary
-    updateMediaMutation.mutate({
-      id,
-      type: 'photo',
-      data: { is_primary: true }
-    });
   };
 
-  const toggleReelsFeatured = (id: string, current: boolean) => {
+  const toggleReelsFeatured = (videoId: string, current: boolean) => {
     updateMediaMutation.mutate({
-      id,
+      id: videoId,
       type: 'video',
       data: { is_featured_in_reels: !current }
     });
   };
 
+  const addTagToItem = (itemId: string, type: 'photo' | 'video', tag: string) => {
+    const items = type === 'photo' ? photos : videos;
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+      const currentTags = item.tags || [];
+      if (!currentTags.includes(tag)) {
+        updateMediaMutation.mutate({
+          id: itemId,
+          type,
+          data: { tags: [...currentTags, tag] }
+        });
+      }
+    }
+  };
+
+  const removeTagFromItem = (itemId: string, type: 'photo' | 'video', tagToRemove: string) => {
+    const items = type === 'photo' ? photos : videos;
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+      const updatedTags = (item.tags || []).filter(tag => tag !== tagToRemove);
+      updateMediaMutation.mutate({
+        id: itemId,
+        type,
+        data: { tags: updatedTags }
+      });
+    }
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  // Filtrar mídias
+  const filteredPhotos = photos.filter(photo => {
+    if (filters.contentType === 'video') return false;
+    if (filters.folder !== 'all') {
+      if (filters.folder === 'no-folder' && photo.folder_id) return false;
+      if (filters.folder !== 'no-folder' && photo.folder_id !== filters.folder) return false;
+    }
+    if (filters.stage !== 'all' && photo.stage !== filters.stage) return false;
+    if (filters.tags.length > 0) {
+      const photoTags = photo.tags || [];
+      if (!filters.tags.some(tag => photoTags.includes(tag))) return false;
+    }
+    return true;
+  });
+
+  const filteredVideos = videos.filter(video => {
+    if (filters.contentType === 'photo') return false;
+    if (filters.folder !== 'all') {
+      if (filters.folder === 'no-folder' && video.folder_id) return false;
+      if (filters.folder !== 'no-folder' && video.folder_id !== filters.folder) return false;
+    }
+    if (filters.stage !== 'all' && video.stage !== filters.stage) return false;
+    if (filters.tags.length > 0) {
+      const videoTags = video.tags || [];
+      if (!filters.tags.some(tag => videoTags.includes(tag))) return false;
+    }
+    return true;
+  });
+
+  // Todas as tags disponíveis
+  const allTags = Array.from(new Set([
+    ...photos.flatMap(photo => photo.tags || []),
+    ...videos.flatMap(video => video.tags || [])
+  ]));
+
   return (
     <div className="bg-zinc-950 h-full flex flex-col">
       {/* Header */}
-      <div className="border-b border-zinc-800 p-4 bg-zinc-900">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
+      <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
             size="sm"
             onClick={onBack}
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-2"
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h2 className="text-lg font-semibold text-white">Gerenciar Mídias</h2>
-            <p className="text-sm text-zinc-400">Organize suas fotos e vídeos</p>
-          </div>
+          <h2 className="text-lg font-semibold text-white">Gerenciar Mídias</h2>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Toolbar */}
-        <div className="p-4 border-b border-zinc-800 bg-zinc-900/50">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Popover open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtros
-                    {(filters.folder !== 'all' || filters.stage !== 'all' || filters.tags.length > 0 || filters.contentType !== 'all') && (
-                      <Badge className="ml-2 bg-purple-600">
-                        {[
-                          filters.folder !== 'all' ? 1 : 0,
-                          filters.stage !== 'all' ? 1 : 0,
-                          filters.tags.length,
-                          filters.contentType !== 'all' ? 1 : 0
-                        ].reduce((a, b) => a + b, 0)}
-                      </Badge>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-zinc-900 border-zinc-700">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-zinc-300">Tipo de Conteúdo</Label>
-                      <Select value={filters.contentType} onValueChange={(value: ContentType) => 
-                        setFilters(prev => ({ ...prev, contentType: value }))
-                      }>
-                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          <SelectItem value="all">Todos</SelectItem>
-                          <SelectItem value="photo">Apenas Fotos</SelectItem>
-                          <SelectItem value="video">Apenas Vídeos</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-zinc-300">Pasta</Label>
-                      <Select value={filters.folder} onValueChange={(value) => 
-                        setFilters(prev => ({ ...prev, folder: value }))
-                      }>
-                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          <SelectItem value="all">Todas as Pastas</SelectItem>
-                          <SelectItem value="no-folder">Sem Pasta</SelectItem>
-                          {folders.map(folder => (
-                            <SelectItem key={folder.id} value={folder.id}>
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-zinc-300">Estágio</Label>
-                      <Select value={filters.stage} onValueChange={(value) => 
-                        setFilters(prev => ({ ...prev, stage: value }))
-                      }>
-                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          <SelectItem value="all">Todos os Estágios</SelectItem>
-                          {stages.map(stage => (
-                            <SelectItem key={stage} value={stage}>
-                              {stage}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-zinc-300">Tags</Label>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {allTags.map(tag => (
-                          <Button
-                            key={tag}
-                            size="sm"
-                            variant={filters.tags.includes(tag) ? "default" : "outline"}
-                            onClick={() => {
-                              const newTags = filters.tags.includes(tag)
-                                ? filters.tags.filter(t => t !== tag)
-                                : [...filters.tags, tag];
-                              setFilters(prev => ({ ...prev, tags: newTags }));
-                            }}
-                            className={`text-xs ${
-                              filters.tags.includes(tag) 
-                                ? 'bg-purple-600 hover:bg-purple-700' 
-                                : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700'
-                            }`}
-                          >
-                            {tag}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button 
-                      onClick={() => setFilters({ folder: 'all', stage: 'all', tags: [], contentType: 'all' })}
-                      variant="outline"
-                      size="sm"
-                      className="w-full bg-zinc-800 border-zinc-700 text-zinc-300"
-                    >
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="bg-zinc-800 border-zinc-700 text-zinc-300"
-              >
-                {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {bulkActionMode && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-zinc-400">
-                    {selectedItems.size} selecionados
-                  </span>
-                  <Button size="sm" onClick={selectAllVisibleItems} className="bg-purple-600 hover:bg-purple-700">
-                    Selecionar Todos
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={clearSelection} className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                    Limpar
-                  </Button>
-                </div>
-              )}
-
-              <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="bg-zinc-800 border-zinc-700 text-zinc-300">
-                    <FolderPlus className="h-4 w-4 mr-2" />
-                    Nova Pasta
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-zinc-900 border-zinc-700">
-                  <DialogHeader>
-                    <DialogTitle className="text-white">Criar Nova Pasta</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Input
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      placeholder="Nome da pasta"
-                      className="bg-zinc-800 border-zinc-700 text-white"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => createFolderMutation.mutate(newFolderName)}
-                        disabled={!newFolderName.trim()}
-                        className="bg-purple-600 hover:bg-purple-700"
-                      >
-                        Criar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setIsCreateFolderOpen(false)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-300"
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Button
-                variant={bulkActionMode ? "destructive" : "outline"}
-                size="sm"
-                onClick={() => setBulkActionMode(!bulkActionMode)}
-                className={bulkActionMode ? "" : "bg-zinc-800 border-zinc-700 text-zinc-300"}
-              >
-                {bulkActionMode ? <X className="h-4 w-4" /> : <CheckSquare className="h-4 w-4" />}
-                {bulkActionMode ? 'Cancelar' : 'Selecionar'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Ações em massa */}
-          {bulkActionMode && selectedItems.size > 0 && (
-            <div className="flex items-center gap-2 p-3 bg-zinc-800 rounded-lg">
-              <span className="text-sm text-zinc-300">Ações em massa:</span>
-              
-              <Select onValueChange={(value) => handleBulkAction('stage', value)}>
-                <SelectTrigger className="w-40 bg-zinc-700 border-zinc-600 text-zinc-300">
-                  <SelectValue placeholder="Estágio" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {stages.map(stage => (
-                    <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select onValueChange={(value) => handleBulkAction('folder', value)}>
-                <SelectTrigger className="w-40 bg-zinc-700 border-zinc-600 text-zinc-300">
-                  <SelectValue placeholder="Pasta" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="no-folder">Sem Pasta</SelectItem>
-                  {folders.map(folder => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Dialog open={isAddTagOpen} onOpenChange={setIsAddTagOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-300">
-                    <Tag className="h-4 w-4 mr-1" />
-                    Tag
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-zinc-900 border-zinc-700">
-                  <DialogHeader>
-                    <DialogTitle className="text-white">Adicionar Tag</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Input
-                      value={newTagName}
-                      onChange={(e) => setNewTagName(e.target.value)}
-                      placeholder="Nome da tag"
-                      className="bg-zinc-800 border-zinc-700 text-white"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          if (newTagName.trim()) {
-                            handleBulkAction('addTag', newTagName.trim());
-                            setNewTagName('');
-                            setIsAddTagOpen(false);
-                          }
-                        }}
-                        disabled={!newTagName.trim()}
-                        className="bg-purple-600 hover:bg-purple-700"
-                      >
-                        Adicionar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setIsAddTagOpen(false)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-300"
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => handleBulkAction('delete')}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Deletar
-              </Button>
-            </div>
-          )}
-        </div>
-
+      <div className="flex-1 overflow-hidden">
         {/* Upload Button */}
-        <div className="p-4">
+        <div className="p-4 border-b border-zinc-800">
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
@@ -911,8 +448,233 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
           />
         </div>
 
+        {/* Control Bar */}
+        <div className="flex flex-col gap-4 p-4 border-b border-zinc-800">
+          {/* Mobile-first layout */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Top row - View modes and filters */}
+            <div className="flex gap-2 flex-1">
+              {/* View Toggle */}
+              <div className="flex bg-zinc-800 rounded-lg p-1">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('grid')}
+                  className="px-2 py-1 h-8"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('list')}
+                  className="px-2 py-1 h-8"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Filters */}
+              <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsFiltersOpen(true)}
+                  className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 flex-1 sm:flex-initial"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtros
+                  {(filters.folder !== 'all' || filters.stage !== 'all' || filters.tags.length > 0) && (
+                    <Badge className="ml-2 h-4 px-1 bg-purple-600 text-white text-xs">
+                      {[
+                        filters.folder !== 'all' ? 1 : 0,
+                        filters.stage !== 'all' ? 1 : 0,
+                        filters.tags.length
+                      ].reduce((a, b) => a + b, 0)}
+                    </Badge>
+                  )}
+                </Button>
+                <SheetContent side="bottom" className="bg-zinc-900 border-zinc-700 h-[80vh]">
+                  <SheetHeader>
+                    <SheetTitle className="text-white">Filtros</SheetTitle>
+                  </SheetHeader>
+                  <div className="space-y-6 mt-6">
+                    {/* Content Type Filter */}
+                    <div>
+                      <Label className="text-sm text-zinc-400">Tipo de Conteúdo</Label>
+                      <Select value={filters.contentType} onValueChange={(value: ContentType) => setFilters(f => ({...f, contentType: value}))}>
+                        <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white mt-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="photo">Fotos</SelectItem>
+                          <SelectItem value="video">Vídeos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Folder Filter */}
+                    <div>
+                      <Label className="text-sm text-zinc-400">Pasta</Label>
+                      <Select value={filters.folder} onValueChange={(value) => setFilters(f => ({...f, folder: value}))}>
+                        <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white mt-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          <SelectItem value="all">Todas as Pastas</SelectItem>
+                          <SelectItem value="no-folder">Sem Pasta</SelectItem>
+                          {folders.map(folder => (
+                            <SelectItem key={folder.id} value={folder.id}>
+                              {folder.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Stage Filter */}
+                    <div>
+                      <Label className="text-sm text-zinc-400">Estágio</Label>
+                      <Select value={filters.stage} onValueChange={(value) => setFilters(f => ({...f, stage: value}))}>
+                        <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white mt-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          <SelectItem value="all">Todos os Estágios</SelectItem>
+                          {stages.map(stage => (
+                            <SelectItem key={stage} value={stage}>
+                              {stage}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Tags Filter */}
+                    <div>
+                      <Label className="text-sm text-zinc-400">Tags</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {allTags.map(tag => (
+                          <Badge
+                            key={tag}
+                            variant={filters.tags.includes(tag) ? "default" : "outline"}
+                            className={`cursor-pointer text-xs ${
+                              filters.tags.includes(tag) 
+                                ? 'bg-purple-600 text-white' 
+                                : 'bg-zinc-700 border-zinc-600 text-zinc-300 hover:bg-zinc-600'
+                            }`}
+                            onClick={() => {
+                              setFilters(f => ({
+                                ...f,
+                                tags: f.tags.includes(tag) 
+                                  ? f.tags.filter(t => t !== tag)
+                                  : [...f.tags, tag]
+                              }));
+                            }}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={() => setFilters({
+                        folder: 'all',
+                        stage: 'all',
+                        tags: [],
+                        contentType: 'all'
+                      })}
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-zinc-700 border-zinc-600 text-zinc-300 hover:bg-zinc-600"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              {/* Bulk Actions Toggle */}
+              <Button
+                size="sm"
+                variant={bulkActionMode ? "default" : "outline"}
+                onClick={() => {
+                  setBulkActionMode(!bulkActionMode);
+                  setSelectedItems(new Set());
+                }}
+                className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"
+              >
+                <CheckSquare className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">
+                  {bulkActionMode ? 'Cancelar' : 'Selecionar'}
+                </span>
+              </Button>
+            </div>
+
+            {/* Bottom row - Folder management */}
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 flex-1 sm:flex-initial"
+                  >
+                    <Folder className="h-4 w-4 mr-2" />
+                    Pastas
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 bg-zinc-800 border-zinc-700" align="end">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-white">Gerenciar Pastas</h4>
+                    
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {folders.map(folder => (
+                        <div key={folder.id} className="flex items-center justify-between p-2 bg-zinc-900 rounded">
+                          <span className="text-sm text-zinc-300">{folder.name}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteFolderMutation.mutate(folder.id)}
+                            className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nova pasta"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        className="bg-zinc-900 border-zinc-600 text-white text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (newFolderName.trim()) {
+                            createFolderMutation.mutate(newFolderName.trim());
+                            setNewFolderName('');
+                          }
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-3"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+
         {/* Media Grid/List */}
-        <div className="p-4">
+        <div className="p-4 flex-1 overflow-y-auto">
           {(filteredPhotos.length === 0 && filteredVideos.length === 0) ? (
             <div className="text-center text-zinc-400 py-12">
               <Image className="h-16 w-16 mx-auto mb-4 opacity-30" />
@@ -926,27 +688,36 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
             </div>
           ) : (
             <div className={viewMode === 'grid' 
-              ? "grid grid-cols-2 md:grid-cols-3 gap-4" 
-              : "space-y-4"
+              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" 
+              : "space-y-3"
             }>
               {/* Render Photos */}
               {filteredPhotos.map((photo) => (
-                <Card key={`photo-${photo.id}`} className="bg-zinc-800 border-zinc-700 overflow-hidden">
-                  <div className="relative group">
-                    {bulkActionMode && (
-                      <div className="absolute top-2 right-2 z-10">
-                        <Checkbox
-                          checked={selectedItems.has(`photo-${photo.id}`)}
-                          onCheckedChange={() => toggleItemSelection(`photo-${photo.id}`)}
-                          className="bg-zinc-700 border-zinc-600"
-                        />
-                      </div>
-                    )}
-                    
+                <div key={`photo-${photo.id}`} className="relative group">
+                  {bulkActionMode && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Checkbox
+                        checked={selectedItems.has(`photo-${photo.id}`)}
+                        onCheckedChange={() => toggleItemSelection(`photo-${photo.id}`)}
+                        className="bg-zinc-700 border-zinc-600"
+                      />
+                    </div>
+                  )}
+                  
+                  <div 
+                    className="relative cursor-pointer overflow-hidden rounded-lg bg-zinc-800"
+                    onClick={() => {
+                      setSelectedMediaItem({ ...photo, type: 'photo' });
+                      setIsMediaDetailsOpen(true);
+                    }}
+                  >
                     <img
                       src={photo.photo_url}
                       alt="Foto"
-                      className={viewMode === 'grid' ? "w-full h-32 object-cover" : "w-20 h-20 object-cover rounded"}
+                      className={viewMode === 'grid' 
+                        ? "w-full aspect-square object-cover hover:scale-105 transition-transform" 
+                        : "w-20 h-20 object-cover"
+                      }
                     />
                     
                     {!bulkActionMode && (
@@ -954,7 +725,10 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => togglePrimary(photo.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePrimary(photo.id);
+                          }}
                           className="bg-zinc-700 hover:bg-zinc-600"
                         >
                           <Star className={`h-4 w-4 ${photo.is_primary ? 'fill-yellow-400 text-yellow-400' : 'text-zinc-300'}`} />
@@ -962,11 +736,14 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => deleteMutation.mutate({
-                            id: photo.id,
-                            type: 'photo',
-                            url: photo.photo_url
-                          })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteMutation.mutate({
+                              id: photo.id,
+                              type: 'photo',
+                              url: photo.photo_url
+                            });
+                          }}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -974,133 +751,47 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                       </div>
                     )}
                     
-                    {photo.is_primary && (
-                      <Badge className="absolute top-2 left-2 bg-yellow-600 text-white">
-                        Principal
-                      </Badge>
-                    )}
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 space-y-1">
+                      {photo.is_primary && (
+                        <Badge className="bg-yellow-600 text-white text-xs">
+                          Principal
+                        </Badge>
+                      )}
+                      {photo.tags && photo.tags.length > 0 && (
+                        <Badge className="bg-purple-600 text-white text-xs">
+                          {photo.tags.length} tag{photo.tags.length > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  
-                  <CardContent className="p-3 space-y-3">
-                    {/* Tags */}
-                    {photo.tags && photo.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {photo.tags.map((tag, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline" 
-                            className="text-xs bg-zinc-700 border-zinc-600 text-zinc-300 cursor-pointer hover:bg-red-600"
-                            onClick={() => removeTagFromItem(photo.id, 'photo', tag)}
-                          >
-                            {tag} ×
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Stage and Folder */}
-                    <div className="flex gap-2">
-                      <Select 
-                        value={photo.stage || stages[0]} 
-                        onValueChange={(value) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { stage: value }
-                        })}
-                      >
-                        <SelectTrigger className="text-xs bg-zinc-900 border-zinc-600 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          {stages.map(stage => (
-                            <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select 
-                        value={photo.folder_id || 'no-folder'} 
-                        onValueChange={(value) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { folder_id: value === 'no-folder' ? null : value }
-                        })}
-                      >
-                        <SelectTrigger className="text-xs bg-zinc-900 border-zinc-600 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          <SelectItem value="no-folder">Sem Pasta</SelectItem>
-                          {folders.map(folder => (
-                            <SelectItem key={folder.id} value={folder.id}>
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Visibility Controls */}
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-zinc-400">Perfil</Label>
-                      <Switch
-                        checked={photo.show_in_profile}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { show_in_profile: checked }
-                        })}
-                        className="data-[state=checked]:bg-purple-600"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-zinc-400">Galeria</Label>
-                      <Switch
-                        checked={photo.show_in_gallery}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: photo.id,
-                          type: 'photo',
-                          data: { show_in_gallery: checked }
-                        })}
-                        className="data-[state=checked]:bg-purple-600"
-                      />
-                    </div>
-
-                    {/* Add Tag */}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Adicionar tag"
-                        className="text-xs bg-zinc-900 border-zinc-600 text-white"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            const target = e.target as HTMLInputElement;
-                            if (target.value.trim()) {
-                              addTagToItem(photo.id, 'photo', target.value.trim());
-                              target.value = '';
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
               ))}
 
               {/* Render Videos */}
               {filteredVideos.map((video) => (
-                <Card key={`video-${video.id}`} className="bg-zinc-800 border-zinc-700 overflow-hidden">
-                  <div className="relative group">
-                    {bulkActionMode && (
-                      <div className="absolute top-2 right-2 z-10">
-                        <Checkbox
-                          checked={selectedItems.has(`video-${video.id}`)}
-                          onCheckedChange={() => toggleItemSelection(`video-${video.id}`)}
-                          className="bg-zinc-700 border-zinc-600"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className={viewMode === 'grid' ? "w-full h-32 bg-zinc-900 flex items-center justify-center" : "w-20 h-20 bg-zinc-900 flex items-center justify-center rounded"}>
+                <div key={`video-${video.id}`} className="relative group">
+                  {bulkActionMode && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Checkbox
+                        checked={selectedItems.has(`video-${video.id}`)}
+                        onCheckedChange={() => toggleItemSelection(`video-${video.id}`)}
+                        className="bg-zinc-700 border-zinc-600"
+                      />
+                    </div>
+                  )}
+                  
+                  <div 
+                    className="relative cursor-pointer overflow-hidden rounded-lg bg-zinc-800"
+                    onClick={() => {
+                      setSelectedMediaItem({ ...video, type: 'video' });
+                      setIsMediaDetailsOpen(true);
+                    }}
+                  >
+                    <div className={viewMode === 'grid' 
+                      ? "w-full aspect-square bg-zinc-900 flex items-center justify-center hover:scale-105 transition-transform" 
+                      : "w-20 h-20 bg-zinc-900 flex items-center justify-center"
+                    }>
                       {video.thumbnail_url ? (
                         <img
                           src={video.thumbnail_url}
@@ -1117,7 +808,10 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => toggleReelsFeatured(video.id, video.is_featured_in_reels)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleReelsFeatured(video.id, video.is_featured_in_reels);
+                          }}
                           className="bg-zinc-700 hover:bg-zinc-600"
                         >
                           <Film className={`h-4 w-4 ${video.is_featured_in_reels ? 'fill-blue-400 text-blue-400' : 'text-zinc-300'}`} />
@@ -1125,11 +819,14 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => deleteMutation.mutate({
-                            id: video.id,
-                            type: 'video',
-                            url: video.video_url
-                          })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteMutation.mutate({
+                              id: video.id,
+                              type: 'video',
+                              url: video.video_url
+                            });
+                          }}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1137,139 +834,266 @@ const ChatMediaManager: React.FC<ChatMediaManagerProps> = ({ onBack }) => {
                       </div>
                     )}
                     
-                    {video.is_featured_in_reels && (
-                      <Badge className="absolute top-2 left-2 bg-blue-600 text-white">
-                        Reels
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <CardContent className="p-3 space-y-3">
-                    <Input
-                      value={video.title || ''}
-                      onChange={(e) => updateMediaMutation.mutate({
-                        id: video.id,
-                        type: 'video',
-                        data: { title: e.target.value }
-                      })}
-                      placeholder="Título do vídeo"
-                      className="bg-zinc-900 border-zinc-600 text-white text-sm"
-                    />
-
-                    {/* Tags */}
-                    {video.tags && video.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {video.tags.map((tag, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline" 
-                            className="text-xs bg-zinc-700 border-zinc-600 text-zinc-300 cursor-pointer hover:bg-red-600"
-                            onClick={() => removeTagFromItem(video.id, 'video', tag)}
-                          >
-                            {tag} ×
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Stage and Folder */}
-                    <div className="flex gap-2">
-                      <Select 
-                        value={video.stage || stages[0]} 
-                        onValueChange={(value) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { stage: value }
-                        })}
-                      >
-                        <SelectTrigger className="text-xs bg-zinc-900 border-zinc-600 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          {stages.map(stage => (
-                            <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select 
-                        value={video.folder_id || 'no-folder'} 
-                        onValueChange={(value) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { folder_id: value === 'no-folder' ? null : value }
-                        })}
-                      >
-                        <SelectTrigger className="text-xs bg-zinc-900 border-zinc-600 text-zinc-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          <SelectItem value="no-folder">Sem Pasta</SelectItem>
-                          {folders.map(folder => (
-                            <SelectItem key={folder.id} value={folder.id}>
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 space-y-1">
+                      {video.is_featured_in_reels && (
+                        <Badge className="bg-blue-600 text-white text-xs">
+                          Reels
+                        </Badge>
+                      )}
+                      {video.tags && video.tags.length > 0 && (
+                        <Badge className="bg-purple-600 text-white text-xs">
+                          {video.tags.length} tag{video.tags.length > 1 ? 's' : ''}
+                        </Badge>
+                      )}
                     </div>
                     
-                    {/* Visibility Controls */}
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-zinc-400">Perfil</Label>
-                      <Switch
-                        checked={video.show_in_profile}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { show_in_profile: checked }
-                        })}
-                        className="data-[state=checked]:bg-purple-600"
-                      />
+                    {/* Video Play Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="bg-black bg-opacity-50 rounded-full p-2">
+                        <Video className="h-6 w-6 text-white" />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-zinc-400">Galeria</Label>
-                      <Switch
-                        checked={video.show_in_gallery}
-                        onCheckedChange={(checked) => updateMediaMutation.mutate({
-                          id: video.id,
-                          type: 'video',
-                          data: { show_in_gallery: checked }
-                        })}
-                        className="data-[state=checked]:bg-purple-600"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-zinc-400">Reels</Label>
-                      <Switch
-                        checked={video.is_featured_in_reels}
-                        onCheckedChange={(checked) => toggleReelsFeatured(video.id, !checked)}
-                        className="data-[state=checked]:bg-purple-600"
-                      />
-                    </div>
-
-                    {/* Add Tag */}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Adicionar tag"
-                        className="text-xs bg-zinc-900 border-zinc-600 text-white"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            const target = e.target as HTMLInputElement;
-                            if (target.value.trim()) {
-                              addTagToItem(video.id, 'video', target.value.trim());
-                              target.value = '';
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Media Details Modal */}
+        <Dialog open={isMediaDetailsOpen} onOpenChange={setIsMediaDetailsOpen}>
+          <DialogContent className="bg-zinc-900 border-zinc-700 max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white">
+                {selectedMediaItem?.type === 'photo' ? 'Detalhes da Foto' : 'Detalhes do Vídeo'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedMediaItem && (
+              <div className="space-y-6">
+                {/* Media Preview */}
+                <div className="flex justify-center">
+                  {selectedMediaItem.type === 'photo' ? (
+                    <img
+                      src={selectedMediaItem.photo_url}
+                      alt="Foto"
+                      className="max-w-full max-h-64 object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full max-w-md aspect-video bg-zinc-800 rounded-lg flex items-center justify-center">
+                      {selectedMediaItem.thumbnail_url ? (
+                        <img
+                          src={selectedMediaItem.thumbnail_url}
+                          alt="Thumbnail"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <Video className="h-12 w-12 text-zinc-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Video Title */}
+                {selectedMediaItem.type === 'video' && (
+                  <div>
+                    <Label className="text-sm text-zinc-400">Título</Label>
+                    <Input
+                      value={selectedMediaItem.title || ''}
+                      onChange={(e) => {
+                        const newTitle = e.target.value;
+                        setSelectedMediaItem(prev => ({ ...prev, title: newTitle }));
+                        updateMediaMutation.mutate({
+                          id: selectedMediaItem.id,
+                          type: 'video',
+                          data: { title: newTitle }
+                        });
+                      }}
+                      placeholder="Título do vídeo"
+                      className="bg-zinc-800 border-zinc-600 text-white mt-2"
+                    />
+                  </div>
+                )}
+
+                {/* Tags */}
+                <div>
+                  <Label className="text-sm text-zinc-400">Tags</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedMediaItem.tags && selectedMediaItem.tags.map((tag, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="bg-zinc-700 border-zinc-600 text-zinc-300 cursor-pointer hover:bg-red-600"
+                        onClick={() => removeTagFromItem(selectedMediaItem.id, selectedMediaItem.type, tag)}
+                      >
+                        {tag} ×
+                      </Badge>
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Adicionar tag"
+                    className="bg-zinc-800 border-zinc-600 text-white mt-2"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const target = e.target as HTMLInputElement;
+                        if (target.value.trim()) {
+                          addTagToItem(selectedMediaItem.id, selectedMediaItem.type, target.value.trim());
+                          target.value = '';
+                        }
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Stage and Folder */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-zinc-400">Estágio</Label>
+                    <Select 
+                      value={selectedMediaItem.stage || stages[0]} 
+                      onValueChange={(value) => {
+                        setSelectedMediaItem(prev => ({ ...prev, stage: value }));
+                        updateMediaMutation.mutate({
+                          id: selectedMediaItem.id,
+                          type: selectedMediaItem.type,
+                          data: { stage: value }
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        {stages.map(stage => (
+                          <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm text-zinc-400">Pasta</Label>
+                    <Select 
+                      value={selectedMediaItem.folder_id || 'no-folder'} 
+                      onValueChange={(value) => {
+                        const folderId = value === 'no-folder' ? null : value;
+                        setSelectedMediaItem(prev => ({ ...prev, folder_id: folderId }));
+                        updateMediaMutation.mutate({
+                          id: selectedMediaItem.id,
+                          type: selectedMediaItem.type,
+                          data: { folder_id: folderId }
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="no-folder">Sem Pasta</SelectItem>
+                        {folders.map(folder => (
+                          <SelectItem key={folder.id} value={folder.id}>
+                            {folder.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Visibility Controls */}
+                <div className="space-y-4">
+                  <h4 className="text-white font-medium">Visibilidade</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                      <Label className="text-zinc-300">Mostrar no Perfil</Label>
+                      <Switch
+                        checked={selectedMediaItem.show_in_profile}
+                        onCheckedChange={(checked) => {
+                          setSelectedMediaItem(prev => ({ ...prev, show_in_profile: checked }));
+                          updateMediaMutation.mutate({
+                            id: selectedMediaItem.id,
+                            type: selectedMediaItem.type,
+                            data: { show_in_profile: checked }
+                          });
+                        }}
+                        className="data-[state=checked]:bg-purple-600"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                      <Label className="text-zinc-300">Mostrar na Galeria</Label>
+                      <Switch
+                        checked={selectedMediaItem.show_in_gallery}
+                        onCheckedChange={(checked) => {
+                          setSelectedMediaItem(prev => ({ ...prev, show_in_gallery: checked }));
+                          updateMediaMutation.mutate({
+                            id: selectedMediaItem.id,
+                            type: selectedMediaItem.type,
+                            data: { show_in_gallery: checked }
+                          });
+                        }}
+                        className="data-[state=checked]:bg-purple-600"
+                      />
+                    </div>
+
+                    {selectedMediaItem.type === 'photo' && (
+                      <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                        <Label className="text-zinc-300">Foto Principal</Label>
+                        <Switch
+                          checked={selectedMediaItem.is_primary}
+                          onCheckedChange={() => togglePrimary(selectedMediaItem.id)}
+                          className="data-[state=checked]:bg-yellow-600"
+                        />
+                      </div>
+                    )}
+
+                    {selectedMediaItem.type === 'video' && (
+                      <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                        <Label className="text-zinc-300">Destacar nos Reels</Label>
+                        <Switch
+                          checked={selectedMediaItem.is_featured_in_reels}
+                          onCheckedChange={(checked) => {
+                            setSelectedMediaItem(prev => ({ ...prev, is_featured_in_reels: checked }));
+                            toggleReelsFeatured(selectedMediaItem.id, !checked);
+                          }}
+                          className="data-[state=checked]:bg-blue-600"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-700">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsMediaDetailsOpen(false)}
+                    className="bg-zinc-800 border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                  >
+                    Fechar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      deleteMutation.mutate({
+                        id: selectedMediaItem.id,
+                        type: selectedMediaItem.type,
+                        url: selectedMediaItem.type === 'photo' ? selectedMediaItem.photo_url : selectedMediaItem.video_url
+                      });
+                      setIsMediaDetailsOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
