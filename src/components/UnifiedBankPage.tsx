@@ -12,8 +12,10 @@ import { usePrivaBank, useTransferBetweenAccounts } from '@/hooks/usePrivaBank';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserType } from '@/hooks/useUserType';
+import { useAbacatePay } from '@/hooks/useAbacatePay';
 import V2VipModel from '@/components/V2VipModel';
 import { V2ClientLayout } from '@/components/V2ClientLayout';
+import PixDepositModal from '@/components/PixDepositModal';
 import {
   Wallet,
   TrendingUp,
@@ -58,6 +60,10 @@ const UnifiedBankPage = () => {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // PIX states
+  const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [pixData, setPixData] = useState<any>(null);
+
   // Transfer filters state
   const [transactionFilters, setTransactionFilters] = useState({
     dateRange: 'all',
@@ -67,6 +73,7 @@ const UnifiedBankPage = () => {
 
   const { account, transactions, isLoading } = usePrivaBank(transactionFilters);
   const transferMutation = useTransferBetweenAccounts();
+  const { createPixQrCode, isLoading: pixLoading } = useAbacatePay();
 
   React.useEffect(() => {
     const checkUserType = async () => {
@@ -77,6 +84,48 @@ const UnifiedBankPage = () => {
     };
     checkUserType();
   }, [user, getUserType]);
+
+  // PIX handlers
+  const handlePixDeposit = async () => {
+    if (!depositAmount || parseFloat(depositAmount) <= 0) {
+      toast({
+        title: "Erro",
+        description: "Digite um valor válido para depósito",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (depositCurrency !== 'BRL') {
+      toast({
+        title: "Erro",
+        description: "PIX só está disponível para depósitos em Reais (R$)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setPixData(null);
+    setPixModalOpen(true);
+
+    try {
+      const pixResult = await createPixQrCode({
+        amount: parseFloat(depositAmount),
+        description: `Depósito PriveBank - R$ ${depositAmount}`,
+        customerName: user?.user_metadata?.name,
+        customerEmail: user?.email
+      });
+
+      if (pixResult) {
+        setPixData(pixResult);
+      } else {
+        setPixModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Erro ao criar PIX:', error);
+      setPixModalOpen(false);
+    }
+  };
 
   // Bank operations handlers
   const handleDeposit = async () => {
@@ -89,15 +138,21 @@ const UnifiedBankPage = () => {
       return;
     }
 
+    // Para depósitos em Reais, usar PIX
+    if (depositCurrency === 'BRL') {
+      await handlePixDeposit();
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
-      // Simulating deposit API call
+      // Simulating deposit API call for P-Dólar
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       toast({
         title: "Depósito realizado!",
-        description: `${depositCurrency === 'PDolar' ? 'P$' : 'R$'} ${depositAmount} depositado com sucesso.`
+        description: `P$ ${depositAmount} depositado com sucesso.`
       });
       
       setDepositAmount('');
@@ -776,6 +831,18 @@ const UnifiedBankPage = () => {
         activeId="bank"
       >
         {bankContent}
+        
+        {/* PIX Deposit Modal */}
+        <PixDepositModal
+          isOpen={pixModalOpen}
+          onClose={() => {
+            setPixModalOpen(false);
+            setPixData(null);
+            setDepositAmount('');
+          }}
+          amount={parseFloat(depositAmount) || 0}
+          pixData={pixData}
+        />
       </V2VipModel>
     );
   }
@@ -788,6 +855,18 @@ const UnifiedBankPage = () => {
       activeId="privebank"
     >
       {bankContent}
+      
+      {/* PIX Deposit Modal */}
+      <PixDepositModal
+        isOpen={pixModalOpen}
+        onClose={() => {
+          setPixModalOpen(false);
+          setPixData(null);
+          setDepositAmount('');
+        }}
+        amount={parseFloat(depositAmount) || 0}
+        pixData={pixData}
+      />
     </V2ClientLayout>
   );
 };
