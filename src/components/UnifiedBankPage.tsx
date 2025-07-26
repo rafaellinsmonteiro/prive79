@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserType } from '@/hooks/useUserType';
 import { useAbacatePay } from '@/hooks/useAbacatePay';
+import { useUserPixDeposits } from '@/hooks/usePixDeposits';
 import V2VipModel from '@/components/V2VipModel';
 import { V2ClientLayout } from '@/components/V2ClientLayout';
 import PixDepositModal from '@/components/PixDepositModal';
@@ -49,20 +50,7 @@ const UnifiedBankPage = () => {
   const [userType, setUserType] = React.useState<'admin' | 'modelo' | 'cliente' | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: pixDeposits } = useQuery({
-    queryKey: ['user-pix-deposits'],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('pix_deposits')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: pixDeposits } = useUserPixDeposits();
   
   // States for bank functionality
   const [activeTab, setActiveTab] = useState('dashboard');

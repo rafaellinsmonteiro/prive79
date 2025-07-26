@@ -254,7 +254,8 @@ serve(async (req) => {
           console.log(`Processando PIX de R$ ${amount} para usuário ${pixDeposit.user_id}`);
 
           // PRIMEIRA AÇÃO: Marcar como processado IMEDIATAMENTE para evitar processamento duplo
-          const { error: updatePixError } = await supabaseClient
+          console.log('Atualizando PIX deposit ID:', pixDeposit.id, 'de status:', pixDeposit.status, 'para PAID');
+          const { data: updateResult, error: updatePixError } = await supabaseClient
             .from('pix_deposits')
             .update({ 
               status: 'PAID', 
@@ -262,7 +263,10 @@ serve(async (req) => {
               updated_at: new Date().toISOString()
             })
             .eq('id', pixDeposit.id)
-            .eq('processed', false); // Só atualiza se ainda não foi processado
+            .eq('processed', false) // Só atualiza se ainda não foi processado
+            .select();
+
+          console.log('Resultado da atualização PIX:', updateResult, 'Erro:', updatePixError);
 
           if (updatePixError) {
             console.error('Erro ao atualizar PIX deposit:', updatePixError);
@@ -274,6 +278,22 @@ serve(async (req) => {
               }),
               { 
                 status: 500, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+
+          // Verificar se realmente atualizou
+          if (!updateResult || updateResult.length === 0) {
+            console.log('PIX deposit não foi atualizado - provavelmente já foi processado');
+            return new Response(
+              JSON.stringify({ 
+                status: pixStatus,
+                processed: true,
+                message: 'PIX já foi processado anteriormente' 
+              }),
+              { 
+                status: 200, 
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
               }
             );
