@@ -12,7 +12,12 @@ export const useAuthRedirect = () => {
     if (!user || !authComplete) return;
     
     // Se estiver no chat-app (chat.prive.click), não fazer redirecionamentos automáticos
-    if (window.location.hostname === 'chat.prive.click' || localStorage.getItem('chat-app-login')) {
+    if (window.location.hostname === 'chat.prive.click') {
+      return;
+    }
+    
+    // Se foi login pelo chat-app em outro hostname, também não redirecionar
+    if (localStorage.getItem('chat-app-login')) {
       return;
     }
     
