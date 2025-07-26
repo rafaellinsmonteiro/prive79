@@ -202,7 +202,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm text-zinc-400 mb-2 block">
-                        ID do Modelo
+                        ID do Usuário
                       </label>
                       <Input
                         value={modelId}
