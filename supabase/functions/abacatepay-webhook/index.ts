@@ -23,11 +23,11 @@ serve(async (req) => {
     const body = await req.json();
     console.log('Webhook payload:', JSON.stringify(body, null, 2));
 
-    // Verificar se é um evento de PIX pago
-    if (body.event === 'pixQrCode.paid' && body.data) {
-      const pixId = body.data.id;
-      const status = body.data.status;
-      const amount = body.data.amount / 100; // AbacatePay envia em centavos
+    // Verificar se é um evento de PIX pago via billing.paid ou direto via pixQrCode
+    if (body.event === 'billing.paid' && body.data?.pixQrCode) {
+      const pixId = body.data.pixQrCode.id;
+      const status = body.data.pixQrCode.status;
+      const amount = body.data.pixQrCode.amount / 100; // AbacatePay envia em centavos
       
       console.log(`PIX ${pixId} foi pago. Status: ${status}, Valor: R$ ${amount}`);
 
