@@ -1575,6 +1575,45 @@ export type Database = {
           },
         ]
       }
+      pix_deposits: {
+        Row: {
+          amount: number
+          br_code: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          pix_id: string
+          processed: boolean | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          br_code?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pix_id: string
+          processed?: boolean | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          br_code?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pix_id?: string
+          processed?: boolean | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       plan_categories: {
         Row: {
           category_id: string
