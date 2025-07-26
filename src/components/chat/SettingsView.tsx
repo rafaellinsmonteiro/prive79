@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import ChatMediaManager from './ChatMediaManager';
 import { 
   User, 
   Bell, 
@@ -20,6 +21,7 @@ import {
 
 const SettingsView: React.FC = () => {
   const { user, signOut } = useAuth();
+  const [currentView, setCurrentView] = useState<'main' | 'media'>('main');
 
   const handleLogout = async () => {
     await signOut();
@@ -109,6 +111,11 @@ const SettingsView: React.FC = () => {
     },
   ];
 
+  // Renderizar a view de mídias se selecionada
+  if (currentView === 'media') {
+    return <ChatMediaManager onBack={() => setCurrentView('main')} />;
+  }
+
   return (
     <div className="bg-zinc-950 h-full flex flex-col">
       {/* Header */}
@@ -148,6 +155,12 @@ const SettingsView: React.FC = () => {
                 return (
                   <button
                     key={item.label}
+                    onClick={() => {
+                      if (item.action === 'manage-media') {
+                        setCurrentView('media');
+                      }
+                      // Adicionar outras ações conforme necessário
+                    }}
                     className="w-full p-4 flex items-center space-x-3 hover:bg-zinc-800/50 transition-colors border-b border-zinc-800/50 last:border-b-0"
                   >
                     <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
