@@ -14,6 +14,7 @@ import { ChatAppContent } from "@/ChatApp";
 // New Design System Pages
 import AdminDesignTestDashboard from "./pages/AdminDesignTestDashboard";
 import AdminDesignTestModels from "./pages/AdminDesignTestModels";
+import AdminModelsPage from "./pages/AdminModelsPage";
 import AdminDesignTestUsers from "./pages/AdminDesignTestUsers";
 import AdminDesignTestFields from "./pages/AdminDesignTestFields";
 import AdminDesignTestChat from "./pages/AdminDesignTestChat";
@@ -128,7 +129,7 @@ const AppContent = () => {
           {/* Protected routes - redirect to login if not authenticated */}
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={user ? <AdminDesignTestDashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/admin/models" element={user ? <AdminDesignTestModels /> : <Navigate to="/login" replace />} />
+          <Route path="/admin/models" element={user ? <AdminModelsPage /> : <Navigate to="/login" replace />} />
           <Route path="/model-dashboard" element={user ? <DesignTestModelDashboard /> : <Navigate to="/login" replace />} />
           
           {/* Model V2 Routes */}
