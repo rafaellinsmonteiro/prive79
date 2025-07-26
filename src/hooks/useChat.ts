@@ -47,8 +47,15 @@ export const getConversationDisplayName = (conversation: Conversation | undefine
   if (!conversation) return 'Carregando...';
   
   if (isModel) {
-    // Se for modelo, mostrar nome do cliente
-    return conversation.client_info?.name || conversation.client_info?.email || 'Cliente';
+    // Se for modelo, pode ser conversa com cliente ou com outra modelo
+    if (conversation.client_info?.name) {
+      // Conversa com cliente
+      return conversation.client_info.name;
+    } else if (conversation.models?.name) {
+      // Conversa com outra modelo
+      return conversation.models.name;
+    }
+    return 'Cliente';
   } else {
     // Se for cliente, mostrar nome da modelo
     return conversation.models?.name || 'Modelo';
@@ -59,7 +66,16 @@ export const getConversationDisplayPhoto = (conversation: Conversation | undefin
   if (!conversation) return '/placeholder.svg';
   
   if (isModel) {
-    // Se for modelo, não há foto do cliente ainda, usar placeholder
+    // Se for modelo, verificar se é conversa com cliente ou outra modelo
+    if (conversation.client_info?.name) {
+      // Conversa com cliente - usar placeholder
+      return '/placeholder.svg';
+    } else if (conversation.models?.photos && conversation.models.photos.length > 0) {
+      // Conversa com outra modelo - mostrar foto da outra modelo
+      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
+      if (primaryPhoto) return primaryPhoto.photo_url;
+      return conversation.models.photos[0].photo_url;
+    }
     return '/placeholder.svg';
   } else {
     // Se for cliente, mostrar foto da modelo
@@ -93,11 +109,14 @@ export const useConversations = () => {
 
       console.log('User model profile:', modelProfile);
       
-      // Se for uma modelo, buscar conversas e informações dos clientes
+      // Se for uma modelo, buscar conversas de duas formas:
+      // 1. Conversas onde ela é a modelo (clientes conversando com ela)
+      // 2. Conversas onde ela é o usuário (ela conversando com outras modelos)
       if (modelProfile) {
-        console.log('User is a model, using model_id as chat_id:', modelProfile.model_id);
+        console.log('User is a model, fetching conversations for model_id:', modelProfile.model_id);
         
-        const { data, error } = await supabase
+        // Buscar conversas onde esta modelo recebe mensagens (de clientes)
+        const { data: modelConversations, error: modelError } = await supabase
           .from('conversations')
           .select(`
             *,
@@ -110,66 +129,90 @@ export const useConversations = () => {
           .eq('is_active', true)
           .order('last_message_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching model conversations:', error);
-          throw error;
+        // Buscar conversas onde esta modelo é o usuário (conversando com outras modelos)
+        const { data: userConversations, error: userError } = await supabase
+          .from('conversations')
+          .select(`
+            *,
+            models (
+              *,
+              photos:model_photos(*)
+            )
+          `)
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('last_message_at', { ascending: false });
+
+        if (modelError) {
+          console.error('Error fetching model conversations:', modelError);
+          throw modelError;
         }
-        
-        // Para cada conversa, buscar informações do cliente
+
+        if (userError) {
+          console.error('Error fetching user conversations:', userError);
+          throw userError;
+        }
+
+        console.log('Model conversations (as model):', modelConversations);
+        console.log('User conversations (as user):', userConversations);
+
+        // Combinar e remover duplicatas
+        const allConversations = [
+          ...(modelConversations || []),
+          ...(userConversations || [])
+        ];
+
+        // Remover duplicatas baseado no ID
+        const uniqueConversations = allConversations.filter((conversation, index, self) =>
+          self.findIndex(c => c.id === conversation.id) === index
+        );
+
+        // Para conversas como modelo, buscar informações dos clientes
         const conversationsWithClientInfo = await Promise.all(
-          (data || []).map(async (conversation) => {
-            // Primeiro tentar buscar em system_users
-            const { data: systemUser } = await supabase
-              .from('system_users')
-              .select('name, email')
-              .eq('user_id', conversation.user_id)
-              .maybeSingle();
-            
-            console.log('System user for conversation:', conversation.id, systemUser);
-            
-            console.log('System user found:', systemUser);
-            
-            // Primeiro tentar usar o chat_display_name
-            const { data: chatUser } = await supabase
-              .from('chat_users')
-              .select('chat_display_name')
-              .eq('user_id', conversation.user_id)
-              .maybeSingle();
-            
-            console.log('Chat user found:', chatUser);
-            
-            let clientName = chatUser?.chat_display_name;
-            let clientEmail = systemUser?.email;
-            
-            // Se não tem chat_display_name, usar system_users
-            if (!clientName) {
-              clientName = systemUser?.name || systemUser?.email;
-              clientEmail = systemUser?.email;
-            }
-            
-            // Se ainda não tem nome, usar fallback com user_id
-            if (!clientName) {
-              clientName = `Usuario ${conversation.user_id.slice(0, 8)}`;
-              clientEmail = clientName;
-            }
-            
-            console.log('Final client info:', { name: clientName, email: clientEmail });
-            
-            console.log('Final client info:', { name: clientName, email: clientEmail });
-            
-            return {
-              ...conversation,
-              client_info: {
-                id: conversation.user_id,
-                name: clientName,
-                email: clientEmail
+          uniqueConversations.map(async (conversation) => {
+            // Se esta modelo é a modelo da conversa, buscar info do cliente
+            if (conversation.model_id === modelProfile.model_id) {
+              // Buscar informações do cliente
+              const { data: systemUser } = await supabase
+                .from('system_users')
+                .select('name, email')
+                .eq('user_id', conversation.user_id)
+                .maybeSingle();
+              
+              const { data: chatUser } = await supabase
+                .from('chat_users')
+                .select('chat_display_name')
+                .eq('user_id', conversation.user_id)
+                .maybeSingle();
+              
+              let clientName = chatUser?.chat_display_name || systemUser?.name || systemUser?.email;
+              let clientEmail = systemUser?.email || clientName;
+              
+              if (!clientName) {
+                clientName = `Usuario ${conversation.user_id.slice(0, 8)}`;
+                clientEmail = clientName;
               }
-            };
+              
+              return {
+                ...conversation,
+                client_info: {
+                  id: conversation.user_id,
+                  name: clientName,
+                  email: clientEmail
+                }
+              };
+            } else {
+              // Se esta modelo é o usuário da conversa, já tem as informações do modelo
+              return conversation;
+            }
           })
         );
         
-        console.log('Model conversations with client info loaded:', conversationsWithClientInfo);
-        return conversationsWithClientInfo;
+        console.log('All conversations with info loaded:', conversationsWithClientInfo);
+        return conversationsWithClientInfo.sort((a, b) => 
+          new Date(b.last_message_at || b.created_at).getTime() - 
+          new Date(a.last_message_at || a.created_at).getTime()
+        );
       }
       
       // Se for um cliente, buscar conversas onde ele é o usuário
@@ -288,7 +331,9 @@ export const useCreateConversation = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidar cache de conversas para recarregar a lista
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.refetchQueries({ queryKey: ['conversations'] });
     },
   });
 };
