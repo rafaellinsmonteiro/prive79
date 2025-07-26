@@ -23,8 +23,8 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
   const [filters, setFilters] = useState<ModelsFilterState>({
     search: '',
     status: 'all',
-    cityId: '',
-    categoryId: '',
+    cityId: 'all',
+    categoryId: 'all',
     ageMin: '',
     ageMax: '',
     hasPhotos: null,
@@ -67,12 +67,12 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
     }
 
     // Filtro de cidade
-    if (filters.cityId) {
+    if (filters.cityId && filters.cityId !== 'all') {
       filtered = filtered.filter(model => model.city_id === filters.cityId);
     }
 
     // Filtro de categoria
-    if (filters.categoryId) {
+    if (filters.categoryId && filters.categoryId !== 'all') {
       filtered = filtered.filter(model =>
         model.categories?.some(cat => cat.id === filters.categoryId)
       );

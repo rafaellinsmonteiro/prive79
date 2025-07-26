@@ -31,8 +31,8 @@ export interface ModelsFilterState {
 const defaultFilters: ModelsFilterState = {
   search: '',
   status: 'all',
-  cityId: '',
-  categoryId: '',
+  cityId: 'all',
+  categoryId: 'all',
   ageMin: '',
   ageMax: '',
   hasPhotos: null,
@@ -61,8 +61,8 @@ const ModelsFilters = ({ onFiltersChange, totalModels, filteredCount }: ModelsFi
     return (
       filters.search !== '' ||
       filters.status !== 'all' ||
-      filters.cityId !== '' ||
-      filters.categoryId !== '' ||
+      filters.cityId !== 'all' ||
+      filters.categoryId !== 'all' ||
       filters.ageMin !== '' ||
       filters.ageMax !== '' ||
       filters.hasPhotos !== null
@@ -166,7 +166,7 @@ const ModelsFilters = ({ onFiltersChange, totalModels, filteredCount }: ModelsFi
                     <SelectValue placeholder="Todas as cidades" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as cidades</SelectItem>
+                    <SelectItem value="all">Todas as cidades</SelectItem>
                     {cities.map((city) => (
                       <SelectItem key={city.id} value={city.id}>
                         <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ const ModelsFilters = ({ onFiltersChange, totalModels, filteredCount }: ModelsFi
                     <SelectValue placeholder="Todas as categorias" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
