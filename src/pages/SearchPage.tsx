@@ -14,6 +14,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 const SearchPage = () => {
   const navigate = useNavigate();
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     searchTerm: '',
     onlineOnly: false,
@@ -73,66 +74,75 @@ const SearchPage = () => {
                 className="pl-10 bg-zinc-800 border-zinc-600 text-white"
               />
             </div>
-            <Button variant="outline" className="border-zinc-600 text-zinc-300">
+            <Button 
+              variant="outline" 
+              className="border-zinc-600 text-zinc-300"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <SlidersHorizontal className="h-4 w-4 mr-2" />
               Filtros
             </Button>
           </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Badge 
-              variant={filters.onlineOnly ? 'default' : 'secondary'}
-              className="cursor-pointer"
-              onClick={() => handleFilterToggle('online')}
-            >
-              Online Agora
-            </Badge>
-            <Badge 
-              variant={filters.showsFace ? 'default' : 'secondary'}
-              className="cursor-pointer"
-              onClick={() => handleFilterToggle('verified')}
-            >
-              Mostram o Rosto
-            </Badge>
-          </div>
+          {/* Filters Section - Collapsible */}
+          {showFilters && (
+            <div className="space-y-4">
+              {/* Quick Filters */}
+              <div className="flex flex-wrap gap-2">
+                <Badge 
+                  variant={filters.onlineOnly ? 'default' : 'secondary'}
+                  className="cursor-pointer"
+                  onClick={() => handleFilterToggle('online')}
+                >
+                  Online Agora
+                </Badge>
+                <Badge 
+                  variant={filters.showsFace ? 'default' : 'secondary'}
+                  className="cursor-pointer"
+                  onClick={() => handleFilterToggle('verified')}
+                >
+                  Mostram o Rosto
+                </Badge>
+              </div>
 
-          {/* City and Age Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* City Filter */}
-            <div>
-              <label className="text-sm font-medium text-zinc-300 mb-2 block">Cidade</label>
-              <Select value={filters.cityId} onValueChange={(value) => setFilters(prev => ({ ...prev, cityId: value }))}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white">
-                  <SelectValue placeholder="Todas as cidades" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map(city => (
-                    <SelectItem key={city.id} value={city.id}>
-                      {city.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              {/* City and Age Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* City Filter */}
+                <div>
+                  <label className="text-sm font-medium text-zinc-300 mb-2 block">Cidade</label>
+                  <Select value={filters.cityId} onValueChange={(value) => setFilters(prev => ({ ...prev, cityId: value }))}>
+                    <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white">
+                      <SelectValue placeholder="Todas as cidades" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map(city => (
+                        <SelectItem key={city.id} value={city.id}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Age Filter */}
-            <div>
-              <label className="text-sm font-medium text-zinc-300 mb-2 block">
-                Idade: {filters.minAge} - {filters.maxAge} anos
-              </label>
-              <div className="space-y-2">
-                <Slider
-                  value={[filters.minAge, filters.maxAge]}
-                  onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minAge: min, maxAge: max }))}
-                  min={18}
-                  max={65}
-                  step={1}
-                  className="w-full"
-                />
+                {/* Age Filter */}
+                <div>
+                  <label className="text-sm font-medium text-zinc-300 mb-2 block">
+                    Idade: {filters.minAge} - {filters.maxAge} anos
+                  </label>
+                  <div className="space-y-2">
+                    <Slider
+                      value={[filters.minAge, filters.maxAge]}
+                      onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minAge: min, maxAge: max }))}
+                      min={18}
+                      max={65}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
