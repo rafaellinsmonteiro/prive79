@@ -57,22 +57,8 @@ export default function ChatAppLayout() {
           ${selectedConversationId ? 'block' : 'hidden sm:block'}
         `}>
           {selectedConversationId ? (
-            <div className="h-full flex flex-col">
-              {/* Botão voltar no mobile */}
-              <div className="sm:hidden border-b border-zinc-800 p-3 bg-zinc-900">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setSelectedConversationId(null)}
-                  className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-                >
-                  ← Voltar
-                </Button>
-              </div>
-              
-              <div className="flex-1 bg-zinc-950">
-                <ChatInterface conversationId={selectedConversationId} />
-              </div>
+            <div className="h-full bg-zinc-950">
+              <ChatInterface conversationId={selectedConversationId} />
             </div>
           ) : (
             <div className="h-full bg-zinc-950 flex items-center justify-center">
