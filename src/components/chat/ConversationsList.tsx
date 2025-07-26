@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MessageCircle, Plus, Search, MoreVertical, MessageSquare } from 'lucide-react';
 import { useConversations, useCreateConversation, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
+import { useCreateLunnaConversation } from '@/hooks/useCreateLunnaConversation';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
   const { data: conversations = [] } = useConversations();
   const { data: isModel = false } = useIsUserModel();
   const createConversation = useCreateConversation();
+  const createLunnaConversation = useCreateLunnaConversation();
 
   const handleCreateConversation = async () => {
     if (!modelId.trim()) {
@@ -55,6 +57,28 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
     }
   };
 
+  const handleCreateLunnaConversation = async () => {
+    try {
+      console.log('Creating conversation with Lunna AI');
+      const conversation = await createLunnaConversation.mutateAsync();
+      console.log('Lunna conversation created successfully:', conversation);
+      
+      onSelectConversation(conversation.id);
+      
+      toast({
+        title: "Sucesso", 
+        description: "Conversa iniciada com Lunna IA! 🌙",
+      });
+    } catch (error: any) {
+      console.error('Erro ao criar conversa com Lunna:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao iniciar conversa com Lunna.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getLastMessageDisplay = (conversation: any) => {
     if (!conversation.last_message_content) {
       return 'Inicie uma conversa...';
@@ -82,12 +106,26 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
           </div>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
-          <Input
-            placeholder="Pesquisar conversas..."
-            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 pl-10 rounded-lg h-10 focus:border-purple-500 transition-all duration-200"
-          />
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Input
+              placeholder="Pesquisar conversas..."
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 pl-10 rounded-lg h-10 focus:border-purple-500 transition-all duration-200"
+            />
+          </div>
+          
+          {/* Botão especial para conversar com Lunna IA */}
+          <Button
+            onClick={handleCreateLunnaConversation}
+            disabled={createLunnaConversation.isPending}
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg h-12 flex items-center justify-center space-x-3 transition-all duration-200"
+          >
+            <span className="text-lg">🌙</span>
+            <span className="font-medium">
+              {createLunnaConversation.isPending ? 'Conectando...' : 'Conversar com Lunna IA'}
+            </span>
+          </Button>
         </div>
       </div>
 

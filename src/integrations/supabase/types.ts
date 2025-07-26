@@ -288,7 +288,7 @@ export type Database = {
           id: string
           is_active: boolean
           updated_at: string
-          user_id: string
+          user_id: string | null
           username: string | null
         }
         Insert: {
@@ -297,7 +297,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           username?: string | null
         }
         Update: {
@@ -306,7 +306,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           username?: string | null
         }
         Relationships: []

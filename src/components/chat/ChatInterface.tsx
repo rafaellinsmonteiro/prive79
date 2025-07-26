@@ -7,6 +7,7 @@ import { Send, Mic, MicOff, Paperclip, MoreVertical, ArrowLeft } from 'lucide-re
 import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useLunnaChat } from '@/hooks/useLunnaChat';
 import MessageItem from './MessageItem';
 import MediaUpload from './MediaUpload';
 import TypingIndicator from './TypingIndicator';
@@ -29,12 +30,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
   const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+  const { isLunnaConversation, processLunnaMessage, isProcessing: isLunnaProcessing } = useLunnaChat();
   
   // Enable realtime updates
   useRealtimeMessages(conversationId);
 
   // Find current conversation
   const currentConversation = conversations.find(c => c.id === conversationId);
+  
+  // Verificar se é conversa com Lunna
+  const isConversationWithLunna = isLunnaConversation(currentConversation);
 
 
   // Auto-scroll to bottom when new messages arrive
@@ -72,6 +77,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
         content: messageContent,
         messageType: 'text',
       });
+
+      // Se é conversa com Lunna, processar resposta da IA automaticamente
+      if (isConversationWithLunna) {
+        await processLunnaMessage(messageContent, conversationId);
+      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       setMessage(messageContent);
@@ -266,6 +276,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
               <div className="flex items-center space-x-2 text-red-400">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium">Gravando áudio...</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Indicador quando Lunna está processando */}
+          {isConversationWithLunna && isLunnaProcessing && (
+            <div className="mt-2 flex items-center justify-center">
+              <div className="flex items-center space-x-2 text-purple-400">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">🌙 Lunna está pensando...</span>
               </div>
             </div>
           )}

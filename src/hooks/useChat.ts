@@ -47,6 +47,11 @@ export const useIsUserModel = () => {
 export const getConversationDisplayName = (conversation: Conversation | undefined, isModel: boolean) => {
   if (!conversation) return 'Carregando...';
   
+  // Verificar se é conversa com Lunna IA (sem model_id)
+  if (!conversation.model_id) {
+    return 'Lunna IA 🌙';
+  }
+  
   if (isModel) {
     // Se for modelo, pode ser conversa com cliente ou com outra modelo
     if (conversation.client_info?.name) {
@@ -65,6 +70,11 @@ export const getConversationDisplayName = (conversation: Conversation | undefine
 
 export const getConversationDisplayPhoto = (conversation: Conversation | undefined, isModel: boolean) => {
   if (!conversation) return '/placeholder.svg';
+  
+  // Verificar se é conversa com Lunna IA (sem model_id)
+  if (!conversation.model_id) {
+    return '/placeholder.svg'; // Ou poderia usar uma imagem específica da Lunna
+  }
   
   if (isModel) {
     // Se for modelo, verificar se é conversa com cliente ou outra modelo
