@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Mic, MicOff, Phone, Video, Paperclip, MoreVertical } from 'lucide-react';
-import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations } from '@/hooks/useChat';
+import { useMessages, useSendMessage, useRealtimeMessages, useTypingIndicator, useConversations, useIsUserModel, getConversationDisplayName, getConversationDisplayPhoto } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import MessageItem from './MessageItem';
@@ -25,6 +25,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   const { user } = useAuth();
   const { data: messages = [], isLoading } = useMessages(conversationId);
   const { data: conversations = [] } = useConversations();
+  const { data: isModel = false } = useIsUserModel();
   const sendMessage = useSendMessage();
   const { startTyping, stopTyping } = useTypingIndicator(conversationId);
   const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
@@ -35,14 +36,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
   // Find current conversation
   const currentConversation = conversations.find(c => c.id === conversationId);
 
-  const getModelPhoto = (conversation: any) => {
-    if (conversation?.models?.photos && conversation.models.photos.length > 0) {
-      const primaryPhoto = conversation.models.photos.find((p: any) => p.is_primary);
-      if (primaryPhoto) return primaryPhoto.photo_url;
-      return conversation.models.photos[0].photo_url;
-    }
-    return '/placeholder.svg';
-  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -168,8 +161,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
           >
             <div className="relative">
               <img
-                src={getModelPhoto(currentConversation)}
-                alt={currentConversation?.models?.name || 'Model'}
+                src={getConversationDisplayPhoto(currentConversation, isModel)}
+                alt={getConversationDisplayName(currentConversation, isModel)}
                 className="w-10 h-10 rounded-full object-cover border-2 border-zinc-600 group-hover:border-purple-500/50 transition-colors"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg';
@@ -179,7 +172,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
             </div>
             <div>
               <h3 className="text-white font-semibold group-hover:text-purple-400 transition-colors">
-                {currentConversation?.models?.name || 'Chat'}
+                {getConversationDisplayName(currentConversation, isModel)}
               </h3>
               <p className="text-xs text-green-400 font-medium">● Online agora</p>
             </div>
@@ -283,8 +276,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
         isOpen={showContactInfo}
         onClose={() => setShowContactInfo(false)}
         modelId={currentConversation?.model_id || undefined}
-        modelName={currentConversation?.models?.name}
-        modelPhoto={getModelPhoto(currentConversation)}
+        modelName={getConversationDisplayName(currentConversation, isModel)}
+        modelPhoto={getConversationDisplayPhoto(currentConversation, isModel)}
       />
     </div>
   );

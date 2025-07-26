@@ -20,17 +20,30 @@ const TypingIndicator = ({ conversationId }: TypingIndicatorProps) => {
         .select('*')
         .eq('conversation_id', conversationId)
         .eq('is_typing', true)
-        .neq('user_id', user?.id || ''); // Exclude current user
+        .neq('user_id', user?.id || '') // Exclude current user
+        .gt('updated_at', new Date(Date.now() - 10000).toISOString()); // Only get typing indicators from last 10 seconds
 
       if (error) throw error;
       return data || [];
     },
     enabled: !!conversationId && !!user,
+    refetchInterval: 1000, // Refetch every second to keep it current
   });
 
   useRealtimeTyping(conversationId);
 
+  // Don't show typing indicator if no users are typing or if the data is stale
   if (typingUsers.length === 0) return null;
+
+  // Additional check: filter out stale typing indicators
+  const activeTypingUsers = typingUsers.filter(user => {
+    const updatedAt = new Date(user.updated_at);
+    const now = new Date();
+    const timeDiff = now.getTime() - updatedAt.getTime();
+    return timeDiff < 10000; // Only show if updated within last 10 seconds
+  });
+
+  if (activeTypingUsers.length === 0) return null;
 
   return (
     <div className="flex justify-start">
