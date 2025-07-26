@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import BankManager from '@/components/admin/BankManager';
+import UserSearchActivateBank from '@/components/admin/UserSearchActivateBank';
 
 const AdminBankPage = () => {
   const isMobile = useIsMobile();
@@ -267,10 +268,7 @@ const AdminBankPage = () => {
                 <div className="absolute -top-1 -right-1 w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
               </Button>
               
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Nova Conta
-              </Button>
+              <UserSearchActivateBank />
             </div>
           </div>
         </header>

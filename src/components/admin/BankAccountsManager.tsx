@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, Search, Eye, Plus, Edit, DollarSign, Clock, Activity } from 'lucide-react';
+import { Users, Search, Eye, Plus, Edit, DollarSign, Clock, Activity, UserPlus } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import UserSearchActivateBank from './UserSearchActivateBank';
 
 type BankAccount = {
   id: string;
@@ -126,14 +127,17 @@ const BankAccountsManager = () => {
       <div className="xl:col-span-2">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
           <div className="p-6 border-b border-zinc-800">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Contas PriveBank</h3>
+                  <p className="text-sm text-zinc-400">{accounts.length} contas registradas</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Contas PriveBank</h3>
-                <p className="text-sm text-zinc-400">{accounts.length} contas registradas</p>
-              </div>
+              <UserSearchActivateBank />
             </div>
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 text-zinc-400" />
