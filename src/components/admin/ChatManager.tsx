@@ -10,56 +10,76 @@ import ChatLogsManager from './ChatLogsManager';
 
 const ChatManager = () => {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <MessageCircle className="h-6 w-6" />
-        <h2 className="text-xl font-semibold text-white">Gerenciamento de Chat</h2>
+    <div className="min-h-screen bg-zinc-950">
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Gerenciamento de Chat</h1>
+          <p className="text-zinc-400">Controle completo do sistema de chat e comunicações</p>
+        </div>
+
+        {/* Tabs Navigation */}
+        <Tabs defaultValue="users" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800 mb-6">
+            <TabsTrigger 
+              value="users" 
+              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger 
+              value="conversations"
+              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Conversas
+            </TabsTrigger>
+            <TabsTrigger 
+              value="logs"
+              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Logs
+            </TabsTrigger>
+            <TabsTrigger 
+              value="stats"
+              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Estatísticas
+            </TabsTrigger>
+            <TabsTrigger 
+              value="settings"
+              className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configurações
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab Contents */}
+          <TabsContent value="users" className="mt-0">
+            <ChatUsersManager />
+          </TabsContent>
+
+          <TabsContent value="conversations" className="mt-0">
+            <ConversationsMonitor />
+          </TabsContent>
+
+          <TabsContent value="logs" className="mt-0">
+            <ChatLogsManager />
+          </TabsContent>
+
+          <TabsContent value="stats" className="mt-0">
+            <ChatStats />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-0">
+            <ChatSettings />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="users">
-            <Users className="h-4 w-4 mr-2" />
-            Usuários
-          </TabsTrigger>
-          <TabsTrigger value="conversations">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Conversas
-          </TabsTrigger>
-          <TabsTrigger value="logs">
-            <FileText className="h-4 w-4 mr-2" />
-            Logs
-          </TabsTrigger>
-          <TabsTrigger value="stats">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Estatísticas
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="h-4 w-4 mr-2" />
-            Configurações
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="users" className="mt-6">
-          <ChatUsersManager />
-        </TabsContent>
-
-        <TabsContent value="conversations" className="mt-6">
-          <ConversationsMonitor />
-        </TabsContent>
-
-        <TabsContent value="logs" className="mt-6">
-          <ChatLogsManager />
-        </TabsContent>
-
-        <TabsContent value="stats" className="mt-6">
-          <ChatStats />
-        </TabsContent>
-
-        <TabsContent value="settings" className="mt-6">
-          <ChatSettings />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

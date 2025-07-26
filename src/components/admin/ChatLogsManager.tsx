@@ -213,22 +213,27 @@ const ChatLogsManager = () => {
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <Card className="bg-zinc-900 border-zinc-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Logs do Sistema de Chat
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+        <div className="p-6 border-b border-zinc-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-white">Logs do Sistema de Chat</h3>
+              <p className="text-sm text-zinc-400">Monitore todas as ações do sistema em tempo real</p>
+            </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => refetch()}
-              className="ml-auto"
+              className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </div>
+        </div>
+        <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 text-zinc-400" />
@@ -236,7 +241,7 @@ const ChatLogsManager = () => {
                 placeholder="Buscar logs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
               />
             </div>
             
@@ -244,7 +249,7 @@ const ChatLogsManager = () => {
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                 <SelectValue placeholder="Tipo de ação" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="all">Todas as ações</SelectItem>
                 <SelectItem value="message_sent">Mensagem Enviada</SelectItem>
                 <SelectItem value="message_received">Mensagem Recebida</SelectItem>
@@ -259,7 +264,7 @@ const ChatLogsManager = () => {
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
                 <SelectItem value="1h">Última hora</SelectItem>
                 <SelectItem value="24h">Últimas 24 horas</SelectItem>
                 <SelectItem value="7d">Últimos 7 dias</SelectItem>
@@ -272,15 +277,15 @@ const ChatLogsManager = () => {
               {logs.length} eventos
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tabela de Logs */}
-      <Card className="bg-zinc-900 border-zinc-700">
-        <CardContent>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+        <div className="p-6">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-zinc-800">
                 <TableHead className="text-zinc-300">Data/Hora</TableHead>
                 <TableHead className="text-zinc-300">Ação</TableHead>
                 <TableHead className="text-zinc-300">Descrição</TableHead>
@@ -291,7 +296,7 @@ const ChatLogsManager = () => {
             </TableHeader>
             <TableBody>
               {logs.map((log) => (
-                <TableRow key={log.id}>
+                <TableRow key={log.id} className="border-zinc-800">
                   <TableCell className="text-white">
                     {format(new Date(log.created_at), 'dd/MM/yyyy HH:mm:ss', {
                       locale: ptBR,
@@ -310,7 +315,13 @@ const ChatLogsManager = () => {
                   </TableCell>
                   <TableCell>
                     {log.user_role && (
-                      <Badge variant={log.user_role === 'modelo' ? 'default' : 'secondary'}>
+                      <Badge 
+                        variant={log.user_role === 'modelo' ? 'default' : 'secondary'}
+                        className={log.user_role === 'modelo' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-zinc-700 text-zinc-300'
+                        }
+                      >
                         {log.user_role}
                       </Badge>
                     )}
@@ -318,8 +329,8 @@ const ChatLogsManager = () => {
                   <TableCell className="text-zinc-400 text-sm">
                     {log.metadata && (
                       <details className="cursor-pointer">
-                        <summary>Ver detalhes</summary>
-                        <pre className="mt-2 p-2 bg-zinc-800 rounded text-xs overflow-auto max-w-xs">
+                        <summary className="text-blue-400 hover:text-blue-300">Ver detalhes</summary>
+                        <pre className="mt-2 p-2 bg-zinc-800 rounded text-xs overflow-auto max-w-xs border border-zinc-700">
                           {JSON.stringify(log.metadata, null, 2)}
                         </pre>
                       </details>
@@ -331,12 +342,13 @@ const ChatLogsManager = () => {
           </Table>
           
           {logs.length === 0 && (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
               <p className="text-zinc-400">Nenhum log encontrado para os filtros selecionados</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

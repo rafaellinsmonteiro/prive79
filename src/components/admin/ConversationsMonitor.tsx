@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 type ConversationWithDetails = {
   id: string;
@@ -110,26 +111,31 @@ const ConversationsMonitor = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Lista de Conversas */}
       <div className="lg:col-span-2">
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Conversas ({conversations.length})
-            </CardTitle>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+          <div className="p-6 border-b border-zinc-800">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Conversas</h3>
+                <p className="text-sm text-zinc-400">{conversations.length} conversas ativas</p>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Buscar por modelo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
               />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-zinc-800">
                   <TableHead className="text-zinc-300">Modelo</TableHead>
                   <TableHead className="text-zinc-300">Mensagens</TableHead>
                   <TableHead className="text-zinc-300">Última Mensagem</TableHead>
@@ -139,12 +145,14 @@ const ConversationsMonitor = () => {
               </TableHeader>
               <TableBody>
                 {conversations.map((conversation) => (
-                  <TableRow key={conversation.id}>
+                  <TableRow key={conversation.id} className="border-zinc-800">
                     <TableCell className="text-white">
                       {conversation.models?.name || 'Sem modelo'}
                     </TableCell>
                     <TableCell className="text-zinc-300">
-                      {conversation.message_count}
+                      <Badge className="bg-blue-600 text-white">
+                        {conversation.message_count}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-zinc-300 max-w-xs truncate">
                       {conversation.last_message || 'Nenhuma mensagem'}
@@ -159,6 +167,7 @@ const ConversationsMonitor = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedConversation(conversation.id)}
+                        className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -167,34 +176,40 @@ const ConversationsMonitor = () => {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Detalhes da Conversa */}
       <div className="lg:col-span-1">
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-white">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+          <div className="p-6 border-b border-zinc-800">
+            <h3 className="text-lg font-semibold text-white">
               {selectedConversation ? 'Mensagens' : 'Selecione uma conversa'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6">
             {selectedConversation ? (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`p-3 rounded-lg ${
+                    className={`p-3 rounded-lg border ${
                       message.sender_type === 'user'
-                        ? 'bg-blue-600 ml-4'
-                        : 'bg-zinc-800 mr-4'
+                        ? 'bg-blue-600/20 border-blue-600/30 ml-4'
+                        : 'bg-zinc-800 border-zinc-700 mr-4'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-zinc-300">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge 
+                        variant={message.sender_type === 'user' ? 'default' : 'secondary'}
+                        className={message.sender_type === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-zinc-700 text-zinc-300'
+                        }
+                      >
                         {message.sender_type === 'user' ? 'Usuario' : 'Modelo'}
-                      </span>
+                      </Badge>
                       <span className="text-xs text-zinc-400">
                         {format(new Date(message.created_at), 'HH:mm', {
                           locale: ptBR,
@@ -212,12 +227,13 @@ const ConversationsMonitor = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-zinc-400 text-center py-8">
-                Clique em uma conversa para ver as mensagens
-              </p>
+              <div className="text-center py-12">
+                <MessageCircle className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
+                <p className="text-zinc-400">Clique em uma conversa para ver as mensagens</p>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

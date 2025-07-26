@@ -165,26 +165,31 @@ const ChatUsersManager = () => {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       {/* Lista de Usuários */}
       <div className="xl:col-span-2">
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Usuários do Chat ({chatUsers.length})
-            </CardTitle>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+          <div className="p-6 border-b border-zinc-800">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Usuários do Chat</h3>
+                <p className="text-sm text-zinc-400">{chatUsers.length} usuários registrados</p>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Buscar por nome ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
               />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-zinc-800">
                   <TableHead className="text-zinc-300">Nome</TableHead>
                   <TableHead className="text-zinc-300">Email</TableHead>
                   <TableHead className="text-zinc-300">Perfil</TableHead>
@@ -197,7 +202,7 @@ const ChatUsersManager = () => {
               </TableHeader>
               <TableBody>
                 {chatUsers.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className="border-zinc-800">
                     <TableCell className="text-white">
                       {user.chat_display_name || 'Sem nome'}
                     </TableCell>
@@ -205,7 +210,13 @@ const ChatUsersManager = () => {
                       {user.user_email}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.user_role === 'modelo' ? 'default' : 'secondary'}>
+                      <Badge 
+                        variant={user.user_role === 'modelo' ? 'default' : 'secondary'}
+                        className={user.user_role === 'modelo' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-zinc-700 text-zinc-300'
+                        }
+                      >
                         {user.user_role}
                       </Badge>
                     </TableCell>
@@ -213,9 +224,9 @@ const ChatUsersManager = () => {
                       {user.total_conversations}
                     </TableCell>
                     <TableCell className="text-zinc-300">
-                      <div className="text-sm">
-                        <div>Enviadas: {user.total_messages_sent}</div>
-                        <div>Recebidas: {user.total_messages_received}</div>
+                      <div className="text-sm space-y-1">
+                        <div className="text-green-400">↑ {user.total_messages_sent}</div>
+                        <div className="text-blue-400">↓ {user.total_messages_received}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-zinc-300">
@@ -230,7 +241,13 @@ const ChatUsersManager = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                      <Badge 
+                        variant={user.is_active ? 'default' : 'secondary'}
+                        className={user.is_active 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-zinc-700 text-zinc-300'
+                        }
+                      >
                         {user.is_active ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </TableCell>
@@ -239,6 +256,7 @@ const ChatUsersManager = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedUser(user.user_id)}
+                        className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -247,37 +265,39 @@ const ChatUsersManager = () => {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Detalhes do Usuário */}
       <div className="xl:col-span-1">
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-white">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+          <div className="p-6 border-b border-zinc-800">
+            <h3 className="text-lg font-semibold text-white">
               {selectedUser ? 'Detalhes do Usuário' : 'Selecione um usuário'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6">
             {selectedUser && userDetails ? (
               <div className="space-y-6">
                 {/* Conversas */}
                 <div>
                   <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
+                    <div className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
+                      <MessageCircle className="h-3 w-3 text-white" />
+                    </div>
                     Conversas ({userDetails.conversations.length})
                   </h4>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {userDetails.conversations.map((conversation) => (
                       <div
                         key={conversation.id}
-                        className="p-2 bg-zinc-800 rounded-lg"
+                        className="p-3 bg-zinc-800 border border-zinc-700 rounded-lg"
                       >
                         <div className="text-white text-sm font-medium">
                           {conversation.models?.name || 'Conversa sem modelo'}
                         </div>
-                        <div className="text-zinc-400 text-xs">
+                        <div className="text-zinc-400 text-xs mt-1">
                           {conversation.last_message_at ? (
                             format(new Date(conversation.last_message_at), 'dd/MM HH:mm', {
                               locale: ptBR,
@@ -294,14 +314,16 @@ const ChatUsersManager = () => {
                 {/* Mensagens Recentes */}
                 <div>
                   <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
+                    <div className="w-6 h-6 bg-orange-600 rounded flex items-center justify-center">
+                      <Clock className="h-3 w-3 text-white" />
+                    </div>
                     Mensagens Recentes
                   </h4>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {userDetails.recentMessages.map((message) => (
                       <div
                         key={message.id}
-                        className="p-2 bg-zinc-800 rounded-lg"
+                        className="p-3 bg-zinc-800 border border-zinc-700 rounded-lg"
                       >
                         <div className="text-zinc-400 text-xs mb-1">
                           Para: {message.conversations?.models?.name || 'Desconhecido'} •{' '}
@@ -326,12 +348,13 @@ const ChatUsersManager = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-zinc-400 text-center py-8">
-                Clique em um usuário para ver os detalhes
-              </p>
+              <div className="text-center py-12">
+                <Activity className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
+                <p className="text-zinc-400">Clique em um usuário para ver os detalhes</p>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

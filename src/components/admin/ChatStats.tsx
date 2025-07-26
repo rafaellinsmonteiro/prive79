@@ -70,99 +70,96 @@ const ChatStats = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-300">
-              Total de Conversas
-            </CardTitle>
-            <MessageCircle className="h-4 w-4 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {stats.totalConversations}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-zinc-400">Total de Conversas</p>
+                <p className="text-2xl font-bold text-white">{stats.totalConversations}</p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-300">
-              Total de Mensagens
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {stats.totalMessages}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-zinc-400">Total de Mensagens</p>
+                <p className="text-2xl font-bold text-white">{stats.totalMessages}</p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-300">
-              Conversas Ativas
-            </CardTitle>
-            <Users className="h-4 w-4 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {stats.activeConversations}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-zinc-400">Conversas Ativas</p>
+                <p className="text-2xl font-bold text-white">{stats.activeConversations}</p>
+                <p className="text-xs text-zinc-500 mt-1">Últimos 7 dias</p>
+              </div>
             </div>
-            <p className="text-xs text-zinc-400">
-              Últimos 7 dias
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="bg-zinc-900 border-zinc-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-300">
-              Média por Conversa
-            </CardTitle>
-            <Clock className="h-4 w-4 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {stats.totalConversations > 0 
-                ? Math.round(stats.totalMessages / stats.totalConversations)
-                : 0
-              }
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-zinc-400">Média por Conversa</p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.totalConversations > 0 
+                    ? Math.round(stats.totalMessages / stats.totalConversations)
+                    : 0
+                  }
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">Mensagens por conversa</p>
+              </div>
             </div>
-            <p className="text-xs text-zinc-400">
-              Mensagens por conversa
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Gráfico de Mensagens por Dia */}
-      <Card className="bg-zinc-900 border-zinc-700">
-        <CardHeader>
-          <CardTitle className="text-white">Mensagens por Dia (Últimos 7 dias)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="date" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#F3F4F6',
-                  }}
-                />
-                <Bar dataKey="mensagens" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-white mb-1">Mensagens por Dia</h3>
+          <p className="text-sm text-zinc-400">Atividade dos últimos 7 dias</p>
+        </div>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats.chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="date" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1F2937',
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  color: '#F3F4F6',
+                }}
+              />
+              <Bar dataKey="mensagens" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };
