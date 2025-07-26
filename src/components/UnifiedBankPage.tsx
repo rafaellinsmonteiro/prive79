@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePrivaBank, useTransferBetweenAccounts } from '@/hooks/usePrivaBank';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserType } from '@/hooks/useUserType';
@@ -46,6 +48,20 @@ const UnifiedBankPage = () => {
   const [userType, setUserType] = React.useState<'admin' | 'modelo' | 'cliente' | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: pixDeposits } = useQuery({
+    queryKey: ['user-pix-deposits'],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('pix_deposits')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
   
   // States for bank functionality
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -776,17 +792,52 @@ const UnifiedBankPage = () => {
                   <CardTitle className="text-foreground">Histórico de Transações</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {transactions && transactions.length > 0 ? (
+                  {/* Mostrar transações normais e PIX deposits */}
+                  {((transactions && transactions.length > 0) || (pixDeposits && pixDeposits.length > 0)) ? (
                     <div className="space-y-4">
-                      {transactions.map((transaction) => (
+                      {/* PIX deposits */}
+                      {pixDeposits?.map((deposit) => (
+                        <div key={`pix-${deposit.id}`} className="flex items-center justify-between p-4 bg-accent/20 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-500/20">
+                              <ArrowDownLeft className="h-5 w-5 text-green-500" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">Depósito PIX</p>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(deposit.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                              </p>
+                              <p className="text-sm text-muted-foreground">PIX ID: {deposit.pix_id.substring(0, 8)}...</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-green-500">
+                              +R$ {Number(deposit.amount).toFixed(2)}
+                            </p>
+                            <Badge variant={
+                              deposit.status === 'PAID' ? 'default' : 
+                              deposit.status === 'PENDING' ? 'secondary' : 
+                              'destructive'
+                            }>
+                              {deposit.status === 'PAID' ? 'Pago' : 
+                               deposit.status === 'PENDING' ? 'Pendente' : 
+                               deposit.status === 'CANCELLED' ? 'Cancelado' : 
+                               'Expirado'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Transações normais */}
+                      {transactions?.map((transaction) => (
                         <div key={transaction.id} className="flex items-center justify-between p-4 bg-accent/20 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                              transaction.transaction_type === 'deposit' ? 'bg-green-500/20' : 
+                              transaction.transaction_type === 'deposit' || transaction.transaction_type === 'deposit_pix' ? 'bg-green-500/20' : 
                               transaction.transaction_type === 'withdrawal' ? 'bg-red-500/20' : 
                               'bg-blue-500/20'
                             }`}>
-                              {transaction.transaction_type === 'deposit' ? 
+                              {transaction.transaction_type === 'deposit' || transaction.transaction_type === 'deposit_pix' ? 
                                 <ArrowDownLeft className="h-5 w-5 text-green-500" /> : 
                                 transaction.transaction_type === 'withdrawal' ? 
                                 <ArrowUpRight className="h-5 w-5 text-red-500" /> : 
@@ -796,6 +847,7 @@ const UnifiedBankPage = () => {
                             <div>
                               <p className="font-medium text-foreground">
                                 {transaction.transaction_type === 'deposit' ? 'Depósito' : 
+                                 transaction.transaction_type === 'deposit_pix' ? 'Depósito PIX' :
                                  transaction.transaction_type === 'withdrawal' ? 'Saque' : 
                                  'Transferência'}
                               </p>
@@ -809,10 +861,12 @@ const UnifiedBankPage = () => {
                           </div>
                           <div className="text-right">
                             <p className={`font-bold ${
-                              transaction.transaction_type === 'deposit' ? 'text-green-500' : 'text-red-500'
+                              transaction.transaction_type === 'deposit' || transaction.transaction_type === 'deposit_pix' ? 'text-green-500' : 
+                              transaction.from_account_id === account?.id ? 'text-red-500' : 'text-green-500'
                             }`}>
-                              {transaction.transaction_type === 'deposit' ? '+' : '-'}
-                              {transaction.currency === 'PDolar' ? 'P$' : 'R$'} {Number(transaction.amount).toFixed(2)}
+                              {transaction.transaction_type === 'deposit' || transaction.transaction_type === 'deposit_pix' ? '+' : 
+                               transaction.from_account_id === account?.id ? '-' : '+'}
+                              {transaction.currency === 'BRL' ? 'R$' : 'P$'} {Number(transaction.amount).toFixed(2)}
                             </p>
                             <Badge variant={transaction.status === 'completed' ? 'default' : 'secondary'}>
                               {transaction.status === 'completed' ? 'Concluída' : 'Pendente'}

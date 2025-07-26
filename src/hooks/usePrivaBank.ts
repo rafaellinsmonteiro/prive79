@@ -52,7 +52,7 @@ export const usePrivaBankAccounts = () => {
 export const usePrivaBankTransactions = (accountId?: string) => {
   return useQuery({
     queryKey: ['privabank-transactions', accountId],
-    queryFn: async (): Promise<PrivaBankTransaction[]> => {
+    queryFn: async (): Promise<(PrivaBankTransaction & { pix_deposit?: any })[]> => {
       console.log('Fetching PrivaBank transactions for account:', accountId);
       
       let query = supabase
@@ -71,8 +71,32 @@ export const usePrivaBankTransactions = (accountId?: string) => {
         throw error;
       }
 
-      console.log('Fetched PrivaBank transactions:', data);
-      return data || [];
+      // Para transações PIX, buscar informações do PIX deposit
+      const transactionsWithPixInfo = await Promise.all(
+        (data || []).map(async (transaction) => {
+          if (transaction.transaction_type === 'deposit_pix') {
+            // Buscar PIX deposit relacionado pelo valor e data próxima
+            const { data: pixDeposit } = await supabase
+              .from('pix_deposits')
+              .select('*')
+              .eq('amount', transaction.amount)
+              .eq('status', 'PAID')
+              .gte('created_at', new Date(new Date(transaction.created_at).getTime() - 60000).toISOString())
+              .lte('created_at', new Date(new Date(transaction.created_at).getTime() + 60000).toISOString())
+              .limit(1)
+              .maybeSingle();
+
+            return {
+              ...transaction,
+              pix_deposit: pixDeposit
+            };
+          }
+          return transaction;
+        })
+      );
+
+      console.log('Fetched PrivaBank transactions:', transactionsWithPixInfo);
+      return transactionsWithPixInfo;
     },
     enabled: !!accountId,
   });
