@@ -1321,6 +1321,7 @@ export type Database = {
           tamanho: string | null
           tatuagem: boolean | null
           telegram: boolean | null
+          teste: string | null
           testedecampo: string | null
           tipodecorpo: string | null
           updated_at: string
@@ -1394,6 +1395,7 @@ export type Database = {
           tamanho?: string | null
           tatuagem?: boolean | null
           telegram?: boolean | null
+          teste?: string | null
           testedecampo?: string | null
           tipodecorpo?: string | null
           updated_at?: string
@@ -1467,6 +1469,7 @@ export type Database = {
           tamanho?: string | null
           tatuagem?: boolean | null
           telegram?: boolean | null
+          teste?: string | null
           testedecampo?: string | null
           tipodecorpo?: string | null
           updated_at?: string
