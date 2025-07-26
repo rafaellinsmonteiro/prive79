@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAdminModels } from '@/hooks/useAdminModels';
+import { useAdminModels, useBulkUpdateModels, useBulkDeleteModels } from '@/hooks/useAdminModels';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, CheckSquare } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import ModelsList from './ModelsList';
 import ModelForm from './ModelForm';
 import ModelsFilters, { ModelsFilterState } from './ModelsFilters';
+import BulkActionsBar from './BulkActionsBar';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +22,8 @@ interface ModelsListContainerProps {
 const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [filters, setFilters] = useState<ModelsFilterState>({
     search: '',
     status: 'all',
@@ -32,6 +36,9 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
     sortOrder: 'asc',
   });
   const { data: allModels = [], isLoading } = useAdminModels();
+  const bulkUpdateModels = useBulkUpdateModels();
+  const bulkDeleteModels = useBulkDeleteModels();
+  const { toast } = useToast();
 
   const handleEdit = (id: string) => {
     setEditingModelId(id);
@@ -46,6 +53,109 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
   const handleCloseForm = () => {
     setEditingModelId(null);
     setIsFormOpen(false);
+  };
+
+  // Funções de seleção em massa
+  const handleSelectAll = () => {
+    setSelectedModels(filteredModels.map(model => model.id));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedModels([]);
+    setBulkMode(false);
+  };
+
+  const handleSelectionChange = (selectedIds: string[]) => {
+    setSelectedModels(selectedIds);
+    if (selectedIds.length === 0) {
+      setBulkMode(false);
+    }
+  };
+
+  const toggleBulkMode = () => {
+    setBulkMode(!bulkMode);
+    if (bulkMode) {
+      setSelectedModels([]);
+    }
+  };
+
+  // Ações em massa
+  const handleBulkActivate = async () => {
+    try {
+      await bulkUpdateModels.mutateAsync({
+        modelIds: selectedModels,
+        updates: { is_active: true }
+      });
+      toast({
+        title: "Sucesso",
+        description: `${selectedModels.length} modelo(s) ativada(s) com sucesso!`,
+      });
+      setSelectedModels([]);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao ativar modelos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkDeactivate = async () => {
+    try {
+      await bulkUpdateModels.mutateAsync({
+        modelIds: selectedModels,
+        updates: { is_active: false }
+      });
+      toast({
+        title: "Sucesso",
+        description: `${selectedModels.length} modelo(s) desativada(s) com sucesso!`,
+      });
+      setSelectedModels([]);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao desativar modelos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      await bulkDeleteModels.mutateAsync(selectedModels);
+      toast({
+        title: "Sucesso",
+        description: `${selectedModels.length} modelo(s) excluída(s) com sucesso!`,
+      });
+      setSelectedModels([]);
+      setBulkMode(false);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir modelos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkVisibilityChange = async (visibility: string) => {
+    try {
+      await bulkUpdateModels.mutateAsync({
+        modelIds: selectedModels,
+        updates: { visibility_type: visibility }
+      });
+      toast({
+        title: "Sucesso",
+        description: `Visibilidade alterada para ${selectedModels.length} modelo(s)!`,
+      });
+      setSelectedModels([]);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar visibilidade",
+        variant: "destructive",
+      });
+    }
   };
 
   // Filtrar e ordenar modelos
@@ -142,13 +252,23 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
           <h2 className="text-2xl font-bold text-foreground">Gestão de Modelos</h2>
           <p className="text-muted-foreground">Gerencie os perfis das modelos do sistema</p>
         </div>
-        <Button
-          onClick={handleOpenNew}
-          className="gap-2 bg-primary hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Modelo
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={bulkMode ? "secondary" : "outline"}
+            onClick={toggleBulkMode}
+            className="gap-2"
+          >
+            <CheckSquare className="w-4 h-4" />
+            {bulkMode ? 'Sair do modo seleção' : 'Selecionar múltiplas'}
+          </Button>
+          <Button
+            onClick={handleOpenNew}
+            className="gap-2 bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Modelo
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -179,6 +299,22 @@ const ModelsListContainer = ({ onOpenForm }: ModelsListContainerProps) => {
         models={filteredModels}
         loading={isLoading}
         onEdit={handleEdit}
+        selectedModels={selectedModels}
+        onSelectionChange={handleSelectionChange}
+        bulkMode={bulkMode}
+      />
+
+      {/* Barra de ações em massa */}
+      <BulkActionsBar
+        selectedCount={selectedModels.length}
+        totalCount={filteredModels.length}
+        onSelectAll={handleSelectAll}
+        onClearSelection={handleClearSelection}
+        onBulkActivate={handleBulkActivate}
+        onBulkDeactivate={handleBulkDeactivate}
+        onBulkDelete={handleBulkDelete}
+        onBulkVisibilityChange={handleBulkVisibilityChange}
+        isAllSelected={selectedModels.length === filteredModels.length && filteredModels.length > 0}
       />
     </div>
   );

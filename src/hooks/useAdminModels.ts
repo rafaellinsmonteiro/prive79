@@ -163,6 +163,159 @@ export const useDeleteModel = () => {
   });
 };
 
+export const useDuplicateModel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (originalModelId: string) => {
+      console.log('Duplicating model with id:', originalModelId);
+      
+      // Buscar o modelo original com todas as informações
+      const { data: originalModel, error: fetchError } = await supabase
+        .from('models')
+        .select('*, model_categories(category_id)')
+        .eq('id', originalModelId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching original model:', fetchError);
+        throw fetchError;
+      }
+
+      // Preparar dados para o novo modelo
+      const newModelData = { ...originalModel };
+      delete newModelData.id;
+      delete newModelData.created_at;
+      delete newModelData.updated_at;
+      delete newModelData.model_categories;
+      
+      // Adicionar "(Cópia)" ao nome
+      newModelData.name = `${originalModel.name} (Cópia)`;
+      
+      // Colocar como inativo por padrão
+      newModelData.is_active = false;
+      
+      // Criar o novo modelo
+      const { data: newModel, error: createError } = await supabase
+        .from('models')
+        .insert(newModelData)
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating duplicated model:', createError);
+        throw createError;
+      }
+
+      // Copiar categorias se existirem
+      if (originalModel.model_categories && originalModel.model_categories.length > 0) {
+        const categoryInserts = originalModel.model_categories.map((mc: any) => ({
+          model_id: newModel.id,
+          category_id: mc.category_id
+        }));
+
+        const { error: categoriesError } = await supabase
+          .from('model_categories')
+          .insert(categoryInserts);
+
+        if (categoriesError) {
+          console.error('Error copying categories:', categoriesError);
+          // Não falhar a operação por causa das categorias
+        }
+      }
+
+      // Copiar fotos se existirem
+      const { data: originalPhotos, error: photosError } = await supabase
+        .from('model_photos')
+        .select('*')
+        .eq('model_id', originalModelId);
+
+      if (!photosError && originalPhotos && originalPhotos.length > 0) {
+        const photoInserts = originalPhotos.map(photo => ({
+          model_id: newModel.id,
+          photo_url: photo.photo_url,
+          is_primary: false, // Não copiar como primária
+          display_order: photo.display_order,
+          show_in_profile: photo.show_in_profile,
+          show_in_gallery: photo.show_in_gallery,
+          allowed_plan_ids: photo.allowed_plan_ids,
+          visibility_type: photo.visibility_type,
+          stage: photo.stage,
+          tags: photo.tags
+        }));
+
+        const { error: insertPhotosError } = await supabase
+          .from('model_photos')
+          .insert(photoInserts);
+
+        if (insertPhotosError) {
+          console.error('Error copying photos:', insertPhotosError);
+          // Não falhar a operação por causa das fotos
+        }
+      }
+
+      console.log('Model duplicated successfully:', newModel);
+      return newModel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};
+
+export const useBulkUpdateModels = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ modelIds, updates }: { modelIds: string[], updates: any }) => {
+      console.log('Bulk updating models:', { modelIds, updates });
+      
+      const { error } = await supabase
+        .from('models')
+        .update(updates)
+        .in('id', modelIds);
+
+      if (error) {
+        console.error('Error bulk updating models:', error);
+        throw error;
+      }
+      
+      console.log('Models bulk updated successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};
+
+export const useBulkDeleteModels = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (modelIds: string[]) => {
+      console.log('Bulk deleting models:', modelIds);
+      
+      const { error } = await supabase
+        .from('models')
+        .delete()
+        .in('id', modelIds);
+
+      if (error) {
+        console.error('Error bulk deleting models:', error);
+        throw error;
+      }
+      
+      console.log('Models bulk deleted successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-models'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+};
+
 export const useUpdateModelOrder = () => {
   const queryClient = useQueryClient();
 

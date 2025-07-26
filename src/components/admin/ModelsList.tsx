@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, GripVertical, Eye, EyeOff, User, MapPin, Calendar, Images } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Edit, Trash2, GripVertical, Eye, EyeOff, User, MapPin, Calendar, Images, Copy } from 'lucide-react';
 import { Model } from '@/hooks/useModels';
-import { useDeleteModel, useUpdateModel, useUpdateModelOrder } from '@/hooks/useAdminModels';
+import { useDeleteModel, useUpdateModel, useUpdateModelOrder, useDuplicateModel } from '@/hooks/useAdminModels';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -23,13 +24,17 @@ interface ModelsListProps {
   models: Model[];
   loading: boolean;
   onEdit: (id: string) => void;
+  selectedModels: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
+  bulkMode: boolean;
 }
 
-const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
+const ModelsList = ({ models, loading, onEdit, selectedModels, onSelectionChange, bulkMode }: ModelsListProps) => {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const deleteModel = useDeleteModel();
   const updateModel = useUpdateModel();
   const updateOrder = useUpdateModelOrder();
+  const duplicateModel = useDuplicateModel();
   const { toast } = useToast();
 
   const handleDelete = async (id: string) => {
@@ -61,6 +66,30 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
         description: "Erro ao atualizar status da modelo",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDuplicate = async (id: string, modelName: string) => {
+    try {
+      await duplicateModel.mutateAsync(id);
+      toast({
+        title: "Sucesso",
+        description: `Modelo "${modelName}" duplicada com sucesso!`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao duplicar modelo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSelectModel = (modelId: string, checked: boolean) => {
+    if (checked) {
+      onSelectionChange([...selectedModels, modelId]);
+    } else {
+      onSelectionChange(selectedModels.filter(id => id !== modelId));
     }
   };
 
@@ -130,6 +159,14 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
           <CardContent className="p-6">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
+                {bulkMode && (
+                  <Checkbox
+                    checked={selectedModels.includes(model.id)}
+                    onCheckedChange={(checked) => handleSelectModel(model.id, !!checked)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                )}
+                
                 <GripVertical className="h-5 w-5 text-muted-foreground cursor-move hover:text-foreground transition-colors" />
                 
                 <div className="flex-shrink-0">
@@ -208,6 +245,16 @@ const ModelsList = ({ models, loading, onEdit }: ModelsListProps) => {
                   className="hover:bg-accent transition-colors"
                 >
                   <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDuplicate(model.id, model.name)}
+                  className="hover:bg-accent transition-colors"
+                  disabled={duplicateModel.isPending}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                 </Button>
 
                 <AlertDialog>
