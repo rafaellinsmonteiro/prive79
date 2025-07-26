@@ -219,9 +219,107 @@ serve(async (req) => {
         );
       }
 
+      const pixStatus = abacateData.data?.status;
+      console.log('PIX status from AbacatePay:', pixStatus);
+
+      // Se o PIX foi pago, processar automaticamente
+      if (pixStatus === 'PAID') {
+        console.log('PIX foi pago! Processando...');
+        
+         // Buscar o PIX deposit no banco
+        const { data: pixDeposit, error: pixError } = await supabaseClient
+          .from('pix_deposits')
+          .select('*')
+          .eq('pix_id', body.pixId)
+          .eq('status', 'PENDING')
+          .single();
+
+        if (pixError) {
+          console.error('Erro ao buscar PIX deposit:', pixError);
+          return new Response(
+            JSON.stringify({ error: 'PIX deposit não encontrado' }),
+            { 
+              status: 404, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        if (pixDeposit && !pixDeposit.processed) {
+          const amount = Number(pixDeposit.amount);
+          console.log(`Processando PIX de R$ ${amount} para usuário ${pixDeposit.user_id}`);
+
+          // Atualizar status do PIX deposit
+          const { error: updatePixError } = await supabaseClient
+            .from('pix_deposits')
+            .update({ 
+              status: 'PAID', 
+              processed: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', pixDeposit.id);
+
+          if (updatePixError) {
+            console.error('Erro ao atualizar PIX deposit:', updatePixError);
+          }
+
+          // Buscar conta do usuário
+          const { data: account, error: accountError } = await supabaseClient
+            .from('privabank_accounts')
+            .select('*')
+            .eq('user_id', pixDeposit.user_id)
+            .eq('is_active', true)
+            .single();
+
+          if (accountError || !account) {
+            console.error('Erro ao buscar conta:', accountError);
+            return new Response(
+              JSON.stringify({ error: 'Conta não encontrada' }),
+              { 
+                status: 404, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+
+          // Atualizar saldo em BRL
+          const newBalanceBrl = Number(account.balance_brl) + amount;
+          const { error: balanceError } = await supabaseClient
+            .from('privabank_accounts')
+            .update({ 
+              balance_brl: newBalanceBrl,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', account.id);
+
+          if (balanceError) {
+            console.error('Erro ao atualizar saldo:', balanceError);
+          }
+
+          // Criar transação
+          const { error: transactionError } = await supabaseClient
+            .from('privabank_transactions')
+            .insert({
+              to_account_id: account.id,
+              amount: amount,
+              transaction_type: 'deposit_pix',
+              description: `Depósito PIX - R$ ${amount.toFixed(2)}`,
+              status: 'completed',
+              currency: 'BRL'
+            });
+
+          if (transactionError) {
+            console.error('Erro ao criar transação:', transactionError);
+          }
+
+          console.log(`PIX processado com sucesso! Novo saldo BRL: R$ ${newBalanceBrl}`);
+        }
+      }
+
       return new Response(
         JSON.stringify({
-          status: abacateData.data?.status || 'UNKNOWN'
+          status: pixStatus || 'UNKNOWN',
+          processed: pixStatus === 'PAID'
         }),
         { 
           status: 200, 

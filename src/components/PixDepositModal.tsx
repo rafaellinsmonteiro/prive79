@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Copy, QrCode, Clock, CheckCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PixDepositModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface PixDepositModalProps {
 
 const PixDepositModal = ({ isOpen, onClose, amount, pixData }: PixDepositModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   const copyPixCode = () => {
@@ -68,9 +70,14 @@ const PixDepositModal = ({ isOpen, onClose, amount, pixData }: PixDepositModalPr
           description: "Seu depósito foi processado com sucesso."
         });
         
-        // Fechar modal e atualizar dados
+        // Invalidar queries para atualizar dados automaticamente
+        queryClient.invalidateQueries({ queryKey: ['user-pix-deposits'] });
+        queryClient.invalidateQueries({ queryKey: ['user-privabank-account'] });
+        queryClient.invalidateQueries({ queryKey: ['privabank-transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+        
+        // Fechar modal
         onClose();
-        window.location.reload(); // Recarregar para atualizar saldo
       } else {
         toast({
           title: "Pagamento ainda não identificado",
