@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LunnaAssistant from '@/components/chat/LunnaAssistant';
+import LunnaTestComponent from '@/components/LunnaTestComponent';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Moon, Sparkles, Brain, Zap, MessageSquare, Mic } from 'lucide-react';
 import lunnaVideo from '@/assets/lunna-bg-video.mp4';
@@ -107,7 +108,44 @@ const LunnaPage = () => {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 pb-16 max-w-4xl mx-auto">
+          <Card className="bg-black/20 backdrop-blur border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-rose-400" />
+                Teste no Chat
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Experimente a Lunna diretamente no sistema de chat
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LunnaTestComponent />
+            </CardContent>
+          </Card>
           
+          <Card className="bg-black/20 backdrop-blur border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Brain className="w-5 h-5 text-purple-400" />
+                IA Avançada
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Powered by OpenAI com acesso a dados do Prive
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Card className="bg-black/20 backdrop-blur border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-400" />
+                Respostas Rápidas
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Processamento em tempo real para experiência fluida
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
       </div>
     </div>

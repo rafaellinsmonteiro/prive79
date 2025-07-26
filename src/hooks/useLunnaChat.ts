@@ -1,16 +1,17 @@
 import { useCallback } from 'react';
-import { useZaiaAI } from './useZaiaAI';
 import { useLunnaTools } from './useLunnaTools';
 import { useUserType } from './useUserType';
 import { useSendMessage } from './useChat';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const LUNNA_CHAT_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 export const useLunnaChat = () => {
-  const zaiaAI = useZaiaAI();
   const sendMessage = useSendMessage();
   const { tools: availableTools } = useLunnaTools();
   const { getUserType } = useUserType();
+  const queryClient = useQueryClient();
 
   // Função para verificar se uma conversa é com a Lunna
   const isLunnaConversation = useCallback((conversation: any) => {
@@ -25,9 +26,12 @@ export const useLunnaChat = () => {
     message: string, 
     conversationId: string
   ) => {
+    console.log('🌙 Processando mensagem da Lunna:', message);
+    
     try {
       // Obter tipo de usuário para contexto
       const userType = await getUserType();
+      console.log('🌙 Tipo de usuário:', userType);
       
       // Criar contexto com ferramentas disponíveis
       let context = `Você é a Lunna, assistente IA do Prive. Tipo de usuário: ${userType}.`;
@@ -40,36 +44,78 @@ export const useLunnaChat = () => {
         context += ` Ferramentas disponíveis: ${toolNames}`;
       }
 
-      // Enviar para Zaia AI
-      const response = await zaiaAI.mutateAsync({
-        message,
-        context,
-        type: 'chat'
+      console.log('🌙 Enviando para OpenAI com contexto:', context);
+
+      // Enviar para OpenAI Chat via edge function
+      const { data, error: openaiError } = await supabase.functions.invoke('openai-chat', {
+        body: {
+          message,
+          conversationHistory: [],
+          context
+        }
       });
 
-      if (response.success && response.response) {
-        // Enviar resposta da AI como mensagem no chat
-        await sendMessage.mutateAsync({
-          conversationId,
-          content: response.response,
-          messageType: 'text',
-        });
+      console.log('🌙 Resposta do OpenAI:', data, openaiError);
+
+      if (openaiError) {
+        console.error('🌙 Erro do OpenAI:', openaiError);
+        throw openaiError;
+      }
+
+      if (data && data.response) {
+        console.log('🌙 Inserindo mensagem da IA no banco:', data.response);
+        
+        // Enviar resposta da AI diretamente via Supabase
+        const { error: insertError } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: LUNNA_CHAT_USER_ID,
+            sender_type: 'ai',
+            message_type: 'text',
+            content: data.response,
+          });
+
+        if (insertError) {
+          console.error('🌙 Erro ao inserir mensagem:', insertError);
+          throw insertError;
+        }
+
+        console.log('🌙 Mensagem da IA inserida com sucesso');
+
+        // Invalidar queries para atualizar UI
+        queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      } else {
+        console.warn('🌙 OpenAI não retornou resposta válida');
+        throw new Error('Resposta inválida da IA');
       }
     } catch (error) {
-      console.error('Erro ao processar mensagem da Lunna:', error);
+      console.error('🌙 Erro ao processar mensagem da Lunna:', error);
       
-      // Enviar mensagem de erro como fallback
-      await sendMessage.mutateAsync({
-        conversationId,
-        content: 'Desculpe, ocorreu um erro. Tente novamente em alguns instantes.',
-        messageType: 'text',
-      });
+      // Enviar mensagem de erro como fallback diretamente via Supabase
+      const { error: fallbackError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: LUNNA_CHAT_USER_ID,
+          sender_type: 'ai',
+          message_type: 'text',
+          content: 'Desculpe, ocorreu um erro. Tente novamente em alguns instantes.',
+        });
+
+      if (fallbackError) {
+        console.error('🌙 Erro ao inserir mensagem de fallback:', fallbackError);
+      }
+
+      // Invalidar queries para atualizar UI
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
     }
-  }, [zaiaAI, sendMessage, availableTools, getUserType]);
+  }, [availableTools, getUserType, queryClient]);
 
   return {
     isLunnaConversation,
     processLunnaMessage,
-    isProcessing: zaiaAI.isPending || sendMessage.isPending
+    isProcessing: false // Para agora, depois podemos implementar estado de loading
   };
 };
