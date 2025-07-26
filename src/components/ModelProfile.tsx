@@ -27,6 +27,11 @@ interface ModelProfileProps {
       id: string;
       name: string;
     }>;
+    '1hora'?: number;
+    '2horas'?: number;
+    '3horas'?: number;
+    pernoite?: number;
+    diaria?: number;
   };
   onBooking?: (model: any) => void;
 }
@@ -151,6 +156,47 @@ export const ModelProfile: React.FC<ModelProfileProps> = ({ model, onBooking }) 
               <p className="text-zinc-300 mb-6 line-clamp-3">
                 {model.description}
               </p>
+            )}
+
+            {/* Seção de Preços */}
+            {(model['1hora'] || model['2horas'] || model['3horas'] || model.pernoite || model.diaria) && (
+              <Card className="bg-zinc-800 border-zinc-600 mb-6">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Preços</h3>
+                  <div className="space-y-3">
+                    {model['1hora'] && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">1 hora</span>
+                        <span className="text-pink-400 font-semibold">R$ {model['1hora']}</span>
+                      </div>
+                    )}
+                    {model['2horas'] && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">2 horas</span>
+                        <span className="text-pink-400 font-semibold">R$ {model['2horas']}</span>
+                      </div>
+                    )}
+                    {model['3horas'] && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">3 horas</span>
+                        <span className="text-pink-400 font-semibold">R$ {model['3horas']}</span>
+                      </div>
+                    )}
+                    {model.pernoite && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Pernoite</span>
+                        <span className="text-pink-400 font-semibold">R$ {model.pernoite}</span>
+                      </div>
+                    )}
+                    {model.diaria && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-300">Diária</span>
+                        <span className="text-pink-400 font-semibold">R$ {model.diaria}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Botões de Ação */}
