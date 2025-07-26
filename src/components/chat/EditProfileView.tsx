@@ -154,166 +154,182 @@ const EditProfileView: React.FC<EditProfileViewProps> = ({ onBack }) => {
 
   if (loading || currentUserLoading) {
     return (
-      <div className="bg-zinc-950 h-full flex items-center justify-center">
-        <div className="text-zinc-100">Carregando...</div>
+      <div className="h-full bg-zinc-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="text-zinc-100">Carregando...</div>
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="bg-zinc-950 h-full flex items-center justify-center">
-        <div className="text-zinc-400">Usuário não encontrado</div>
+      <div className="h-full bg-zinc-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto">
+            <X className="h-8 w-8 text-zinc-400" />
+          </div>
+          <div className="text-zinc-400">Usuário não encontrado</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-zinc-950 h-full flex flex-col">
+    <div className="h-full bg-zinc-950 flex flex-col">
       {/* Header */}
-      <div className="border-b border-zinc-800 p-4 bg-zinc-900 flex items-center space-x-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleCancel}
-          className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h2 className="text-lg font-semibold text-white">Editar Perfil</h2>
+      <div className="border-b border-zinc-800 bg-zinc-900/95 backdrop-blur-sm">
+        <div className="flex items-center px-4 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800 mr-3"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h2 className="text-lg font-semibold text-white">Editar Perfil</h2>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Profile Photo Section */}
-        <div className="flex flex-col items-center space-y-4">
-          <ProfilePhotoUpload size="lg" />
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-white">
-              {userInfo.name || 'Usuário'}
-            </h3>
-            <p className="text-zinc-400 text-sm">{userInfo.email}</p>
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-6">
+          {/* Profile Photo Section */}
+          <div className="flex flex-col items-center space-y-4 py-6">
+            <ProfilePhotoUpload size="lg" />
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-white">
+                {userInfo.name || 'Usuário'}
+              </h3>
+              <p className="text-zinc-400 text-sm">{userInfo.email}</p>
+            </div>
+          </div>
+
+          {/* Form Container */}
+          <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 p-6">
+            <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-zinc-300 text-sm font-medium">
+                  Nome
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={userInfo.name}
+                  onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                  placeholder="Digite seu nome"
+                  className="bg-zinc-800/70 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  autoComplete="name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-zinc-300 text-sm font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={userInfo.email}
+                  onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+                  className="bg-zinc-800/70 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp" className="text-zinc-300 text-sm font-medium">
+                  WhatsApp
+                </Label>
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  value={userInfo.whatsapp}
+                  onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
+                  placeholder="(11) 99999-9999"
+                  className="bg-zinc-800/70 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  autoComplete="tel"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-zinc-300 text-sm font-medium">
+                  Nova Senha (opcional)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={userInfo.password}
+                    onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
+                    placeholder="Digite uma nova senha"
+                    className="bg-zinc-800/70 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 pr-10 focus:border-purple-500 focus:ring-purple-500/20"
+                    autoComplete="new-password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-zinc-400 hover:text-zinc-200"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-zinc-300 text-sm font-medium">
+                  Confirmar Nova Senha
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={userInfo.confirmPassword}
+                  onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
+                  placeholder="Confirme a nova senha"
+                  className="bg-zinc-800/70 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  autoComplete="new-password"
+                />
+              </div>
+            </form>
+          </div>
+
+          {/* Plan Info Card */}
+          <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 p-6">
+            <div className="space-y-2">
+              <Label className="text-zinc-300 text-sm font-medium">
+                Plano Ativo
+              </Label>
+              <div className="bg-zinc-800/70 border border-zinc-700 rounded-lg px-4 py-3">
+                {currentUser?.plan ? (
+                  <span className="text-green-400 font-medium">
+                    {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
+                  </span>
+                ) : currentUser ? (
+                  <span className="text-yellow-400 font-medium">Nenhum plano ativo</span>
+                ) : (
+                  <span className="text-zinc-500">Carregando...</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-zinc-300">
-              Nome
-            </Label>
-            <Input
-              id="name"
-              type="text"
-              value={userInfo.name}
-              onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-              placeholder="Digite seu nome"
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              autoComplete="name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-zinc-300">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={userInfo.email}
-              onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="whatsapp" className="text-zinc-300">
-              WhatsApp
-            </Label>
-            <Input
-              id="whatsapp"
-              type="tel"
-              value={userInfo.whatsapp}
-              onChange={(e) => setUserInfo({ ...userInfo, whatsapp: e.target.value })}
-              placeholder="(11) 99999-9999"
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              autoComplete="tel"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-zinc-300">
-              Nova Senha (opcional)
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={userInfo.password}
-                onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
-                placeholder="Digite uma nova senha"
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 pr-10"
-                autoComplete="new-password"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-zinc-400" />
-                ) : (
-                  <Eye className="h-4 w-4 text-zinc-400" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-zinc-300">
-              Confirmar Nova Senha
-            </Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={userInfo.confirmPassword}
-              onChange={(e) => setUserInfo({ ...userInfo, confirmPassword: e.target.value })}
-              placeholder="Confirme a nova senha"
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-              autoComplete="new-password"
-            />
-          </div>
-
-          {/* Plan Info */}
-          <div className="space-y-2">
-            <Label className="text-zinc-300">
-              Plano Ativo
-            </Label>
-            <div className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-zinc-100">
-              {currentUser?.plan ? (
-                <span className="text-green-400">
-                  {currentUser.plan.name} - R$ {Number(currentUser.plan.price).toFixed(2)}
-                </span>
-              ) : currentUser ? (
-                <span className="text-yellow-400">Nenhum plano ativo</span>
-              ) : (
-                <span className="text-zinc-500">Carregando...</span>
-              )}
-            </div>
-          </div>
-        </form>
       </div>
 
-      {/* Actions */}
-      <div className="border-t border-zinc-800 p-4 bg-zinc-900/50">
+      {/* Fixed Actions Bar */}
+      <div className="border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-sm p-4">
         <div className="flex space-x-3">
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium shadow-lg"
           >
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Salvando...' : 'Salvar Alterações'}
@@ -321,7 +337,7 @@ const EditProfileView: React.FC<EditProfileViewProps> = ({ onBack }) => {
           <Button
             onClick={handleCancel}
             variant="outline"
-            className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            className="border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700 hover:text-white"
           >
             <X className="h-4 w-4" />
           </Button>
