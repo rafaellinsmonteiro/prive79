@@ -30,7 +30,7 @@ const ChatBottomNavigation: React.FC<ChatBottomNavigationProps> = ({
   ];
 
   return (
-    <div className="bg-zinc-900 border-t border-zinc-800 px-2 py-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-800 px-2 py-2">
       <div className="flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
