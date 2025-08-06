@@ -197,7 +197,7 @@ export default function PublicBookingPage({
                   }
                 `}>
                   {/* Show icon on mobile, number on desktop */}
-                  <IconComponent className="h-3 w-3 md:hidden" />
+                  <IconComponent className="h-4 w-4 md:hidden" />
                   <span className="hidden md:inline">{index + 1}</span>
                 </div>
                 {/* Show text label only on desktop */}
