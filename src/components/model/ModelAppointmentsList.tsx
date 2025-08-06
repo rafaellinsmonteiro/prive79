@@ -19,7 +19,8 @@ import {
   Edit,
   Trash2,
   MapPin,
-  CreditCard
+  CreditCard,
+  Check
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -32,7 +33,7 @@ import ModelOnlineToggle from './ModelOnlineToggle';
 import ModelOnlineBookingSettings from './ModelOnlineBookingSettings';
 
 const ModelAppointmentsList = () => {
-  const { appointments, isLoading, deleteAppointment } = useAppointments();
+  const { appointments, isLoading, deleteAppointment, updateAppointment } = useAppointments();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled' | 'completed'>('all');
 
@@ -137,6 +138,13 @@ const ModelAppointmentsList = () => {
       console.error('Error deleting appointment:', error);
       toast.error('Erro ao remover agendamento');
     }
+  };
+
+  const handleConfirmOnlineBooking = (appointment: Appointment) => {
+    updateAppointment.mutate({ 
+      id: appointment.id, 
+      status: 'confirmed' 
+    });
   };
 
   const handleOpenPaymentModal = (appointment: Appointment) => {
@@ -328,7 +336,22 @@ const ModelAppointmentsList = () => {
                   )}
                 </div>
 
-                <DropdownMenu>
+                 <div className="flex items-center gap-2">
+                   {/* Confirm button for online bookings */}
+                   {appointment.booking_source === 'public' && appointment.status === 'pending' && (
+                     <Button 
+                       size="sm" 
+                       variant="default"
+                       onClick={() => handleConfirmOnlineBooking(appointment)}
+                       className="bg-green-600 hover:bg-green-700 text-white"
+                       disabled={updateAppointment.isPending}
+                     >
+                       <Check className="h-4 w-4 mr-1" />
+                       Confirmar
+                     </Button>
+                   )}
+                    
+                   <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <MoreVertical className="h-4 w-4" />
@@ -351,9 +374,10 @@ const ModelAppointmentsList = () => {
                       Remover
                     </DropdownMenuItem>
                   </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardContent>
+                 </DropdownMenu>
+                 </div>
+               </div>
+             </CardContent>
           </Card>
         ))}
       </div>
