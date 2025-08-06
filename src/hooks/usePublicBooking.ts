@@ -14,6 +14,8 @@ export interface BookingData {
   appointmentDate: string;
   appointmentTime: string;
   clientData: ClientData;
+  selectedLocation?: string;
+  clientAddress?: string;
 }
 
 export const usePublicBooking = () => {
@@ -46,14 +48,24 @@ export const usePublicBooking = () => {
         clientId = newClient.id;
       }
 
-      // Get service details for pricing
+      // Get service details for pricing and location
       const { data: service, error: serviceError } = await supabase
         .from("services")
-        .select("price, duration")
+        .select("price, duration, service_address")
         .eq("id", bookingData.serviceId)
         .single();
 
       if (serviceError) throw serviceError;
+
+      // Define location based on selected option
+      let appointmentLocation = 'A definir';
+      if (bookingData.selectedLocation === 'online') {
+        appointmentLocation = 'Online';
+      } else if (bookingData.selectedLocation === 'my_address' && service.service_address) {
+        appointmentLocation = service.service_address;
+      } else if (bookingData.selectedLocation === 'client_address' && bookingData.clientAddress) {
+        appointmentLocation = bookingData.clientAddress;
+      }
 
       // Create the appointment
       const { data: appointment, error: appointmentError } = await supabase
@@ -69,6 +81,7 @@ export const usePublicBooking = () => {
           status: "pending",
           payment_status: "pending",
           booking_source: "public",
+          location: appointmentLocation,
           created_by_admin: false
         })
         .select()

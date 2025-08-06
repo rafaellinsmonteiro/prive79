@@ -30,6 +30,8 @@ const ModelV2ServicesPage = () => {
         duration: service.duration,
         max_people: service.max_people,
         is_active: service.is_active,
+        location_types: service.location_types || ['online'],
+        service_address: service.service_address || null,
       });
       toast({
         title: "Serviço duplicado",

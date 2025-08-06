@@ -111,6 +111,8 @@ const ServicesPage = () => {
           duration: formData.duration,
           max_people: 1,
           is_active: formData.is_active,
+          location_types: ['online'],
+          service_address: null,
         });
       }
 
@@ -130,6 +132,8 @@ const ServicesPage = () => {
         duration: service.duration,
         max_people: service.max_people,
         is_active: service.is_active,
+        location_types: service.location_types || ['online'],
+        service_address: service.service_address || null,
       });
     } catch (error) {
       console.error('Error duplicating service:', error);

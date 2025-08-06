@@ -2563,10 +2563,12 @@ export type Database = {
           duration: number
           id: string
           is_active: boolean
+          location_types: string[] | null
           max_people: number
           model_id: string
           name: string
           price: number
+          service_address: string | null
           updated_at: string
         }
         Insert: {
@@ -2575,10 +2577,12 @@ export type Database = {
           duration?: number
           id?: string
           is_active?: boolean
+          location_types?: string[] | null
           max_people?: number
           model_id: string
           name: string
           price?: number
+          service_address?: string | null
           updated_at?: string
         }
         Update: {
@@ -2587,10 +2591,12 @@ export type Database = {
           duration?: number
           id?: string
           is_active?: boolean
+          location_types?: string[] | null
           max_people?: number
           model_id?: string
           name?: string
           price?: number
+          service_address?: string | null
           updated_at?: string
         }
         Relationships: [

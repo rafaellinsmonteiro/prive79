@@ -11,6 +11,8 @@ export interface Service {
   max_people: number;
   is_active: boolean;
   model_id: string;
+  location_types: string[];
+  service_address?: string;
   created_at: string;
   updated_at: string;
 }

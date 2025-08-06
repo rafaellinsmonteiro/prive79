@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Briefcase } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Briefcase, MapPin, Home, User } from 'lucide-react';
 import { useServices, Service } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,6 +20,8 @@ const serviceSchema = z.object({
   duration: z.number().min(1, 'Duração deve ser pelo menos 1 minuto'),
   max_people: z.number().min(1, 'Máximo de pessoas deve ser pelo menos 1').max(10, 'Máximo de 10 pessoas'),
   is_active: z.boolean(),
+  location_types: z.array(z.string()).min(1, 'Selecione pelo menos um local'),
+  service_address: z.string().optional(),
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -47,6 +50,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       duration: service?.duration || 60,
       max_people: service?.max_people || 1,
       is_active: service?.is_active ?? true,
+      location_types: service?.location_types || ['online'],
+      service_address: service?.service_address || '',
     },
   });
 
@@ -59,6 +64,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         duration: service.duration,
         max_people: service.max_people,
         is_active: service.is_active,
+        location_types: service.location_types || ['online'],
+        service_address: service.service_address || '',
       });
     } else {
       form.reset({
@@ -68,6 +75,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         duration: 60,
         max_people: 1,
         is_active: true,
+        location_types: ['online'],
+        service_address: '',
       });
     }
   }, [service, form]);
@@ -92,6 +101,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           duration: data.duration,
           max_people: data.max_people,
           is_active: data.is_active,
+          location_types: data.location_types,
+          service_address: data.service_address || null,
         });
         toast({
           title: "Serviço criado",
@@ -239,6 +250,109 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                 </FormItem>
               )}
             />
+
+            {/* Location Types */}
+            <FormField
+              control={form.control}
+              name="location_types"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Local do Serviço
+                  </FormLabel>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="online"
+                        checked={field.value.includes('online')}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            field.onChange([...field.value, 'online']);
+                          } else {
+                            field.onChange(field.value.filter((v: string) => v !== 'online'));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="online"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Online
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="my_address"
+                        checked={field.value.includes('my_address')}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            field.onChange([...field.value, 'my_address']);
+                          } else {
+                            field.onChange(field.value.filter((v: string) => v !== 'my_address'));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="my_address"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-1"
+                      >
+                        <Home className="h-4 w-4" />
+                        Meu endereço
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="client_address"
+                        checked={field.value.includes('client_address')}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            field.onChange([...field.value, 'client_address']);
+                          } else {
+                            field.onChange(field.value.filter((v: string) => v !== 'client_address'));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="client_address"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-1"
+                      >
+                        <User className="h-4 w-4" />
+                        Endereço do cliente
+                      </label>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Selecione onde o serviço pode ser realizado
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Service Address - Only show when "my_address" is selected */}
+            {form.watch('location_types')?.includes('my_address') && (
+              <FormField
+                control={form.control}
+                name="service_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meu Endereço Completo</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Digite seu endereço completo para o serviço..."
+                        {...field}
+                        rows={3}
+                      />
+                    </FormControl>
+                    <div className="text-sm text-muted-foreground">
+                      Este endereço será mostrado para os clientes quando selecionarem "Meu endereço"
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
