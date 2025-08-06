@@ -165,21 +165,21 @@ export default function PublicBookingPage({
     };
 
     return (
-      <div className="flex justify-center mb-8">
-        <div className="flex items-center space-x-4">
+      <div className="flex justify-center mb-8 px-4">
+        <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto max-w-full">
           {filteredSteps.map((step, index) => {
             const isActive = step === currentStep;
             const isCompleted = filteredSteps.indexOf(currentStep) > index;
             
             return (
-              <div key={step} className="flex items-center">
+              <div key={step} className="flex items-center flex-shrink-0">
                 {index > 0 && (
-                  <div className={`w-8 h-px mx-2 ${
+                  <div className={`w-4 md:w-8 h-px mx-1 md:mx-2 ${
                     isCompleted ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
                 <div className={`
-                  flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
+                  flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full text-xs md:text-sm font-medium
                   ${isActive 
                     ? 'bg-primary text-primary-foreground' 
                     : isCompleted 
@@ -189,7 +189,7 @@ export default function PublicBookingPage({
                 `}>
                   {index + 1}
                 </div>
-                <span className={`ml-2 text-sm ${
+                <span className={`ml-1 md:ml-2 text-xs md:text-sm whitespace-nowrap ${
                   isActive ? 'text-foreground font-medium' : 'text-muted-foreground'
                 }`}>
                   {stepLabels[step as keyof typeof stepLabels]}
