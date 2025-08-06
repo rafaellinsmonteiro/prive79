@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_user_info: {
+        Row: {
+          admin_display_name: string | null
+          admin_photo_url: string | null
+          contact_data: Json | null
+          created_at: string
+          created_by_admin_id: string | null
+          documents: Json | null
+          ecosystem_relation: string | null
+          id: string
+          ratings: Json | null
+          social_media: Json | null
+          updated_at: string
+          updated_by_admin_id: string | null
+          user_id: string
+          user_summary: string | null
+        }
+        Insert: {
+          admin_display_name?: string | null
+          admin_photo_url?: string | null
+          contact_data?: Json | null
+          created_at?: string
+          created_by_admin_id?: string | null
+          documents?: Json | null
+          ecosystem_relation?: string | null
+          id?: string
+          ratings?: Json | null
+          social_media?: Json | null
+          updated_at?: string
+          updated_by_admin_id?: string | null
+          user_id: string
+          user_summary?: string | null
+        }
+        Update: {
+          admin_display_name?: string | null
+          admin_photo_url?: string | null
+          contact_data?: Json | null
+          created_at?: string
+          created_by_admin_id?: string | null
+          documents?: Json | null
+          ecosystem_relation?: string | null
+          id?: string
+          ratings?: Json | null
+          social_media?: Json | null
+          updated_at?: string
+          updated_by_admin_id?: string | null
+          user_id?: string
+          user_summary?: string | null
+        }
+        Relationships: []
+      }
+      admin_user_tasks: {
+        Row: {
+          admin_id: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_id: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      admin_user_updates: {
+        Row: {
+          admin_id: string
+          attachments: Json | null
+          content: string
+          created_at: string
+          id: string
+          title: string
+          update_type: string
+          user_id: string
+        }
+        Insert: {
+          admin_id: string
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          update_type?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          update_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -477,6 +603,84 @@ export type Database = {
           },
         ]
       }
+      creator_follow_settings: {
+        Row: {
+          allow_followers: boolean
+          created_at: string
+          creator_user_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          allow_followers?: boolean
+          created_at?: string
+          creator_user_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          allow_followers?: boolean
+          created_at?: string
+          creator_user_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_followers: {
+        Row: {
+          creator_user_id: string
+          followed_at: string
+          follower_user_id: string
+          id: string
+        }
+        Insert: {
+          creator_user_id: string
+          followed_at?: string
+          follower_user_id: string
+          id?: string
+        }
+        Update: {
+          creator_user_id?: string
+          followed_at?: string
+          follower_user_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      creator_partnerships: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          id: string
+          notes: string | null
+          partner_user_id: string
+          partnership_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          id?: string
+          notes?: string | null
+          partner_user_id: string
+          partnership_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          id?: string
+          notes?: string | null
+          partner_user_id?: string
+          partnership_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_fields: {
         Row: {
           allowed_plan_ids: string[] | null
@@ -555,6 +759,57 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+        }
+        Relationships: []
+      }
+      featured_profiles: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_manual: boolean | null
+          manual_age: number | null
+          manual_city: string | null
+          manual_description: string | null
+          manual_link: string | null
+          manual_name: string | null
+          manual_photo_url: string | null
+          model_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_manual?: boolean | null
+          manual_age?: number | null
+          manual_city?: string | null
+          manual_description?: string | null
+          manual_link?: string | null
+          manual_name?: string | null
+          manual_photo_url?: string | null
+          model_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_manual?: boolean | null
+          manual_age?: number | null
+          manual_city?: string | null
+          manual_description?: string | null
+          manual_link?: string | null
+          manual_name?: string | null
+          manual_photo_url?: string | null
+          model_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -756,6 +1011,137 @@ export type Database = {
           user_session_id?: string
         }
         Relationships: []
+      }
+      master_profile_fields: {
+        Row: {
+          applicable_profiles: Database["public"]["Enums"]["profile_type"][]
+          created_at: string
+          display_order: number
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          help_text: string | null
+          icon_name: string | null
+          id: string
+          is_required: boolean
+          placeholder: string | null
+          section: string | null
+        }
+        Insert: {
+          applicable_profiles: Database["public"]["Enums"]["profile_type"][]
+          created_at?: string
+          display_order?: number
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type?: string
+          help_text?: string | null
+          icon_name?: string | null
+          id?: string
+          is_required?: boolean
+          placeholder?: string | null
+          section?: string | null
+        }
+        Update: {
+          applicable_profiles?: Database["public"]["Enums"]["profile_type"][]
+          created_at?: string
+          display_order?: number
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          help_text?: string | null
+          icon_name?: string | null
+          id?: string
+          is_required?: boolean
+          placeholder?: string | null
+          section?: string | null
+        }
+        Relationships: []
+      }
+      media_files: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          is_public: boolean
+          mime_type: string | null
+          storage_bucket: string
+          storage_path: string
+          tags: string[] | null
+          thumbnail_path: string | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id?: string
+          is_public?: boolean
+          mime_type?: string | null
+          storage_bucket: string
+          storage_path: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_public?: boolean
+          mime_type?: string | null
+          storage_bucket?: string
+          storage_path?: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
+      media_user_associations: {
+        Row: {
+          associated_by: string
+          created_at: string
+          id: string
+          media_file_id: string
+          user_id: string
+        }
+        Insert: {
+          associated_by: string
+          created_at?: string
+          id?: string
+          media_file_id: string
+          user_id: string
+        }
+        Update: {
+          associated_by?: string
+          created_at?: string
+          id?: string
+          media_file_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_user_associations_media_file_id_fkey"
+            columns: ["media_file_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_configurations: {
         Row: {
@@ -1063,6 +1449,7 @@ export type Database = {
           display_order: number | null
           folder_id: string | null
           id: string
+          is_cover: boolean
           is_primary: boolean | null
           model_id: string
           photo_url: string
@@ -1079,6 +1466,7 @@ export type Database = {
           display_order?: number | null
           folder_id?: string | null
           id?: string
+          is_cover?: boolean
           is_primary?: boolean | null
           model_id: string
           photo_url: string
@@ -1095,6 +1483,7 @@ export type Database = {
           display_order?: number | null
           folder_id?: string | null
           id?: string
+          is_cover?: boolean
           is_primary?: boolean | null
           model_id?: string
           photo_url?: string
@@ -1704,6 +2093,150 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_media: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          media_type: string
+          media_url: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type: string
+          media_url: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type?: string
+          media_url?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          allowed_plans: Json | null
+          comments_count: number
+          content: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          likes_count: number
+          premium_price: number | null
+          privacy_type: Database["public"]["Enums"]["post_privacy_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allowed_plans?: Json | null
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes_count?: number
+          premium_price?: number | null
+          privacy_type?: Database["public"]["Enums"]["post_privacy_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allowed_plans?: Json | null
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes_count?: number
+          premium_price?: number | null
+          privacy_type?: Database["public"]["Enums"]["post_privacy_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       privabank_accounts: {
         Row: {
           balance: number
@@ -2159,6 +2692,126 @@ export type Database = {
           },
         ]
       }
+      user_creator_subscriptions: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          expires_at: string | null
+          id: string
+          pricing_plan_id: string
+          status: string
+          subscribed_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          expires_at?: string | null
+          id?: string
+          pricing_plan_id: string
+          status?: string
+          subscribed_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          expires_at?: string | null
+          id?: string
+          pricing_plan_id?: string
+          status?: string
+          subscribed_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          favorited_user_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          favorited_user_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          favorited_user_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          age: number | null
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string
+          display_name: string | null
+          free_content_enabled: boolean | null
+          height: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          profile_data: Json | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          slug: string | null
+          updated_at: string
+          user_id: string
+          weight: string | null
+        }
+        Insert: {
+          age?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          free_content_enabled?: boolean | null
+          height?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          profile_data?: Json | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          slug?: string | null
+          updated_at?: string
+          user_id: string
+          weight?: string | null
+        }
+        Update: {
+          age?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          free_content_enabled?: boolean | null
+          height?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          profile_data?: Json | null
+          profile_type?: Database["public"]["Enums"]["profile_type"]
+          slug?: string | null
+          updated_at?: string
+          user_id?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
       user_pxp: {
         Row: {
           created_at: string
@@ -2186,6 +2839,81 @@ export type Database = {
           total_earned?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      vouchers: {
+        Row: {
+          code: string
+          created_at: string
+          created_by_user_id: string | null
+          current_uses: number
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          target_role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by_user_id?: string | null
+          current_uses?: number
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          target_role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          current_uses?: number
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          target_role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      webhook_configurations: {
+        Row: {
+          auth_secret: string | null
+          created_at: string
+          events: string[]
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+          webhook_url: string
+        }
+        Insert: {
+          auth_secret?: string | null
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+          webhook_url: string
+        }
+        Update: {
+          auth_secret?: string | null
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string
         }
         Relationships: []
       }
@@ -2266,7 +2994,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      creator_connections: {
+        Row: {
+          connected_user_id: string | null
+          connection_type: string | null
+          created_at: string | null
+          creator_user_id: string | null
+          direction: string | null
+          expires_at: string | null
+          id: string | null
+          notes: string | null
+          partnership_type: string | null
+          pricing_plan_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_level: {
@@ -2310,8 +3054,36 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_creator_slug_available: {
+        Args: { check_slug: string; exclude_profile_id?: string }
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_username_available: {
         Args: { username_to_check: string }
+        Returns: boolean
+      }
+      subscribe_to_creator_plan: {
+        Args: { p_creator_user_id: string; p_pricing_plan_id: string }
+        Returns: string
+      }
+      sync_model_to_creator_profile: {
+        Args: { model_user_id: string }
+        Returns: undefined
+      }
+      toggle_creator_follow: {
+        Args: { p_creator_user_id: string }
+        Returns: boolean
+      }
+      toggle_post_like: {
+        Args: { p_post_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      unsubscribe_from_creator_plan: {
+        Args: { p_creator_user_id: string; p_pricing_plan_id: string }
         Returns: boolean
       }
       update_model_online_status: {
@@ -2327,8 +3099,35 @@ export type Database = {
       menu_type: "url" | "category"
       message_status: "sent" | "delivered" | "read"
       message_type: "text" | "image" | "video" | "audio" | "file"
-      user_role: "admin" | "modelo" | "cliente"
-      user_type: "guest" | "authenticated" | "all"
+      post_privacy_type: "free" | "subscribers" | "premium"
+      profile_type:
+        | "public"
+        | "private"
+        | "anonymous"
+        | "model"
+        | "creator"
+        | "influencer"
+        | "sugar_baby"
+        | "massagista"
+      user_role:
+        | "new"
+        | "model"
+        | "admin"
+        | "creator"
+        | "creator-model"
+        | "client-model"
+        | "client-creator"
+        | "client-model-creator"
+      user_type:
+        | "all"
+        | "new"
+        | "model"
+        | "admin"
+        | "creator"
+        | "creator-model"
+        | "client-model"
+        | "client-creator"
+        | "client-model-creator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2459,8 +3258,38 @@ export const Constants = {
       menu_type: ["url", "category"],
       message_status: ["sent", "delivered", "read"],
       message_type: ["text", "image", "video", "audio", "file"],
-      user_role: ["admin", "modelo", "cliente"],
-      user_type: ["guest", "authenticated", "all"],
+      post_privacy_type: ["free", "subscribers", "premium"],
+      profile_type: [
+        "public",
+        "private",
+        "anonymous",
+        "model",
+        "creator",
+        "influencer",
+        "sugar_baby",
+        "massagista",
+      ],
+      user_role: [
+        "new",
+        "model",
+        "admin",
+        "creator",
+        "creator-model",
+        "client-model",
+        "client-creator",
+        "client-model-creator",
+      ],
+      user_type: [
+        "all",
+        "new",
+        "model",
+        "admin",
+        "creator",
+        "creator-model",
+        "client-model",
+        "client-creator",
+        "client-model-creator",
+      ],
     },
   },
 } as const
