@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { format, addDays, isBefore, startOfDay, addHours, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface BookingCalendarProps {
@@ -18,12 +18,32 @@ export const BookingCalendar = ({ onDateTimeSelect, selectedDate, selectedTime }
   );
 
   // Generate available time slots (9 AM to 8 PM)
-  const timeSlots = [
+  const allTimeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
     "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
     "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
     "18:00", "18:30", "19:00", "19:30", "20:00"
   ];
+
+  // Filter time slots based on current time + 1 hour minimum
+  const availableTimeSlots = useMemo(() => {
+    if (!date) return allTimeSlots;
+    
+    const now = new Date();
+    const selectedDate = date;
+    const isToday = isSameDay(now, selectedDate);
+    
+    if (!isToday) {
+      // For future dates, all time slots are available
+      return allTimeSlots;
+    }
+    
+    // For today, only show slots that are at least 1 hour from now
+    const oneHourFromNow = addHours(now, 1);
+    const minimumTime = format(oneHourFromNow, "HH:mm");
+    
+    return allTimeSlots.filter(slot => slot >= minimumTime);
+  }, [date]);
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
@@ -70,23 +90,34 @@ export const BookingCalendar = ({ onDateTimeSelect, selectedDate, selectedTime }
             <div className="text-sm font-medium">
               Horários disponíveis para {format(date, "dd 'de' MMMM", { locale: ptBR })}:
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  variant={selectedTime === time ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleTimeSelect(time)}
-                  className={`text-xs ${
-                    selectedTime === time 
-                      ? 'bg-primary hover:bg-primary/90' 
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
+            {availableTimeSlots.length > 0 ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {availableTimeSlots.map((time) => (
+                  <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleTimeSelect(time)}
+                    className={`text-xs ${
+                      selectedTime === time 
+                        ? 'bg-primary hover:bg-primary/90' 
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-muted-foreground bg-muted/50 rounded-lg">
+                <p className="text-sm">
+                  Não há horários disponíveis para hoje com antecedência mínima de 1 hora.
+                </p>
+                <p className="text-xs mt-1">
+                  Selecione uma data futura para ver os horários disponíveis.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
