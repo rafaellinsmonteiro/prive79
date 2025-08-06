@@ -95,12 +95,28 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
       newErrors.name = "Nome é obrigatório";
     }
     
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email inválido";
-    }
-    
-    if (formData.phone && !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.phone)) {
-      newErrors.phone = "Telefone deve estar no formato (00) 00000-0000";
+    // Para usuários deslogados, email e telefone são obrigatórios
+    if (!user) {
+      if (!formData.email.trim()) {
+        newErrors.email = "Email é obrigatório";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Email inválido";
+      }
+      
+      if (!formData.phone.trim()) {
+        newErrors.phone = "WhatsApp é obrigatório";
+      } else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.phone)) {
+        newErrors.phone = "WhatsApp deve estar no formato (00) 00000-0000";
+      }
+    } else {
+      // Para usuários logados, apenas validar formato se preenchido
+      if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Email inválido";
+      }
+      
+      if (formData.phone && !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.phone)) {
+        newErrors.phone = "WhatsApp deve estar no formato (00) 00000-0000";
+      }
     }
 
     // Validar número total de pessoas contra o limite do serviço
@@ -172,7 +188,7 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email {!user && "*"}</Label>
             <Input
               id="email"
               type="email"
@@ -187,7 +203,7 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">WhatsApp</Label>
+            <Label htmlFor="phone">WhatsApp {!user && "*"}</Label>
             <Input
               id="phone"
               value={formData.phone}
