@@ -95,7 +95,7 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        user_role: data.user_role,
+        user_role: data.user_role === 'modelo' ? 'model' as const : data.user_role === 'cliente' ? 'client' as const : 'admin' as const,
         plan_id: data.plan_id && data.plan_id !== 'no_plan' ? data.plan_id : null,
         model_id: data.user_role === 'modelo' && data.model_id && data.model_id !== 'no_model' ? data.model_id : null,
         is_active: data.is_active,

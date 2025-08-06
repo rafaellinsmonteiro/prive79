@@ -8,12 +8,13 @@ import { usePublicModels, PublicModel, PublicService } from "@/hooks/usePublicMo
 import { usePublicBooking, BookingData, ClientData } from "@/hooks/usePublicBooking";
 import { ModelSelectionCard } from "@/components/booking/ModelSelectionCard";
 import { ServiceSelectionCard } from "@/components/booking/ServiceSelectionCard";
+import { LocationSelectionCard } from "@/components/booking/LocationSelectionCard";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { ClientDetailsForm } from "@/components/booking/ClientDetailsForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-type BookingStep = "models" | "services" | "datetime" | "client" | "confirmation";
+type BookingStep = "models" | "location" | "services" | "datetime" | "client" | "confirmation";
 
 interface PublicBookingPageProps {
   preSelectedModelId?: string;
@@ -27,9 +28,10 @@ export default function PublicBookingPage({
   modelName 
 }: PublicBookingPageProps = {}) {
   const [currentStep, setCurrentStep] = useState<BookingStep>(
-    preSelectedModelId ? "services" : "models"
+    preSelectedModelId ? "location" : "models"
   );
   const [selectedModel, setSelectedModel] = useState<PublicModel | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -51,8 +53,22 @@ export default function PublicBookingPage({
     const model = models?.find(m => m.id === modelId);
     if (model) {
       setSelectedModel(model);
-      setCurrentStep("services");
+      // Check if model has multiple location types across services
+      const allLocationTypes = model.services.flatMap(s => s.location_types || ['online']);
+      const uniqueLocationTypes = [...new Set(allLocationTypes)];
+      
+      if (uniqueLocationTypes.length > 1) {
+        setCurrentStep("location");
+      } else {
+        setSelectedLocation(uniqueLocationTypes[0]);
+        setCurrentStep("services");
+      }
     }
+  };
+
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocation(location);
+    setCurrentStep("services");
   };
 
   const handleServiceSelect = (serviceId: string) => {
@@ -66,97 +82,118 @@ export default function PublicBookingPage({
   const handleDateTimeSelect = (date: string, time: string) => {
     setSelectedDate(date);
     setSelectedTime(time);
-    if (date && time) {
-      setCurrentStep("client");
-    }
+    setCurrentStep("client");
   };
 
-  const handleClientSubmit = (clientData: any) => {
-    if (selectedModel && selectedService && selectedDate && selectedTime) {
-      const bookingData: BookingData = {
-        modelId: selectedModel.id,
-        serviceId: selectedService.id,
-        appointmentDate: selectedDate,
-        appointmentTime: selectedTime,
-        clientData: {
-          name: clientData.name,
-          email: clientData.email,
-          phone: clientData.phone
-        }
-      };
-      
-      createBooking.mutate(bookingData, {
-        onSuccess: () => {
-          setCurrentStep("confirmation");
-        }
-      });
-    }
+  const handleClientSubmit = (clientData: ClientData) => {
+    if (!selectedModel || !selectedService) return;
+
+    const bookingData: BookingData = {
+      modelId: selectedModel.id,
+      serviceId: selectedService.id,
+      appointmentDate: selectedDate,
+      appointmentTime: selectedTime,
+      clientData,
+      selectedLocation,
+      clientAddress: clientData.clientAddress,
+    };
+
+    createBooking.mutate(bookingData, {
+      onSuccess: () => {
+        setCurrentStep("confirmation");
+      }
+    });
   };
 
   const handleBack = () => {
     switch (currentStep) {
-      case "services":
-        // Se há uma modelo pré-selecionada, não podemos voltar para seleção de modelo
+      case "location":
         if (preSelectedModelId) {
+          // Can't go back if model is pre-selected
           return;
         }
         setCurrentStep("models");
-        setSelectedModel(null);
+        break;
+      case "services":
+        // Check if we need to go back to location selection
+        if (selectedModel) {
+          const allLocationTypes = selectedModel.services.flatMap(s => s.location_types || ['online']);
+          const uniqueLocationTypes = [...new Set(allLocationTypes)];
+          
+          if (uniqueLocationTypes.length > 1) {
+            setCurrentStep("location");
+          } else if (preSelectedModelId) {
+            // Can't go back if model is pre-selected
+            return;
+          } else {
+            setCurrentStep("models");
+          }
+        }
         break;
       case "datetime":
         setCurrentStep("services");
-        setSelectedService(null);
         break;
       case "client":
         setCurrentStep("datetime");
-        setSelectedDate("");
-        setSelectedTime("");
+        break;
+      default:
         break;
     }
   };
 
   const renderStepIndicator = () => {
-    let steps = [
-      { key: "models", label: "Modelo", icon: User },
-      { key: "services", label: "Serviço", icon: Calendar },
-      { key: "datetime", label: "Data/Hora", icon: Clock },
-      { key: "client", label: "Dados", icon: User }
-    ];
+    const steps = preSelectedModelId 
+      ? ['location', 'services', 'datetime', 'client'] 
+      : ['models', 'location', 'services', 'datetime', 'client'];
+    
+    // Filter out location step if model has only one location type
+    const filteredSteps = steps.filter(step => {
+      if (step === 'location' && selectedModel) {
+        const allLocationTypes = selectedModel.services.flatMap(s => s.location_types || ['online']);
+        const uniqueLocationTypes = [...new Set(allLocationTypes)];
+        return uniqueLocationTypes.length > 1;
+      }
+      return true;
+    });
 
-    // Se há uma modelo pré-selecionada, remover o passo de seleção de modelo
-    if (preSelectedModelId) {
-      steps = steps.filter(step => step.key !== "models");
-    }
-
-    const currentIndex = steps.findIndex(step => step.key === currentStep);
+    const stepLabels = {
+      models: 'Modelo',
+      location: 'Local',
+      services: 'Serviço',
+      datetime: 'Data/Hora',
+      client: 'Dados'
+    };
 
     return (
-      <div className="flex items-center justify-center px-4 mb-8 overflow-x-auto">
-        <div className="flex items-center space-x-1 sm:space-x-2 min-w-max">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = index <= currentIndex;
-            const isCurrent = step.key === currentStep;
+      <div className="flex justify-center mb-8">
+        <div className="flex items-center space-x-4">
+          {filteredSteps.map((step, index) => {
+            const isActive = step === currentStep;
+            const isCompleted = filteredSteps.indexOf(currentStep) > index;
             
             return (
-              <div key={step.key} className="flex items-center">
-                <div className={`flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 ${
-                  isActive 
-                    ? 'bg-primary border-primary text-primary-foreground' 
-                    : 'border-muted-foreground text-muted-foreground'
-                }`}>
-                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
-                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium ${
-                  isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
-                } hidden xs:inline`}>
-                  {step.label}
-                </span>
-                {index < steps.length - 1 && (
-                  <div className={`w-4 sm:w-8 h-0.5 mx-2 sm:mx-4 ${
-                    index < currentIndex ? 'bg-primary' : 'bg-muted'
+              <div key={step} className="flex items-center">
+                {index > 0 && (
+                  <div className={`w-8 h-px mx-2 ${
+                    isCompleted ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
+                <div className={`
+                  flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
+                  ${isActive 
+                    ? 'bg-primary text-primary-foreground' 
+                    : isCompleted 
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  }
+                `}>
+                  {index + 1}
+                </div>
+                <span className={`ml-2 text-sm ${
+                  isActive ? 'text-foreground font-medium' : 'text-muted-foreground'
+                }`}>
+                  {stepLabels[step as keyof typeof stepLabels]}
+                </span>
               </div>
             );
           })}
@@ -167,138 +204,140 @@ export default function PublicBookingPage({
 
   if (currentStep === "confirmation") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            <Card className="text-center">
-              <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-green-600" />
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-green-600">Agendamento Realizado!</CardTitle>
+            <CardDescription>
+              Seu agendamento foi enviado com sucesso. Aguarde a confirmação da modelo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Detalhes do Agendamento:</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Modelo:</span>
+                  <span>{selectedModel?.name}</span>
                 </div>
-                <CardTitle className="text-2xl text-foreground">
-                  Agendamento Realizado!
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Seu agendamento foi enviado para a modelo e está aguardando confirmação.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-muted rounded-lg p-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Modelo:</span>
-                      <span className="font-medium">{selectedModel?.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Serviço:</span>
-                      <span className="font-medium">{selectedService?.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Data:</span>
-                      <span className="font-medium">
-                        {format(new Date(selectedDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Horário:</span>
-                      <span className="font-medium">{selectedTime}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valor:</span>
-                      <span className="font-medium text-primary">R$ {selectedService?.price}</span>
-                    </div>
-                  </div>
+                <div className="flex justify-between">
+                  <span>Serviço:</span>
+                  <span>{selectedService?.name}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Você será notificado quando a modelo confirmar seu agendamento.
-                  O pagamento será feito diretamente com a modelo no dia do atendimento.
-                </p>
-                <Button 
-                  onClick={() => window.location.href = "/"}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                >
-                  Voltar ao Início
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <div className="flex justify-between">
+                  <span>Data:</span>
+                  <span>{selectedDate && format(new Date(selectedDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Horário:</span>
+                  <span>{selectedTime}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Local:</span>
+                  <span>
+                    {selectedLocation === 'online' && 'Online'}
+                    {selectedLocation === 'my_address' && 'Endereço da modelo'}
+                    {selectedLocation === 'client_address' && 'Endereço do cliente'}
+                  </span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Valor:</span>
+                  <span>R$ {selectedService?.price.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Step Indicator */}
-          {renderStepIndicator()}
-
-          {/* Back Button */}
-          {currentStep !== "models" && (!preSelectedModelId || currentStep !== "services") && (
+    <div className="container mx-auto px-4 py-8">
+      {renderStepIndicator()}
+      
+      <div className="max-w-4xl mx-auto">
+        {(currentStep as string) !== "models" && (currentStep as string) !== "confirmation" && (
+          <div className="mb-6">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={handleBack}
-              className="mb-6 hover:bg-muted"
+              className="flex items-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4" />
               Voltar
             </Button>
-          )}
+          </div>
+        )}
 
-          {/* Content */}
-          {currentStep === "models" && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Escolha uma Modelo
-                </h2>
-                <p className="text-muted-foreground">
-                  Selecione a modelo que você gostaria de agendar
-                </p>
-              </div>
-              
-              {isLoading ? (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardHeader>
-                        <div className="h-6 bg-muted rounded w-3/4" />
-                        <div className="h-4 bg-muted rounded w-1/2" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-10 bg-muted rounded" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {models?.map((model) => (
-                    <ModelSelectionCard
-                      key={model.id}
-                      model={model}
-                      onSelect={handleModelSelect}
-                    />
-                  ))}
-                </div>
-              )}
+        {currentStep === "models" && (
+          <div>
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Escolha uma Modelo</h1>
+              <p className="text-muted-foreground">Selecione a modelo para seu agendamento</p>
             </div>
-          )}
-
-          {currentStep === "services" && selectedModel && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Escolha um Serviço
-                </h2>
-                <p className="text-muted-foreground">
-                  Serviços disponíveis para <strong>{selectedModel.name}</strong>
-                </p>
+            
+            {isLoading ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+                ))}
               </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {models?.map((model) => (
+                  <ModelSelectionCard
+                    key={model.id}
+                    model={model}
+                    onSelect={handleModelSelect}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentStep === "location" && selectedModel && (
+          <div>
+            {(() => {
+              const allLocationTypes = selectedModel.services.flatMap(s => s.location_types || ['online']);
+              const uniqueLocationTypes = [...new Set(allLocationTypes)];
               
-              <div className="grid gap-4 md:grid-cols-2">
-                {selectedModel.services.map((service) => (
+              return (
+                <LocationSelectionCard
+                  locations={uniqueLocationTypes}
+                  onSelect={handleLocationSelect}
+                  selected={selectedLocation}
+                />
+              );
+            })()}
+          </div>
+        )}
+
+        {currentStep === "services" && selectedModel && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Escolha um Serviço</h2>
+              <p className="text-muted-foreground">
+                Serviços disponíveis de {selectedModel.name}
+                {selectedLocation && (
+                  <span className="block mt-1 text-sm">
+                    Local: {selectedLocation === 'online' ? 'Online' : 
+                            selectedLocation === 'my_address' ? 'Endereço da modelo' :
+                            'Endereço do cliente'}
+                  </span>
+                )}
+              </p>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              {selectedModel.services
+                .filter(service => 
+                  !selectedLocation || 
+                  !service.location_types || 
+                  service.location_types.includes(selectedLocation)
+                )
+                .map((service) => (
                   <ServiceSelectionCard
                     key={service.id}
                     service={service}
@@ -306,30 +345,42 @@ export default function PublicBookingPage({
                     selected={selectedService?.id === service.id}
                   />
                 ))}
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {currentStep === "datetime" && (
-            <div className="max-w-2xl mx-auto">
-              <BookingCalendar
-                onDateTimeSelect={handleDateTimeSelect}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-              />
+        {currentStep === "datetime" && selectedService && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Escolha Data e Horário</h2>
+              <p className="text-muted-foreground">
+                Selecione quando você gostaria de ser atendido
+              </p>
             </div>
-          )}
+            
+            <BookingCalendar
+              onDateTimeSelect={handleDateTimeSelect}
+            />
+          </div>
+        )}
 
-          {currentStep === "client" && selectedService && (
-            <div className="max-w-2xl mx-auto">
-              <ClientDetailsForm
-                service={selectedService}
-                onSubmit={handleClientSubmit}
-                isLoading={createBooking.isPending}
-              />
+        {currentStep === "client" && selectedService && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Seus Dados</h2>
+              <p className="text-muted-foreground">
+                Preencha seus dados para finalizar o agendamento
+              </p>
             </div>
-          )}
-        </div>
+            
+            <ClientDetailsForm
+              service={selectedService}
+              onSubmit={handleClientSubmit}
+              isLoading={createBooking.isPending}
+              selectedLocation={selectedLocation}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

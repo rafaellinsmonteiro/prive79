@@ -97,7 +97,7 @@ export const useCurrentUser = () => {
             user_id: user.id,
             email: user.email,
             name: user.user_metadata?.name || 'Cliente Demo',
-            user_role: 'cliente',
+            user_role: 'new',
             plan_id: planId,
             is_active: true
           })

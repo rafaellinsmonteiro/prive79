@@ -22,15 +22,17 @@ interface Guest {
 interface ExtendedClientData extends ClientData {
   hasGuests: boolean;
   guests: Guest[];
+  clientAddress?: string;
 }
 
 interface ClientDetailsFormProps {
   service: PublicService;
   onSubmit: (clientData: ExtendedClientData) => void;
   isLoading?: boolean;
+  selectedLocation?: string;
 }
 
-export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetailsFormProps) => {
+export const ClientDetailsForm = ({ service, onSubmit, isLoading = false, selectedLocation }: ClientDetailsFormProps) => {
   const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
   
@@ -39,7 +41,8 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
     email: "",
     phone: "",
     hasGuests: false,
-    guests: []
+    guests: [],
+    clientAddress: ""
   });
 
   const [errors, setErrors] = useState<Partial<ExtendedClientData>>({});
@@ -117,6 +120,11 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
       if (formData.phone && !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.phone)) {
         newErrors.phone = "WhatsApp deve estar no formato (00) 00000-0000";
       }
+    }
+
+    // Validar endereço do cliente se necessário
+    if (selectedLocation === 'client_address' && !formData.clientAddress?.trim()) {
+      newErrors.clientAddress = "Endereço é obrigatório" as any;
     }
 
     // Validar número total de pessoas contra o limite do serviço
@@ -215,6 +223,23 @@ export const ClientDetailsForm = ({ service, onSubmit, isLoading }: ClientDetail
               <p className="text-sm text-destructive">{errors.phone}</p>
             )}
           </div>
+
+          {/* Client Address Field for client_address location */}
+          {selectedLocation === 'client_address' && (
+            <div className="space-y-2">
+              <Label htmlFor="clientAddress">Seu Endereço *</Label>
+              <Input
+                id="clientAddress"
+                value={formData.clientAddress || ""}
+                onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })}
+                placeholder="Digite seu endereço completo"
+                className={errors.clientAddress ? "border-destructive" : ""}
+              />
+              {errors.clientAddress && (
+                <p className="text-sm text-destructive">{errors.clientAddress}</p>
+              )}
+            </div>
+          )}
 
           <Separator className="my-6" />
 

@@ -18,6 +18,8 @@ export interface PublicService {
   price: number;
   duration: number;
   max_people: number;
+  location_types?: string[];
+  service_address?: string;
 }
 
 export const usePublicModels = (cityFilter?: string) => {
@@ -40,6 +42,8 @@ export const usePublicModels = (cityFilter?: string) => {
             price,
             duration,
             max_people,
+            location_types,
+            service_address,
             is_active
           )
         `)

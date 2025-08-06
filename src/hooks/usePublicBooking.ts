@@ -6,6 +6,7 @@ export interface ClientData {
   name: string;
   email?: string;
   phone?: string;
+  clientAddress?: string;
 }
 
 export interface BookingData {

@@ -93,8 +93,8 @@ export const useCreateUser = () => {
           throw new Error(result.error || 'Erro ao criar usuário');
         }
 
-        // If user is a modelo and has model_id, create model_profile
-        if (userData.user_role === 'modelo' && userData.model_id && result.user?.user_id) {
+        // If user is a model and has model_id, create model_profile
+        if (userData.user_role === 'model' && userData.model_id && result.user?.user_id) {
           const { error: profileError } = await supabase
             .from('model_profiles')
             .insert({
@@ -144,7 +144,7 @@ export const useUpdateUser = () => {
         }
 
         // Handle model profile association
-        if (userData.user_role === 'modelo' && systemData.user_id) {
+        if (userData.user_role === 'model' && systemData.user_id) {
           // Remove existing model profiles for this user
           await supabase
             .from('model_profiles')

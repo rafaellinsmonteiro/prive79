@@ -102,7 +102,7 @@ const UsersList = ({ users, loading, onEdit }: UsersListProps) => {
                 </div>
               )}
               
-              {user.user_role === 'modelo' && user.model_profiles && user.model_profiles.length > 0 && (
+              {user.user_role === 'model' && user.model_profiles && user.model_profiles.length > 0 && (
                 <div>
                   <span className="text-zinc-400 text-sm">Modelo Associado: </span>
                   <div className="flex items-center gap-2">
