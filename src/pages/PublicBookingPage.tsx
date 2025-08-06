@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, Clock, MapPin, User } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, User, Settings, FileText } from "lucide-react";
 import { usePublicModels, PublicModel, PublicService } from "@/hooks/usePublicModels";
 import { usePublicBooking, BookingData, ClientData } from "@/hooks/usePublicBooking";
 import { ModelSelectionCard } from "@/components/booking/ModelSelectionCard";
@@ -164,12 +164,21 @@ export default function PublicBookingPage({
       client: 'Dados'
     };
 
+    const stepIcons = {
+      models: User,
+      location: MapPin,
+      services: Settings,
+      datetime: Calendar,
+      client: FileText
+    };
+
     return (
       <div className="flex justify-center mb-8 px-4">
         <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto max-w-full">
           {filteredSteps.map((step, index) => {
             const isActive = step === currentStep;
             const isCompleted = filteredSteps.indexOf(currentStep) > index;
+            const IconComponent = stepIcons[step as keyof typeof stepIcons];
             
             return (
               <div key={step} className="flex items-center flex-shrink-0">
@@ -187,9 +196,12 @@ export default function PublicBookingPage({
                       : 'bg-muted text-muted-foreground'
                   }
                 `}>
-                  {index + 1}
+                  {/* Show icon on mobile, number on desktop */}
+                  <IconComponent className="h-3 w-3 md:hidden" />
+                  <span className="hidden md:inline">{index + 1}</span>
                 </div>
-                <span className={`ml-1 md:ml-2 text-xs md:text-sm whitespace-nowrap ${
+                {/* Show text label only on desktop */}
+                <span className={`ml-1 md:ml-2 text-xs md:text-sm whitespace-nowrap hidden md:inline ${
                   isActive ? 'text-foreground font-medium' : 'text-muted-foreground'
                 }`}>
                   {stepLabels[step as keyof typeof stepLabels]}
