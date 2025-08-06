@@ -17,8 +17,8 @@ const locationConfig = {
   },
   'my_address': {
     icon: Home,
-    label: 'Meu endereço',
-    description: 'No local da modelo'
+    label: 'Espaço de atendimento',
+    description: 'No local do prestador do serviço'
   },
   'client_address': {
     icon: User,

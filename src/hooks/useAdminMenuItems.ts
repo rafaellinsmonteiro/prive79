@@ -202,7 +202,7 @@ export const useMenuConfigurations = (menuItemId?: string) => {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as MenuConfiguration[];
     },
     enabled: !!menuItemId,
   });
@@ -217,7 +217,7 @@ export const useCreateMenuConfiguration = () => {
       
       const { data, error } = await supabase
         .from('menu_configurations')
-        .insert(configData)
+        .insert(configData as any)
         .select()
         .maybeSingle();
 

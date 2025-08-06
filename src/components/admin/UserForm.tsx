@@ -103,14 +103,14 @@ const UserForm = ({ userId, onSuccess }: UserFormProps) => {
       };
 
       if (userId) {
-        await updateUserMutation.mutateAsync({ id: userId, ...submitData });
+        await updateUserMutation.mutateAsync({ id: userId, ...submitData } as any);
         toast.success('Usuário atualizado com sucesso!');
       } else {
         if (!data.password) {
           toast.error('Senha é obrigatória para criar um usuário');
           return;
         }
-        await createUserMutation.mutateAsync({ ...submitData, password: data.password });
+        await createUserMutation.mutateAsync({ ...submitData, password: data.password } as any);
         toast.success('Usuário criado com sucesso! Agora ele pode fazer login no sistema.');
       }
       onSuccess();
